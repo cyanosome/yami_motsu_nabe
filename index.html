@@ -312,7 +312,51 @@
         .badge-motsu { background: #d63031; color: white; }
         .badge-vege { background: #00b894; color: white; }
         .badge-spice { background: #e17055; color: white; }
+        .badge-sweets { background: #e84393; color: white; }
         .badge-yami { background: #6c5ce7; color: white; }
+
+        /* 味覚バランスメーター (甘さ & 辛さ表現) */
+        .taste-meter-container {
+            margin-top: 6px;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .taste-meter-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-bottom: 2px;
+        }
+        .taste-meter-bar-track {
+            position: relative;
+            height: 7px;
+            background: linear-gradient(90deg, #fd79a8 0%, #a29bfe 40%, #fdcb6e 50%, #ff7675 75%, #d63031 100%);
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        .taste-pointer {
+            position: absolute;
+            top: -3px;
+            width: 13px;
+            height: 13px;
+            background: #fff;
+            border: 2px solid #2d3436;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 6px rgba(255,255,255,0.9);
+            transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .taste-warning {
+            font-size: 0.7rem;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+        .warning-spicy { color: #ff7675; }
+        .warning-sweet { color: #fd79a8; }
 
         .card-icon {
             font-size: 3rem;
@@ -1119,8 +1163,9 @@
                         </div>
                     </div>
                     <div class="help-box">
-                        ⚠️ <b>バースト注意</b><br>
-                        ・「激辛ペッパー」や「劇物」などで激辛度が <b>4</b> 以上になると【バースト】して0点になります！
+                        ⚠️ <b>ダブルバースト注意</b><br>
+                        ・辛さが <b>🔥+3 以上</b> になるか、甘さが <b>🍬-3 以下</b> になると【バースト】して0点確定！<br>
+                        ・お菓子 (🍬) を取ると辛い具材の辛さを相殺して安全にできます！
                     </div>
                 </div>
             </div>
@@ -1150,30 +1195,36 @@
         /* --- 具材マスターデータ --- */
         const INGREDIENTS_DATABASE = [
             // もつ系
-            { id: 'motsu_premium', name: '極上牛もつ', category: 'motsu', score: 6, spice: 0, icon: '🥩', allowedSizes: ['large'], desc: 'ぷりぷりの脂がのった高級もつ。高得点！' },
-            { id: 'motsu_normal', name: '国産牛もつ', category: 'motsu', score: 4, spice: 0, icon: '🥓', allowedSizes: ['small', 'mid', 'large'], desc: '定番のうまみ豊かな牛もつ。' },
-            { id: 'motsu_mince', name: 'もつダンゴ', category: 'motsu', score: 3, spice: 0, icon: '🧆', allowedSizes: ['small', 'mid'], desc: '出汁がよく染み込む絶品つくね。' },
-            { id: 'motsu_suburi', name: '特選ハツ・センマイ', category: 'motsu', score: 4, spice: 0, icon: '🍖', allowedSizes: ['mid', 'large'], desc: 'コリコリ食感がたまらない部位。' },
+            { id: 'motsu_premium', name: '極上牛もつ', category: 'motsu', score: 6, taste: 0, icon: '🥩', allowedSizes: ['large'], desc: 'ぷりぷりの脂がのった高級もつ。高得点！' },
+            { id: 'motsu_normal', name: '国産牛もつ', category: 'motsu', score: 4, taste: 0, icon: '🥓', allowedSizes: ['small', 'mid', 'large'], desc: '定番のうまみ豊かな牛もつ。' },
+            { id: 'motsu_mince', name: 'もつダンゴ', category: 'motsu', score: 3, taste: 0, icon: '🧆', allowedSizes: ['small', 'mid'], desc: '出汁がよく染み込む絶品つくね。' },
+            { id: 'motsu_suburi', name: '特選ハツ・センマイ', category: 'motsu', score: 4, taste: 0, icon: '🍖', allowedSizes: ['mid', 'large'], desc: 'コリコリ食感がたまらない部位。' },
             
             // 野菜系
-            { id: 'vege_cabbage', name: 'シャキシャキキャベツ', category: 'vege', score: 2, spice: 0, icon: '🥬', allowedSizes: ['small'], desc: '甘みがあってスープとよく合う。' },
-            { id: 'vege_nira', name: 'シャキッとニラ', category: 'vege', score: 2, spice: 0, icon: '🌱', allowedSizes: ['small', 'mid'], desc: 'もつ鍋には欠かせないスタミナ野菜。' },
-            { id: 'vege_tofu', name: '絹ごし豆腐', category: 'vege', score: 3, spice: 0, icon: '🧊', allowedSizes: ['mid', 'large'], desc: 'アツアツの味が染みた豆腐。' },
-            { id: 'vege_garlic', name: 'にんにくスライス', category: 'vege', score: 2, spice: 0, icon: '🧄', allowedSizes: ['small', 'mid'], desc: 'もつの旨味を爆発させる！' },
-            { id: 'vege_gobou', name: 'ささがきゴボウ', category: 'vege', score: 3, spice: 0, icon: '🪵', allowedSizes: ['small', 'mid'], desc: '香りと食感のアクセント。' },
+            { id: 'vege_cabbage', name: 'シャキシャキキャベツ', category: 'vege', score: 2, taste: 0, icon: '🥬', allowedSizes: ['small'], desc: '甘みがあってスープとよく合う。' },
+            { id: 'vege_nira', name: 'シャキッとニラ', category: 'vege', score: 2, taste: 0, icon: '🌱', allowedSizes: ['small', 'mid'], desc: 'もつ鍋には欠かせないスタミナ野菜。' },
+            { id: 'vege_tofu', name: '絹ごし豆腐', category: 'vege', score: 3, taste: 0, icon: '🧊', allowedSizes: ['mid', 'large'], desc: 'アツアツの味が染みた豆腐。' },
+            { id: 'vege_garlic', name: 'にんにくスライス', category: 'vege', score: 2, taste: 0, icon: '🧄', allowedSizes: ['small', 'mid'], desc: 'もつの旨味を爆発させる！' },
+            { id: 'vege_gobou', name: 'ささがきゴボウ', category: 'vege', score: 3, taste: 0, icon: '🪵', allowedSizes: ['small', 'mid'], desc: '香りと食感のアクセント。' },
 
             // スパイス / 特殊
-            { id: 'spice_chili', name: '鷹の爪唐辛子', category: 'spice', score: 1, spice: 1, icon: '🌶️', allowedSizes: ['small', 'mid', 'large'], desc: 'ピリッと引き締める。激辛度+1。' },
-            { id: 'spice_dashi', name: '秘伝の特製出汁', category: 'spice', score: 4, spice: 0, icon: '🍶', allowedSizes: ['mid', 'large'], desc: '全体の旨味を大幅アップ。' },
-            { id: 'spice_ramen', name: '〆のちゃんぽん麺', category: 'spice', score: 5, spice: 0, icon: '🍜', allowedSizes: ['mid', 'large'], desc: '最後の満足度を加速させる麺。' },
-            { id: 'spice_yuzu', name: '爽やか柚子胡椒', category: 'spice', score: 3, spice: 1, icon: '🍋', allowedSizes: ['small', 'mid'], desc: '風味豊かな高級薬味。激辛度+1。' },
+            { id: 'spice_chili', name: '鷹の爪唐辛子', category: 'spice', score: 1, taste: 1, icon: '🌶️', allowedSizes: ['small', 'mid', 'large'], desc: 'ピリッと引き締める。辛さ+1。' },
+            { id: 'spice_dashi', name: '秘伝の特製出汁', category: 'spice', score: 4, taste: 0, icon: '🍶', allowedSizes: ['mid', 'large'], desc: '全体の旨味を大幅アップ。' },
+            { id: 'spice_ramen', name: '〆のちゃんぽん麺', category: 'spice', score: 5, taste: 0, icon: '🍜', allowedSizes: ['mid', 'large'], desc: '最後の満足度を加速させる麺。' },
+            { id: 'spice_yuzu', name: '爽やか柚子胡椒', category: 'spice', score: 3, taste: 1, icon: '🍋', allowedSizes: ['small', 'mid'], desc: '風味豊かな高級薬味。辛さ+1。' },
+
+            // お菓子系 (辛さを相殺する甘み属性)
+            { id: 'sweets_candy', name: 'カラフルキャンディ', category: 'sweets', score: 2, taste: -1, icon: '🍬', allowedSizes: ['small', 'mid'], desc: '甘くて可愛いお菓子。辛さを和らげる！(甘さ-1)' },
+            { id: 'sweets_chocolate', name: '高級チョコレート', category: 'sweets', score: 4, taste: -1, icon: '🍫', allowedSizes: ['small', 'mid', 'large'], desc: '濃厚な甘み。スープの辛味を相殺！(甘さ-1)' },
+            { id: 'sweets_donut', name: '濃厚ドーナツ', category: 'sweets', score: 3, taste: -2, icon: '🍩', allowedSizes: ['mid', 'large'], desc: '甘さたっぷり！味覚を一気に甘くする。(甘さ-2)' },
 
             // 闇具材（トラップ / バースト要素）
-            { id: 'yami_pepper', name: 'デスソースペッパー', category: 'yami', score: -2, spice: 2, icon: '🔥', allowedSizes: ['small', 'mid', 'large'], desc: '超危険！一気に激辛度+2。' },
-            { id: 'yami_tawashi', name: '謎のたわし', category: 'yami', score: -6, spice: 0, icon: '🧽', allowedSizes: ['large'], desc: '食べられない！大幅マイナス点。' },
-            { id: 'yami_slime', name: '紫色物体X', category: 'yami', score: -4, spice: 1, icon: '👾', allowedSizes: ['mid', 'large'], desc: '闇鍋の象徴。怪しいエキスが溢れ出る。' },
-            { id: 'yami_wasabi', name: '大量の生ワサビ', category: 'yami', score: -1, spice: 2, icon: '🟢', allowedSizes: ['small', 'mid'], desc: '鼻に抜ける痛烈なツーン！激辛度+2。' },
-            { id: 'yami_habanero', name: '魔界ハバネロ', category: 'yami', score: -3, spice: 3, icon: '💀', allowedSizes: ['mid', 'large'], desc: '一発即死レベルの超極悪唐辛子！激辛度+3。' }
+            { id: 'yami_pepper', name: 'デスソースペッパー', category: 'yami', score: -2, taste: 2, icon: '🔥', allowedSizes: ['small', 'mid', 'large'], desc: '超危険！一気に辛さ+2。' },
+            { id: 'yami_tawashi', name: '謎のたわし', category: 'yami', score: -6, taste: 0, icon: '🧽', allowedSizes: ['large'], desc: '食べられない！大幅マイナス点。' },
+            { id: 'yami_slime', name: '紫色物体X', category: 'yami', score: -4, taste: 1, icon: '👾', allowedSizes: ['mid', 'large'], desc: '闇鍋の象徴。怪しいエキスが溢れ出る。' },
+            { id: 'yami_wasabi', name: '大量の生ワサビ', category: 'yami', score: -1, taste: 2, icon: '🟢', allowedSizes: ['small', 'mid'], desc: '鼻に抜ける痛烈なツーン！辛さ+2。' },
+            { id: 'yami_habanero', name: '魔界ハバネロ', category: 'yami', score: -3, taste: 3, icon: '💀', allowedSizes: ['mid', 'large'], desc: '一発即死レベルの超極悪唐辛子！(辛さ+3)' },
+            { id: 'yami_syrup', name: '大量の角砂糖シロップ', category: 'yami', score: -3, taste: -3, icon: '🍯', allowedSizes: ['mid', 'large'], desc: '超危険！一発即死レベルの激甘トラップ！(甘さ-3)' }
         ];
 
         /* --- 食材カードインスタンス生成 (サイズ補正適用) --- */
@@ -1182,7 +1233,7 @@
             const chosenSize = forceSize || allowed[Math.floor(Math.random() * allowed.length)];
             
             let score = baseItem.score;
-            let spice = baseItem.spice;
+            let taste = baseItem.taste || 0;
             let sizeLabel = '';
             let sizeBadgeText = '中';
             let sizeBadgeClass = 'size-mid';
@@ -1198,7 +1249,8 @@
                 score = (baseItem.score >= 0)
                     ? Math.ceil(baseItem.score * 1.5)
                     : Math.floor(baseItem.score * 1.5);
-                if (spice > 0) spice += 1; // 大盛は激辛度も増加
+                if (taste > 0) taste += 1; // 大盛は辛さ増加
+                if (taste < 0) taste -= 1; // 大盛は甘さ増加
                 sizeLabel = ' (大盛)';
                 sizeBadgeText = '大';
                 sizeBadgeClass = 'size-large';
@@ -1208,7 +1260,7 @@
 
             return {
                 ...baseItem,
-                id: uniqueId, // 一意なインスタンスID
+                id: uniqueId,
                 baseId: baseItem.id,
                 size: chosenSize,
                 sizeBadgeText: sizeBadgeText,
@@ -1216,7 +1268,8 @@
                 name: baseItem.name + sizeLabel,
                 rawName: baseItem.name,
                 score: score,
-                spice: spice
+                taste: taste,
+                spice: taste // 後方互換維持
             };
         }
 
@@ -1738,6 +1791,7 @@
                 let badgeText = 'もつ';
                 if (item.category === 'vege') { badgeClass = 'badge-vege'; badgeText = '野菜'; }
                 if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '薬味/出汁'; }
+                if (item.category === 'sweets') { badgeClass = 'badge-sweets'; badgeText = 'お菓子'; }
                 if (item.category === 'yami') { badgeClass = 'badge-yami'; badgeText = '闇具材'; }
 
                 const base = INGREDIENTS_DATABASE.find(b => b.id === (item.baseId || item.id.split('_')[0])) || item;
@@ -1747,6 +1801,8 @@
                 const canMid = allowed.includes('mid');
                 const canLarge = allowed.includes('large');
                 const curSize = item.size || 'mid';
+
+                const tasteText = (item.taste > 0) ? `🔥+${item.taste}` : ((item.taste < 0) ? `🍬${item.taste}` : '');
 
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1761,7 +1817,7 @@
                     <div class="card-name">${item.name}</div>
                     <div class="card-desc">${item.desc}</div>
                     <div class="card-pts ${item.score < 0 ? 'negative' : ''}">
-                        ${item.score >= 0 ? '+' : ''}${item.score} pt ${item.spice > 0 ? '🔥+'+item.spice : ''}
+                        ${item.score >= 0 ? '+' : ''}${item.score} pt ${tasteText}
                     </div>
                 `;
 
@@ -1800,8 +1856,9 @@
                 const ptsEl = cardEl.querySelector('.card-pts');
                 if (nameEl) nameEl.innerText = newInstance.name;
                 if (ptsEl) {
+                    const tasteText = (newInstance.taste > 0) ? `🔥+${newInstance.taste}` : ((newInstance.taste < 0) ? `🍬${newInstance.taste}` : '');
                     ptsEl.className = `card-pts ${newInstance.score < 0 ? 'negative' : ''}`;
-                    ptsEl.innerHTML = `${newInstance.score >= 0 ? '+' : ''}${newInstance.score} pt ${newInstance.spice > 0 ? '🔥+'+newInstance.spice : ''}`;
+                    ptsEl.innerHTML = `${newInstance.score >= 0 ? '+' : ''}${newInstance.score} pt ${tasteText}`;
                 }
 
                 const btns = cardEl.querySelectorAll('.size-btn');
@@ -1990,16 +2047,19 @@
 
             gameState.players.forEach((p, idx) => {
                 const isCurrentTurn = (idx === gameState.currentTurnPlayerIndex && !p.isPassed && !p.isBusted);
-                
+                const pBowl = p.bowl || [];
+                const totalTaste = pBowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
+
                 const card = document.createElement('div');
                 card.className = `bowl-card ${isCurrentTurn ? 'active-turn' : ''} ${p.isPassed ? 'passed' : ''} ${p.isBusted ? 'busted' : ''}`;
-                
+
                 let statusTag = '<span class="bowl-status-tag status-active">引く順</span>';
                 if (p.isPassed) statusTag = '<span class="bowl-status-tag status-pass">パス(確定)</span>';
-                if (p.isBusted) statusTag = '<span class="bowl-status-tag status-bust">🔥激辛バースト</span>';
-
-                const pBowl = p.bowl || [];
-                const totalSpice = pBowl.reduce((acc, cur) => acc + cur.spice, 0);
+                if (p.isBusted) {
+                    if (totalTaste >= 3) statusTag = '<span class="bowl-status-tag status-bust">🔥激辛バースト</span>';
+                    else if (totalTaste <= -3) statusTag = '<span class="bowl-status-tag status-bust" style="background:#e84393;">🍬激甘バースト</span>';
+                    else statusTag = '<span class="bowl-status-tag status-bust">💥バースト</span>';
+                }
 
                 let slotsHtml = '';
                 for (let s = 0; s < 4; s++) {
@@ -2017,6 +2077,21 @@
                     }
                 }
 
+                // 味覚バランスメーターの計算
+                const clampedTaste = Math.max(-3, Math.min(3, totalTaste));
+                const pointerPercent = 50 + (clampedTaste * 16.66);
+
+                let tasteStatusText = '⚖️ 絶妙バランス';
+                if (totalTaste > 0) tasteStatusText = `🔥+${totalTaste} (辛め)`;
+                if (totalTaste < 0) tasteStatusText = `🍬${totalTaste} (甘め)`;
+
+                let warningHtml = '';
+                if (totalTaste === 2 && !p.isPassed && !p.isBusted) {
+                    warningHtml = '<div class="taste-warning warning-spicy">⚠️ あと辛み +1 で激辛バースト！</div>';
+                } else if (totalTaste === -2 && !p.isPassed && !p.isBusted) {
+                    warningHtml = '<div class="taste-warning warning-sweet">⚠️ あと甘み -1 で激甘バースト！</div>';
+                }
+
                 card.innerHTML = `
                     <div class="bowl-header">
                         <span>${p.name} ${p.uid === myPlayerId ? '<span style="color:var(--accent-gold); font-size:0.8rem;">(あなた)</span>' : ''}</span>
@@ -2025,9 +2100,20 @@
                     <div class="bowl-items-slots">
                         ${slotsHtml}
                     </div>
-                    <div style="font-size:0.8rem; color:var(--text-sub); width:100%; display:flex; justify-content:space-between;">
-                        <span>激辛度: ${'🔥'.repeat(totalSpice) || '0'}</span>
-                        <span>確定枚数: ${pBowl.length}/4</span>
+                    <div class="taste-meter-container">
+                        <div class="taste-meter-header">
+                            <span>味わい: <b>${tasteStatusText}</b></span>
+                            <span>確定: ${pBowl.length}/4</span>
+                        </div>
+                        <div class="taste-meter-bar-track">
+                            <div class="taste-pointer" style="left: ${pointerPercent}%;"></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-sub);">
+                            <span>🍬甘み-3</span>
+                            <span>⚖️0</span>
+                            <span>辛み+3🔥</span>
+                        </div>
+                        ${warningHtml}
                     </div>
                 `;
                 container.appendChild(card);
@@ -2177,11 +2263,15 @@
             addGameLog(`${curPlayer.name} が 【${chosenItem.icon} ${chosenItem.name}】 を獲得！（選ばれなかった${remainingCount}枚は鍋に戻してシャッフルしました）`);
             logPhase2Debug(`具材選択完了 (${chosenItem.name} を獲得, ${remainingCount}枚返却)`);
 
-            const currentSpice = curPlayer.bowl.reduce((acc, cur) => acc + cur.spice, 0);
-            if (currentSpice >= 4) {
+            const currentTaste = curPlayer.bowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
+            if (currentTaste >= 3) {
                 curPlayer.isBusted = true;
                 playSound('bust');
-                addGameLog(`💥💥 ${curPlayer.name} のお椀が激辛度 (🔥${currentSpice}) に達し【激辛バースト】しました！0点確定！`, false, true);
+                addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！0点確定！`, false, true);
+            } else if (currentTaste <= -3) {
+                curPlayer.isBusted = true;
+                playSound('bust');
+                addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！0点確定！`, false, true);
             } else if (curPlayer.bowl.length >= 4) {
                 curPlayer.isPassed = true;
                 addGameLog(`🥣 ${curPlayer.name} は上限の4枚の具材を確保し、お椀が完成しました！`);
@@ -2263,13 +2353,13 @@
                 return;
             }
 
-            const currentSpice = (cpu.bowl || []).reduce((acc, cur) => acc + cur.spice, 0);
+            const currentTaste = (cpu.bowl || []).reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
             const currentScore = (cpu.bowl || []).reduce((acc, cur) => acc + cur.score, 0);
 
-            // パス判定
+            // パス判定 (味覚の絶対値が2以上でバースト防止のためパス)
             let shouldPass = false;
             if ((cpu.bowl || []).length >= 3 && currentScore >= 10) shouldPass = true;
-            else if (currentSpice >= 3 && Math.random() < 0.8) shouldPass = true;
+            else if (Math.abs(currentTaste) >= 2 && Math.random() < 0.8) shouldPass = true;
             else if ((cpu.bowl || []).length >= 3 && Math.random() < 0.5) shouldPass = true;
 
             if (shouldPass) {
@@ -2330,8 +2420,8 @@
             if (!player.bowl) player.bowl = [];
             player.bowl.push(chosenItem);
 
-            const currentSpice = player.bowl.reduce((acc, cur) => acc + cur.spice, 0);
-            if (currentSpice >= 4) {
+            const currentTaste = player.bowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
+            if (currentTaste >= 3 || currentTaste <= -3) {
                 player.isBusted = true;
                 playSound('bust');
             } else if (player.bowl.length >= 4) {
