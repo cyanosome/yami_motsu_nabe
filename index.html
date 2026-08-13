@@ -810,6 +810,43 @@
             cursor: not-allowed;
         }
 
+        /* 影絵 (取札) スタイル */
+        .scoop-container {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin: 15px 0;
+        }
+        .silhouette-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-gold);
+            border-radius: 14px;
+            padding: 14px;
+            width: 120px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .silhouette-card:hover {
+            transform: translateY(-6px) scale(1.04);
+            border-color: var(--accent-gold);
+            box-shadow: 0 10px 25px rgba(253, 203, 110, 0.4);
+            background: var(--bg-card-hover);
+        }
+        .silhouette-icon {
+            font-size: 2.8rem;
+            filter: brightness(0) drop-shadow(0 0 6px rgba(255,255,255,0.5));
+            margin: 8px 0;
+            user-select: none;
+        }
+        .silhouette-label {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
         /* オンライン対戦用モーダル スタイル */
         .modal-overlay {
             position: fixed;
@@ -1035,7 +1072,7 @@
         <div class="phase-container" id="phase-2-view">
             <div class="phase-title-box">
                 <h2 class="phase-title">鍋漁りフェーズ（チキンレース）</h2>
-                <p class="phase-desc">鍋から具材を引くか、パスして確定するか選択してください（最大4枚までドロー可能）</p>
+                <p class="phase-desc">掬い上げた3枚の影絵カードから1枚を選択してください（最大4枚までお椀に確保可能）</p>
             </div>
 
             <div class="game-layout">
@@ -1044,7 +1081,7 @@
                         🎲 <span id="current-turn-player-name">プレイヤー1</span> の手番です！
                     </div>
 
-                    <div class="pot-container" id="pot-element" onclick="handleDrawClick()">
+                    <div class="pot-container" id="pot-element">
                         <div class="pot-soup">
                             <div class="steam-bubble" style="width:20px; height:20px; left:30%; bottom:20%; animation-delay:0s;"></div>
                             <div class="steam-bubble" style="width:30px; height:30px; left:60%; bottom:30%; animation-delay:0.8s;"></div>
@@ -1056,8 +1093,16 @@
                         </div>
                     </div>
 
+                    <!-- 影絵 (取札3枚) 表示コンテナ -->
+                    <div id="scoop-section" style="margin: 15px 0; text-align: center;">
+                        <div style="font-size:0.85rem; color:var(--accent-gold); margin-bottom:8px;">👇 鍋から掬い上げた取札 (クリックして選ぶ)</div>
+                        <div class="scoop-container" id="scoop-cards-container">
+                            <!-- 動的生成 -->
+                        </div>
+                    </div>
+
                     <div class="action-bar" style="margin-top: 10px;">
-                        <button class="btn-primary" id="btn-draw" onclick="handleDrawClick()">🍲 鍋から1枚引く</button>
+                        <button class="btn-primary" id="btn-reroll" onclick="reshuffleScoop()">🥄 もう一回掬う (残り1回)</button>
                         <button class="btn-secondary" id="btn-pass" onclick="handlePassClick()">🛑 パス（いただきます）</button>
                     </div>
 
@@ -1827,11 +1872,20 @@
                     });
                     updatedPotStack.sort(() => 0.5 - Math.random());
 
+                    // 最初の取札3枚を準備
+                    const firstScoopCount = Math.min(3, updatedPotStack.length);
+                    const firstScoopOptions = [];
+                    for (let i = 0; i < firstScoopCount; i++) {
+                        firstScoopOptions.push(updatedPotStack.pop());
+                    }
+
                     roomRef.update({
                         potStack: updatedPotStack,
                         currentDraftPlayerIndex: nextDraftIndex,
                         currentPhase: 2,
-                        currentTurnPlayerIndex: 0
+                        currentTurnPlayerIndex: 0,
+                        currentScoopOptions: firstScoopOptions,
+                        hasRerolledThisTurn: false
                     });
                 }
                 gameState.selectedDraftIds = [];
@@ -1883,15 +1937,53 @@
         }
 
         /* --- PHASE 2: 鍋漁りチキンレース logic --- */
+        function logPhase2Debug(actionName) {
+            const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+            const pot = gameState.potStack || [];
+            const scoops = Object.values(gameState.currentScoopOptions || {});
+
+            console.group(`[Phase2 Debug] ${actionName}`);
+            console.log("🎮 手番プレイヤー:", curPlayer ? `${curPlayer.name} (ID: ${curPlayer.id})` : "なし");
+            console.log("🍲 鍋の残り山札(potStack)枚数:", pot.length);
+            console.log("🍲 山札の中身 (Top 5):", pot.slice(-5).map(c => c.name || c.id));
+            console.log("🥄 現在提示中の取札(currentScoopOptions)枚数:", scoops.length);
+            console.log("🥄 取札の中身:", scoops.map(c => c.name || c.id));
+            console.log("🔄 リロール使用済みか:", !!gameState.hasRerolledThisTurn);
+            console.groupEnd();
+        }
+
         function initPhase2Pot() {
             gameState.currentTurnPlayerIndex = 0;
+            gameState.hasRerolledThisTurn = false;
+            gameState.currentScoopOptions = [];
+            prepareScoopForCurrentTurn();
             renderPotUI();
-            addGameLog('鍋がグツグツと煮立ちました！引き順に従って具材を取ってください。', true);
+            logPhase2Debug("Phase 2 初期化完了");
+            addGameLog('鍋がグツグツと煮立ちました！影絵の取札から具材を選んでください。', true);
             checkTurnStep();
         }
 
+        function prepareScoopForCurrentTurn() {
+            if (!gameState.potStack || gameState.potStack.length === 0) {
+                gameState.currentScoopOptions = [];
+                logPhase2Debug("取札準備: 鍋が空のため取札なし");
+                return;
+            }
+
+            // 取札がすでにあれば何もしない
+            if (gameState.currentScoopOptions && Object.keys(gameState.currentScoopOptions).length > 0) return;
+
+            // 鍋から最大3枚を掬い上げる
+            const scoopCount = Math.min(3, gameState.potStack.length);
+            gameState.currentScoopOptions = [];
+            for (let i = 0; i < scoopCount; i++) {
+                gameState.currentScoopOptions.push(gameState.potStack.pop());
+            }
+            logPhase2Debug(`取札準備完了: 鍋から${scoopCount}枚掬いました`);
+        }
+
         function renderPotUI() {
-            document.getElementById('pot-count').innerText = gameState.potStack.length;
+            document.getElementById('pot-count').innerText = (gameState.potStack ? gameState.potStack.length : 0);
 
             const container = document.getElementById('bowls-container');
             container.innerHTML = '';
@@ -1945,6 +2037,157 @@
             if (curPlayer) {
                 document.getElementById('current-turn-player-name').innerText = curPlayer.name;
             }
+
+            renderScoopCards();
+            updateRerollButtonState();
+        }
+
+        function renderScoopCards() {
+            const container = document.getElementById('scoop-cards-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+            const isMyTurn = (gameState.mode === 'online') 
+                ? (curPlayer && curPlayer.uid === myPlayerId)
+                : (curPlayer && !curPlayer.isCpu);
+
+            const options = gameState.currentScoopOptions || [];
+
+            if (options.length === 0) {
+                container.innerHTML = `<div style="color:var(--text-sub); font-size:0.9rem;">鍋に具材がありません</div>`;
+                return;
+            }
+
+            options.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'silhouette-card';
+                card.innerHTML = `
+                    <div style="font-size:0.75rem; color:var(--accent-gold); font-weight:bold;">取札 #${idx+1}</div>
+                    <div class="silhouette-icon">${item.icon}</div>
+                    <div class="silhouette-label">❓ 謎の具材</div>
+                `;
+
+                if (isMyTurn && curPlayer && !curPlayer.isPassed && !curPlayer.isBusted) {
+                    card.onclick = () => selectScoopedItem(idx);
+                } else {
+                    card.style.opacity = '0.6';
+                    card.style.cursor = 'default';
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        function updateRerollButtonState() {
+            const btnReroll = document.getElementById('btn-reroll');
+            const btnPass = document.getElementById('btn-pass');
+            const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+
+            const isMyTurn = (gameState.mode === 'online')
+                ? (curPlayer && curPlayer.uid === myPlayerId)
+                : (curPlayer && !curPlayer.isCpu);
+
+            if (btnReroll) {
+                if (gameState.hasRerolledThisTurn) {
+                    btnReroll.innerText = '🥄 もう一回掬う (使用済)';
+                    btnReroll.disabled = true;
+                } else {
+                    btnReroll.innerText = '🥄 もう一回掬う (残り1回)';
+                    btnReroll.disabled = !isMyTurn || (pIsUnavailable(curPlayer));
+                }
+            }
+
+            if (btnPass) {
+                btnPass.disabled = !isMyTurn || (pIsUnavailable(curPlayer));
+            }
+        }
+
+        function pIsUnavailable(p) {
+            return !p || p.isPassed || p.isBusted || (p.bowl && p.bowl.length >= 4);
+        }
+
+        function reshuffleScoop() {
+            const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+            if (pIsUnavailable(curPlayer)) return;
+
+            if (gameState.hasRerolledThisTurn) {
+                showToast("1ターンにリロールできるのは1回までです");
+                return;
+            }
+
+            if (gameState.mode === 'online') {
+                if (!roomRef || curPlayer.uid !== myPlayerId) return;
+                executeOnlineReroll();
+                return;
+            }
+
+            playSound('add');
+            gameState.hasRerolledThisTurn = true;
+
+            const scoops = Object.values(gameState.currentScoopOptions || {});
+            if (scoops.length > 0) {
+                gameState.potStack.push(...scoops);
+                gameState.currentScoopOptions = [];
+            }
+
+            // シャッフル
+            gameState.potStack.sort(() => 0.5 - Math.random());
+
+            // 再度取札を掬う
+            prepareScoopForCurrentTurn();
+
+            addGameLog(`${curPlayer.name} が「もう一回掬う」で取札を鍋に戻してリロールしました！`);
+            renderPotUI();
+        }
+
+        function selectScoopedItem(scoopIndex) {
+            const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+            if (pIsUnavailable(curPlayer)) return;
+
+            if (gameState.mode === 'online') {
+                if (!roomRef || curPlayer.uid !== myPlayerId) return;
+                executeOnlineScoopSelect(scoopIndex);
+                return;
+            }
+
+            const scoops = Object.values(gameState.currentScoopOptions || {});
+            if (!scoops || !scoops[scoopIndex]) return;
+
+            playSound('draw');
+            const chosenItem = scoops.splice(scoopIndex, 1)[0];
+
+            if (!curPlayer.bowl) curPlayer.bowl = [];
+            curPlayer.bowl.push(chosenItem);
+
+            // 選ばれなかった残りの取札を確実に鍋に戻してシャッフル
+            const remainingCount = scoops.length;
+            if (remainingCount > 0) {
+                gameState.potStack.push(...scoops);
+            }
+            gameState.potStack.sort(() => 0.5 - Math.random());
+            gameState.currentScoopOptions = [];
+
+            const pot = document.getElementById('pot-element');
+            if (pot) {
+                pot.classList.add('shaking');
+                setTimeout(() => pot.classList.remove('shaking'), 400);
+            }
+
+            addGameLog(`${curPlayer.name} が 【${chosenItem.icon} ${chosenItem.name}】 を獲得！（選ばれなかった${remainingCount}枚は鍋に戻してシャッフルしました）`);
+            logPhase2Debug(`具材選択完了 (${chosenItem.name} を獲得, ${remainingCount}枚返却)`);
+
+            const currentSpice = curPlayer.bowl.reduce((acc, cur) => acc + cur.spice, 0);
+            if (currentSpice >= 4) {
+                curPlayer.isBusted = true;
+                playSound('bust');
+                addGameLog(`💥💥 ${curPlayer.name} のお椀が激辛度 (🔥${currentSpice}) に達し【激辛バースト】しました！0点確定！`, false, true);
+            } else if (curPlayer.bowl.length >= 4) {
+                curPlayer.isPassed = true;
+                addGameLog(`🥣 ${curPlayer.name} は上限の4枚の具材を確保し、お椀が完成しました！`);
+            }
+
+            advanceTurn();
         }
 
         function addGameLog(msg, isHighlight = false, isBust = false) {
@@ -1960,85 +2203,132 @@
             if (gameState.mode === 'online') return; // オンライン時はFirebaseリスナーが描画
 
             const activePlayers = gameState.players.filter(p => !p.isPassed && !p.isBusted);
-            if (activePlayers.length === 0 || gameState.potStack.length === 0) {
+            if (activePlayers.length === 0 || (gameState.potStack.length === 0 && (!gameState.currentScoopOptions || Object.keys(gameState.currentScoopOptions).length === 0))) {
                 addGameLog('全員の行動が終了したか、鍋が空になりました！点数集計へ進みます。', true);
                 setTimeout(() => switchPhase(3), 1500);
                 return;
             }
 
             const p = gameState.players[gameState.currentTurnPlayerIndex];
-            if (p.isPassed || p.isBusted || (p.bowl && p.bowl.length >= 4)) {
-                if (p.bowl && p.bowl.length >= 4 && !p.isPassed && !p.isBusted) {
-                    p.isPassed = true;
-                    addGameLog(`${p.name} は4枚引いたためお椀を確定しました。`);
-                }
+            if (pIsUnavailable(p)) {
                 advanceTurn();
                 return;
             }
 
+            // 新しいターンの準備
+            gameState.hasRerolledThisTurn = false;
+            prepareScoopForCurrentTurn();
             renderPotUI();
+            logPhase2Debug(`ターンステップ確認完了 (次手番: ${p.name}, CPU: ${p.isCpu})`);
 
             if (p.isCpu) {
-                document.getElementById('btn-draw').disabled = true;
-                document.getElementById('btn-pass').disabled = true;
-                setTimeout(() => handleCpuTurn(p), 1200);
-            } else {
-                document.getElementById('btn-draw').disabled = false;
-                document.getElementById('btn-pass').disabled = false;
+                if (gameState.cpuTimerId) clearTimeout(gameState.cpuTimerId);
+                gameState.cpuTimerId = setTimeout(() => {
+                    gameState.cpuTimerId = null;
+                    handleCpuTurn(p);
+                }, 1200);
             }
         }
 
         function advanceTurn() {
+            logPhase2Debug("手番交代 (advanceTurn 実行前)");
+
+            if (gameState.cpuTimerId) {
+                clearTimeout(gameState.cpuTimerId);
+                gameState.cpuTimerId = null;
+            }
+
+            // ⚠️ 安全保護: 未選択の取札が残っていた場合、破棄せず必ず鍋に返却
+            const leftoverScoops = Object.values(gameState.currentScoopOptions || {});
+            if (leftoverScoops.length > 0) {
+                gameState.potStack.push(...leftoverScoops);
+                gameState.potStack.sort(() => 0.5 - Math.random());
+                gameState.currentScoopOptions = [];
+            }
+
             gameState.currentTurnPlayerIndex = (gameState.currentTurnPlayerIndex + 1) % gameState.players.length;
+            gameState.hasRerolledThisTurn = false;
             checkTurnStep();
         }
 
-        function handleDrawClick() {
-            const p = gameState.players[gameState.currentTurnPlayerIndex];
-            if (p.isCpu || p.isPassed || p.isBusted || (p.bowl && p.bowl.length >= 4)) return;
+        function handleCpuTurn(cpu) {
+            // タイマー発火時に手番がズレていればスキップ
+            const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+            if (!curPlayer || curPlayer.id !== cpu.id) return;
 
-            if (gameState.mode === 'online') {
-                if (!roomRef || p.uid !== myPlayerId) return;
-                executeOnlineDraw();
+            logPhase2Debug(`CPU思考開始 (${cpu.name})`);
+            const scoops = Object.values(gameState.currentScoopOptions || {});
+            if (scoops.length === 0) {
+                advanceTurn();
                 return;
             }
 
-            executeDraw(p);
+            const currentSpice = (cpu.bowl || []).reduce((acc, cur) => acc + cur.spice, 0);
+            const currentScore = (cpu.bowl || []).reduce((acc, cur) => acc + cur.score, 0);
+
+            // パス判定
+            let shouldPass = false;
+            if ((cpu.bowl || []).length >= 3 && currentScore >= 10) shouldPass = true;
+            else if (currentSpice >= 3 && Math.random() < 0.8) shouldPass = true;
+            else if ((cpu.bowl || []).length >= 3 && Math.random() < 0.5) shouldPass = true;
+
+            if (shouldPass) {
+                cpu.isPassed = true;
+                playSound('select');
+                addGameLog(`${cpu.name} は満足してパス（確定）しました。`);
+                advanceTurn();
+            } else {
+                // 取札の中からランダム選択
+                const randomIdx = Math.floor(Math.random() * scoops.length);
+                selectScoopedItem(randomIdx);
+            }
         }
 
-        function handlePassClick() {
-            const p = gameState.players[gameState.currentTurnPlayerIndex];
-            if (p.isCpu || p.isPassed || p.isBusted) return;
+        /* --- オンライン用 取札＆リロール同期 --- */
+        function executeOnlineReroll() {
+            playSound('add');
+            const updatedPotStack = [...(gameState.potStack || [])];
+            const currentScoops = Object.values(gameState.currentScoopOptions || {});
+            
+            if (currentScoops.length > 0) {
+                updatedPotStack.push(...currentScoops);
+            }
+            updatedPotStack.sort(() => 0.5 - Math.random());
 
-            if (gameState.mode === 'online') {
-                if (!roomRef || p.uid !== myPlayerId) return;
-                executeOnlinePass();
-                return;
+            const newScoopCount = Math.min(3, updatedPotStack.length);
+            const newScoopOptions = [];
+            for (let i = 0; i < newScoopCount; i++) {
+                newScoopOptions.push(updatedPotStack.pop());
             }
 
-            p.isPassed = true;
-            playSound('select');
-            addGameLog(`${p.name} が「いただきます！」とパスしてお椀を確定しました。`, true);
-            advanceTurn();
+            roomRef.update({
+                potStack: updatedPotStack,
+                currentScoopOptions: newScoopOptions,
+                hasRerolledThisTurn: true
+            });
         }
 
-        function executeOnlineDraw() {
-            if (gameState.potStack.length === 0) return;
-
+        function executeOnlineScoopSelect(scoopIndex) {
             playSound('draw');
-            const updatedPotStack = [...gameState.potStack];
-            const drawnItem = updatedPotStack.pop();
+            const updatedPotStack = [...(gameState.potStack || [])];
+            const currentScoops = Object.values(gameState.currentScoopOptions || {});
+
+            if (!currentScoops[scoopIndex]) return;
+
+            const chosenItem = currentScoops.splice(scoopIndex, 1)[0];
+
+            // 残りの取札を確実に鍋に戻してシャッフル
+            if (currentScoops.length > 0) {
+                updatedPotStack.push(...currentScoops);
+            }
+            updatedPotStack.sort(() => 0.5 - Math.random());
 
             const updatedPlayers = JSON.parse(JSON.stringify(gameState.players));
             const playerIndex = gameState.currentTurnPlayerIndex;
             const player = updatedPlayers[playerIndex];
 
             if (!player.bowl) player.bowl = [];
-            player.bowl.push(drawnItem);
-
-            const pot = document.getElementById('pot-element');
-            pot.classList.add('shaking');
-            setTimeout(() => pot.classList.remove('shaking'), 400);
+            player.bowl.push(chosenItem);
 
             const currentSpice = player.bowl.reduce((acc, cur) => acc + cur.spice, 0);
             if (currentSpice >= 4) {
@@ -2061,12 +2351,21 @@
             }
 
             const activePlayers = updatedPlayers.filter(p => !p.isPassed && !p.isBusted);
-            const isGameOver = (activePlayers.length === 0 || updatedPotStack.length === 0);
+            const isGameOver = (activePlayers.length === 0 || (updatedPotStack.length === 0));
+
+            // 次の手番用の取札を準備
+            const nextScoopCount = Math.min(3, updatedPotStack.length);
+            const nextScoopOptions = [];
+            for (let i = 0; i < nextScoopCount; i++) {
+                nextScoopOptions.push(updatedPotStack.pop());
+            }
 
             const updateData = {
                 potStack: updatedPotStack,
                 players: updatedPlayers,
-                currentTurnPlayerIndex: nextTurnIndex
+                currentTurnPlayerIndex: nextTurnIndex,
+                currentScoopOptions: nextScoopOptions,
+                hasRerolledThisTurn: false
             };
 
             if (isGameOver) {
