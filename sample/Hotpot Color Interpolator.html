@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotpot Color Interpolator - 火鍋色彩補間シミュレーター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Zen Kaku Gothic New', 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Matrix Crosshair & Pointer Styling */
+        #matrixCanvas {
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        /* Color Input Styling Override */
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 0.375rem;
+        }
+
+        /* Pulse Toast */
+        @keyframes toastIn {
+            from { transform: translateY(100%) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .animate-toast {
+            animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950">
+
+    <!-- Navigation Header -->
+    <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 px-4 lg:px-8 py-3.5 flex items-center justify-between shadow-2xl">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-red-500/20 text-lg">
+                <i class="fa-solid font-bold fa-fire-burner"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg lg:text-xl tracking-tight bg-gradient-to-r from-amber-200 via-rose-200 to-red-400 bg-clip-text text-transparent">
+                    Hotpot Color Interpolator
+                </h1>
+                <p class="text-xs text-slate-400 font-medium hidden sm:block">火鍋のスープ色（Spicy × Score）4頂点色空間シミュレーター</p>
+            </div>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex items-center gap-2">
+            <div class="hidden md:flex items-center bg-slate-900/80 rounded-lg p-1 border border-slate-800 text-xs">
+                <button id="spaceOklabBtn" class="px-3 py-1.5 rounded-md font-semibold transition-all bg-amber-500 text-slate-950 shadow-sm" onclick="setColorSpace('oklab')">
+                    OKLab <span class="text-[10px] opacity-75">(知覚的均等)</span>
+                </button>
+                <button id="spaceSrgbBtn" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-all" onclick="setColorSpace('srgb')">
+                    sRGB <span class="text-[10px] opacity-75">(標準)</span>
+                </button>
+            </div>
+
+            <button onclick="resetToDefaults()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-left text-amber-400"></i> リセット
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App Grid -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 lg:p-6 max-w-[1800px] w-full mx-auto">
+
+        <!-- LEFT COLUMN: 3D Hotpot Viewport (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+            <div class="glass-panel rounded-2xl p-4 flex-1 flex flex-col relative min-h-[420px] lg:min-h-[580px] overflow-hidden shadow-xl border border-slate-800">
+                
+                <!-- Viewport Overlay Info Header -->
+                <div class="absolute top-4 left-4 z-10 flex flex-wrap items-center gap-2 pointer-events-none">
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-950/80 backdrop-blur border border-slate-800 text-xs font-semibold text-amber-300 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 3D リアルタイム土鍋プレビュー
+                    </span>
+                    <span id="currentStatusBadge" class="px-3 py-1.5 rounded-lg bg-slate-950/80 backdrop-blur border border-slate-800 text-xs font-medium text-slate-300">
+                        辛さ: <b id="badgeSpicy" class="text-rose-400">0</b> / 美味しさ: <b id="badgeScore" class="text-amber-400">0</b>
+                    </span>
+                </div>
+
+                <!-- 3D Viewport Controls -->
+                <div class="absolute top-4 right-4 z-10 flex items-center gap-2">
+                    <button id="toggleBoilBtn" onclick="toggleBoiling()" class="w-9 h-9 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-amber-400 flex items-center justify-center text-sm shadow transition" title="沸騰アニメーション切替">
+                        <i class="fa-solid fa-water"></i>
+                    </button>
+                    <button id="toggleSteamBtn" onclick="toggleSteam()" class="w-9 h-9 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center text-sm shadow transition" title="湯気パーティクル切替">
+                        <i class="fa-solid fa-smog"></i>
+                    </button>
+                    <button onclick="resetCamera()" class="w-9 h-9 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center text-sm shadow transition" title="カメラリセット">
+                        <i class="fa-solid fa-video"></i>
+                    </button>
+                </div>
+
+                <!-- Three.js Canvas Container -->
+                <div id="canvas3DContainer" class="w-full h-full flex-1 rounded-xl overflow-hidden relative cursor-grab active:cursor-grabbing">
+                    <!-- Three.js renders here -->
+                </div>
+
+                <!-- Viewport Footer Legend -->
+                <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-400 px-1 gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-hand-pointer text-slate-500"></i> ドラッグ: 回転</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-arrows-up-down text-slate-500"></i> スクロール: ズーム</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                        <span><i class="fa-solid fa-cubes text-amber-500/70"></i> MeshPhysicalMaterial (屈折率 1.333)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: 2D Matrix, Vertex Color Inputs, Output (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-4">
+
+            <!-- 2D Matrix Interpolation Canvas Box -->
+            <div class="glass-panel rounded-2xl p-5 shadow-xl border border-slate-800 flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-amber-400"></i> 2D 色彩空間マトリクス
+                        </h2>
+                        <p class="text-xs text-slate-400">クリックまたはドラッグで（Spicy, Score）座標を直感的に選択</p>
+                    </div>
+
+                    <!-- Mobile Color Space Switch -->
+                    <div class="md:hidden flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-[11px]">
+                        <button id="spaceOklabBtnMob" class="px-2 py-1 rounded bg-amber-500 text-slate-950 font-bold" onclick="setColorSpace('oklab')">OKLab</button>
+                        <button id="spaceSrgbBtnMob" class="px-2 py-1 rounded text-slate-400" onclick="setColorSpace('srgb')">sRGB</button>
+                    </div>
+                </div>
+
+                <!-- 2D Canvas Area with Axes Labels -->
+                <div class="relative w-full aspect-square max-w-[340px] mx-auto select-none">
+                    
+                    <!-- Top Axis Label -->
+                    <div class="absolute -top-6 left-0 right-0 text-center text-xs font-bold text-amber-300 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-face-smile-beam"></i> Score (+) 美味しそう
+                    </div>
+                    <!-- Bottom Axis Label -->
+                    <div class="absolute -bottom-6 left-0 right-0 text-center text-xs font-bold text-emerald-400 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-biohazard"></i> Score (-) 闇鍋
+                    </div>
+                    <!-- Left Axis Label -->
+                    <div class="absolute top-0 bottom-0 -left-7 flex items-center justify-center text-xs font-bold text-sky-300 [writing-mode:vertical-lr] rotate-180">
+                        <i class="fa-solid fa-ice-cream mb-1"></i> Spicy (-) 甘口
+                    </div>
+                    <!-- Right Axis Label -->
+                    <div class="absolute top-0 bottom-0 -right-7 flex items-center justify-center text-xs font-bold text-rose-400 [writing-mode:vertical-lr]">
+                        <i class="fa-solid fa-pepper-hot mb-1"></i> Spicy (+) 辛口
+                    </div>
+
+                    <!-- Canvas -->
+                    <canvas id="matrixCanvas" width="300" height="300" class="w-full h-full rounded-xl border border-slate-700 shadow-inner bg-slate-950"></canvas>
+                </div>
+
+                <!-- Sliders Controls -->
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Spicy Slider -->
+                    <div class="glass-card p-3 rounded-xl flex flex-col gap-1.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <label for="spicyRange" class="font-semibold text-rose-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-pepper-hot text-rose-500"></i> Spicy (辛さ)
+                            </label>
+                            <span id="spicyValText" class="font-mono font-bold text-slate-200">0</span>
+                        </div>
+                        <input type="range" id="spicyRange" min="-100" max="100" value="0" class="w-full accent-rose-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>-100 (甘口)</span>
+                            <span>0</span>
+                            <span>+100 (激辛)</span>
+                        </div>
+                    </div>
+
+                    <!-- Score Slider -->
+                    <div class="glass-card p-3 rounded-xl flex flex-col gap-1.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <label for="scoreRange" class="font-semibold text-amber-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-utensils text-amber-400"></i> Score (美味しさ)
+                            </label>
+                            <span id="scoreValText" class="font-mono font-bold text-slate-200">0</span>
+                        </div>
+                        <input type="range" id="scoreRange" min="-100" max="100" value="0" class="w-full accent-amber-400 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>-100 (闇鍋)</span>
+                            <span>0</span>
+                            <span>+100 (極上)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 Corner Vertex Colors Section -->
+            <div class="glass-panel rounded-2xl p-5 shadow-xl border border-slate-800 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-palette text-rose-400"></i> 4頂点色（キーカラー）設定
+                    </h2>
+                    
+                    <!-- Presets Menu -->
+                    <div class="relative inline-block text-left">
+                        <select id="presetSelect" onchange="applyPreset(this.value)" class="bg-slate-900 border border-slate-700 text-xs text-amber-300 font-medium rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="" disabled selected>プリセット選択...</option>
+                            <option value="classic">🍲 標準火鍋パレット</option>
+                            <option value="curry">🍛 カレー鍋 ＆ 闇ポタージュ</option>
+                            <option value="tomato">🍅 トマトチーズ ＆ 抹茶魔薬鍋</option>
+                            <option value="abyssal">🐉 幻獣の毒スープ ＆ 極上白湯</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5 text-xs">
+                    
+                    <!-- Top-Left Vertex (Spicy -, Score +) -->
+                    <div class="glass-card p-2.5 rounded-xl border border-slate-800/80 flex items-center gap-2.5">
+                        <input type="color" id="c01_picker" value="#FFE17D" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[11px] font-bold text-amber-300 truncate">甘口 × 美味しい (TL)</div>
+                            <div id="c01_hex" class="font-mono text-[10px] text-slate-400">#FFE17D</div>
+                        </div>
+                    </div>
+
+                    <!-- Top-Right Vertex (Spicy +, Score +) -->
+                    <div class="glass-card p-2.5 rounded-xl border border-slate-800/80 flex items-center gap-2.5">
+                        <input type="color" id="c11_picker" value="#FF3300" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[11px] font-bold text-rose-400 truncate">辛口 × 美味しい (TR)</div>
+                            <div id="c11_hex" class="font-mono text-[10px] text-slate-400">#FF3300</div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom-Left Vertex (Spicy -, Score -) -->
+                    <div class="glass-card p-2.5 rounded-xl border border-slate-800/80 flex items-center gap-2.5">
+                        <input type="color" id="c00_picker" value="#2D3B2D" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[11px] font-bold text-emerald-400 truncate">甘口 × 闇鍋 (BL)</div>
+                            <div id="c00_hex" class="font-mono text-[10px] text-slate-400">#2D3B2D</div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom-Right Vertex (Spicy +, Score -) -->
+                    <div class="glass-card p-2.5 rounded-xl border border-slate-800/80 flex items-center gap-2.5">
+                        <input type="color" id="c10_picker" value="#4A001F" class="w-8 h-8 rounded-lg bg-transparent cursor-pointer border-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[11px] font-bold text-purple-400 truncate">辛口 × 闇鍋 (BR)</div>
+                            <div id="c10_hex" class="font-mono text-[10px] text-slate-400">#4A001F</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Interpolated Color Result Card -->
+            <div class="glass-panel rounded-2xl p-5 shadow-xl border border-slate-800 flex flex-col gap-3">
+                <h2 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-flask text-sky-400"></i> 算出された補間カラー
+                </h2>
+
+                <div class="flex items-center gap-4">
+                    <!-- Big Preview Swatch -->
+                    <div id="resultSwatch" class="w-16 h-16 rounded-2xl border-2 border-white/20 shadow-2xl transition-all duration-150 flex-shrink-0 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+                    </div>
+
+                    <!-- Codes Details -->
+                    <div class="flex-1 space-y-1 font-mono text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 font-sans">HEX:</span>
+                            <span id="resHexText" class="font-bold text-amber-300">#8D5A3C</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 font-sans">RGB:</span>
+                            <span id="resRgbText" class="text-slate-200">rgb(141, 90, 60)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 font-sans">OKLab:</span>
+                            <span id="resOklabText" class="text-slate-300">L: 0.48, a: 0.08, b: 0.09</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="copyCssCode()" class="mt-1 w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg shadow-rose-950/40 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-copy"></i> CSSカラーコードをコピー
+                </button>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden bg-slate-800 text-slate-100 border border-slate-700 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-toast">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMessage">コピーしました</span>
+    </div>
+
+    <script>
+        /* =========================================================================
+           1. COLOR SPACE MATH (OKLab & Bilinear Interpolation)
+           ========================================================================= */
+
+        // State definition
+        let colorSpaceMode = 'oklab'; // 'oklab' or 'srgb'
+        let spicyVal = 0;   // -100 to +100
+        let scoreVal = 0;   // -100 to +100
+
+        // 4 Corner Vertex Colors (Hex)
+        let vertexColors = {
+            c01: '#FFE17D', // Top-Left: Sweet + Good (Score+, Spicy-)
+            c11: '#FF3300', // Top-Right: Spicy + Good (Score+, Spicy+)
+            c00: '#2D3B2D', // Bottom-Left: Sweet + Poison (Score-, Spicy-)
+            c10: '#4A001F'  // Bottom-Right: Spicy + Poison (Score-, Spicy+)
+        };
+
+        // Convert HEX to RGB Object [0..255]
+        function hexToRgb(hex) {
+            let clean = hex.replace('#', '');
+            if (clean.length === 3) {
+                clean = clean.split('').map(c => c + c).join('');
+            }
+            const num = parseInt(clean, 16);
+            return {
+                r: (num >> 16) & 255,
+                g: (num >> 8) & 255,
+                b: num & 255
+            };
+        }
+
+        // Convert RGB to HEX
+        function rgbToHex(r, g, b) {
+            const toHex = (c) => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+        }
+
+        // Convert RGB [0..255] to OKLab
+        function rgbToOklab(r, g, b) {
+            let rL = r / 255, gL = g / 255, bL = b / 255;
+            
+            // Linearize sRGB
+            rL = rL > 0.04045 ? Math.pow((rL + 0.055) / 1.055, 2.4) : rL / 12.92;
+            gL = gL > 0.04045 ? Math.pow((gL + 0.055) / 1.055, 2.4) : gL / 12.92;
+            bL = bL > 0.04045 ? Math.pow((bL + 0.055) / 1.055, 2.4) : bL / 12.92;
+
+            let l = 0.4122214708 * rL + 0.5363325363 * gL + 0.0514459929 * bL;
+            let m = 0.2119034982 * rL + 0.6806995451 * gL + 0.1073969767 * bL;
+            let s = 0.0883024619 * rL + 0.2817188376 * gL + 0.6299787005 * bL;
+
+            let l_ = Math.cbrt(l);
+            let m_ = Math.cbrt(m);
+            let s_ = Math.cbrt(s);
+
+            return {
+                L: 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_,
+                a: 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_,
+                b: 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757971 * s_
+            };
+        }
+
+        // Convert OKLab back to RGB [0..255]
+        function oklabToRgb(L, a, b) {
+            let l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+            let m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+            let s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+            let l = l_ * l_ * l_;
+            let m = m_ * m_ * m_;
+            let s = s_ * s_ * s_;
+
+            let r = +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+            let g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+            let b_ = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+            // Delinearize to sRGB
+            let rd = r > 0.0031308 ? 1.055 * Math.pow(r, 1/2.4) - 0.055 : 12.92 * r;
+            let gd = g > 0.0031308 ? 1.055 * Math.pow(g, 1/2.4) - 0.055 : 12.92 * g;
+            let bd = b_ > 0.0031308 ? 1.055 * Math.pow(b_, 1/2.4) - 0.055 : 12.92 * b_;
+
+            return {
+                r: Math.max(0, Math.min(255, Math.round(rd * 255))),
+                g: Math.max(0, Math.min(255, Math.round(gd * 255))),
+                b: Math.max(0, Math.min(255, Math.round(bd * 255)))
+            };
+        }
+
+        /* Bilinear Interpolation Algorithm */
+        function interpolateColor(u, v, mode = colorSpaceMode) {
+            // u: Spicy normalized [0..1]
+            // v: Score normalized [0..1] (0 = Bottom, 1 = Top)
+
+            const rgb00 = hexToRgb(vertexColors.c00); // BL
+            const rgb10 = hexToRgb(vertexColors.c10); // BR
+            const rgb01 = hexToRgb(vertexColors.c01); // TL
+            const rgb11 = hexToRgb(vertexColors.c11); // TR
+
+            if (mode === 'srgb') {
+                // Linear RGB interpolation
+                const r = (1 - u) * (1 - v) * rgb00.r + u * (1 - v) * rgb10.r + (1 - u) * v * rgb01.r + u * v * rgb11.r;
+                const g = (1 - u) * (1 - v) * rgb00.g + u * (1 - v) * rgb10.g + (1 - u) * v * rgb01.g + u * v * rgb11.g;
+                const b = (1 - u) * (1 - v) * rgb00.b + u * (1 - v) * rgb10.b + (1 - u) * v * rgb01.b + u * v * rgb11.b;
+                return { rgb: { r, g, b }, hex: rgbToHex(r, g, b), oklab: rgbToOklab(r, g, b) };
+            } else {
+                // OKLab perceptual interpolation
+                const lab00 = rgbToOklab(rgb00.r, rgb00.g, rgb00.b);
+                const lab10 = rgbToOklab(rgb10.r, rgb10.g, rgb10.b);
+                const lab01 = rgbToOklab(rgb01.r, rgb01.g, rgb01.b);
+                const lab11 = rgbToOklab(rgb11.r, rgb11.g, rgb11.b);
+
+                const L = (1 - u) * (1 - v) * lab00.L + u * (1 - v) * lab10.L + (1 - u) * v * lab01.L + u * v * lab11.L;
+                const a = (1 - u) * (1 - v) * lab00.a + u * (1 - v) * lab10.a + (1 - u) * v * lab01.a + u * v * lab11.a;
+                const b = (1 - u) * (1 - v) * lab00.b + u * (1 - v) * lab10.b + (1 - u) * v * lab01.b + u * v * lab11.b;
+
+                const finalRgb = oklabToRgb(L, a, b);
+                return { rgb: finalRgb, hex: rgbToHex(finalRgb.r, finalRgb.g, finalRgb.b), oklab: { L, a, b } };
+            }
+        }
+
+        /* =========================================================================
+           2. 2D MATRIX CANVAS RENDERING & INTERACTION
+           ========================================================================= */
+
+        const matrixCanvas = document.getElementById('matrixCanvas');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        let isDraggingMatrix = false;
+
+        function render2DMatrix() {
+            const w = matrixCanvas.width;
+            const h = matrixCanvas.height;
+            const imgData = matrixCtx.createImageData(w, h);
+            const data = imgData.data;
+
+            // Render color map pixel by pixel (downsampled for speed if needed, but 300x300 is instant)
+            const step = 2; // Optimization step size
+            for (let y = 0; y < h; y += step) {
+                const v = 1 - (y / h); // Score (Top=1, Bottom=0)
+                for (let x = 0; x < w; x += step) {
+                    const u = x / w; // Spicy (Left=0, Right=1)
+                    
+                    const res = interpolateColor(u, v);
+                    const r = res.rgb.r;
+                    const g = res.rgb.g;
+                    const b = res.rgb.b;
+
+                    for (let dy = 0; dy < step && (y + dy) < h; dy++) {
+                        for (let dx = 0; dx < step && (x + dx) < w; dx++) {
+                            const index = ((y + dy) * w + (x + dx)) * 4;
+                            data[index] = r;
+                            data[index + 1] = g;
+                            data[index + 2] = b;
+                            data[index + 3] = 255;
+                        }
+                    }
+                }
+            }
+
+            matrixCtx.putImageData(imgData, 0, 0);
+
+            // Draw Center Axis Grid Lines
+            matrixCtx.lineWidth = 1;
+            matrixCtx.setLineDash([4, 4]);
+            matrixCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+
+            matrixCtx.beginPath();
+            matrixCtx.moveTo(w / 2, 0);
+            matrixCtx.lineTo(w / 2, h);
+            matrixCtx.moveTo(0, h / 2);
+            matrixCtx.lineTo(w, h / 2);
+            matrixCtx.stroke();
+            matrixCtx.setLineDash([]);
+
+            // Draw Pointer Target Indicator
+            const targetX = ((spicyVal + 100) / 200) * w;
+            const targetY = (1 - ((scoreVal + 100) / 200)) * h;
+
+            // Outer Pulse Ring
+            matrixCtx.beginPath();
+            matrixCtx.arc(targetX, targetY, 12, 0, Math.PI * 2);
+            matrixCtx.strokeStyle = '#ffffff';
+            matrixCtx.lineWidth = 2.5;
+            matrixCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            matrixCtx.shadowBlur = 6;
+            matrixCtx.stroke();
+            matrixCtx.shadowBlur = 0;
+
+            // Inner Dot
+            const currentComputed = interpolateColor((spicyVal + 100)/200, (scoreVal + 100)/200);
+            matrixCtx.beginPath();
+            matrixCtx.arc(targetX, targetY, 6, 0, Math.PI * 2);
+            matrixCtx.fillStyle = currentComputed.hex;
+            matrixCtx.fill();
+            matrixCtx.strokeStyle = '#000000';
+            matrixCtx.lineWidth = 1.5;
+            matrixCtx.stroke();
+        }
+
+        function updateFromPointer(e) {
+            const rect = matrixCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            let x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+            let y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+
+            let u = x / rect.width;
+            let v = 1 - (y / rect.height);
+
+            spicyVal = Math.round(u * 200 - 100);
+            scoreVal = Math.round(v * 200 - 100);
+
+            syncUIControls();
+            updateAll();
+        }
+
+        matrixCanvas.addEventListener('mousedown', (e) => { isDraggingMatrix = true; updateFromPointer(e); });
+        window.addEventListener('mousemove', (e) => { if (isDraggingMatrix) updateFromPointer(e); });
+        window.addEventListener('mouseup', () => { isDraggingMatrix = false; });
+
+        matrixCanvas.addEventListener('touchstart', (e) => { isDraggingMatrix = true; updateFromPointer(e); }, { passive: true });
+        window.addEventListener('touchmove', (e) => { if (isDraggingMatrix) updateFromPointer(e); }, { passive: true });
+        window.addEventListener('touchend', () => { isDraggingMatrix = false; });
+
+        /* =========================================================================
+           3. THREE.JS 3D HOTPOT (DONABE) RENDERING
+           ========================================================================= */
+
+        let scene, camera, renderer;
+        let potMesh, liquidMesh, liquidGeometry;
+        let steamParticles, steamGeometry;
+        let isBoiling = true;
+        let isSteamActive = true;
+        let animClock = new THREE.Clock();
+
+        // Mouse Orbit Controls simplified implementation
+        let isOrbiting = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraRadius = 8.5;
+        let cameraTheta = Math.PI / 4; // Horizontal angle
+        let cameraPhi = Math.PI / 3.5; // Vertical angle
+
+        function init3DScene() {
+            const container = document.getElementById('canvas3DContainer');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.04);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+            updateCameraPosition();
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.1;
+
+            container.appendChild(renderer.domElement);
+
+            // Lighting Setup
+            const ambientLight = new THREE.AmbientLight(0xfff5ea, 0.8);
+            scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0xfffaed, 1.8);
+            mainLight.position.set(5, 8, 5);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 1024;
+            mainLight.shadow.mapSize.height = 1024;
+            scene.add(mainLight);
+
+            const warmRimLight = new THREE.PointLight(0xff8833, 2, 10);
+            warmRimLight.position.set(-4, 3, -4);
+            scene.add(warmRimLight);
+
+            const bottomGlow = new THREE.PointLight(0xff2200, 1.2, 5);
+            bottomGlow.position.set(0, -1.5, 0);
+            scene.add(bottomGlow);
+
+            // Create 3D Donabe Pot & Liquid
+            createDonabePot();
+            createLiquidSurface();
+            createIngredients();
+            createSteamParticles();
+
+            // Handle Resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Orbit Controls setup
+            container.addEventListener('mousedown', (e) => { isOrbiting = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
+            window.addEventListener('mousemove', (e) => {
+                if (!isOrbiting) return;
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                cameraTheta -= deltaX * 0.008;
+                cameraPhi = Math.max(0.2, Math.min(Math.PI / 2 - 0.05, cameraPhi - deltaY * 0.008));
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                updateCameraPosition();
+            });
+            window.addEventListener('mouseup', () => { isOrbiting = false; });
+
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                cameraRadius = Math.max(4.5, Math.min(14, cameraRadius + e.deltaY * 0.005));
+                updateCameraPosition();
+            }, { passive: false });
+
+            // Start Animation Loop
+            animate3D();
+        }
+
+        /* Create Clay Pot (Donabe) Procedurally */
+        function createDonabePot() {
+            // Profile points for Lathe Geometry (Outer & Inner clay pot wall)
+            const points = [];
+            points.push(new THREE.Vector2(0, 0));       // Bottom center
+            points.push(new THREE.Vector2(1.8, 0));     // Base width
+            points.push(new THREE.Vector2(2.6, 0.8));   // Pot belly curve
+            points.push(new THREE.Vector2(2.4, 1.8));   // Neck
+            points.push(new THREE.Vector2(2.5, 2.0));   // Rim outer
+            points.push(new THREE.Vector2(2.2, 1.95));  // Rim top
+            points.push(new THREE.Vector2(2.15, 0.4));  // Inner bowl bottom curve
+            points.push(new THREE.Vector2(0, 0.35));    // Inner bottom center
+
+            const potGeo = new THREE.LatheGeometry(points, 64);
+            const potMat = new THREE.MeshStandardMaterial({
+                color: 0x221c18,      // Dark earthenware ceramic
+                roughness: 0.85,
+                metalness: 0.05,
+                bumpScale: 0.02
+            });
+
+            potMesh = new THREE.Mesh(potGeo, potMat);
+            potMesh.castShadow = true;
+            potMesh.receiveShadow = true;
+            scene.add(potMesh);
+
+            // Add Handles (Ear loops)
+            const handleGeo = new THREE.TorusGeometry(0.35, 0.12, 16, 32, Math.PI);
+            const handleMat = potMat;
+
+            const handleLeft = new THREE.Mesh(handleGeo, handleMat);
+            handleLeft.position.set(-2.5, 1.6, 0);
+            handleLeft.rotation.z = Math.PI / 2;
+            handleLeft.rotation.y = -Math.PI / 2;
+            potMesh.add(handleLeft);
+
+            const handleRight = new THREE.Mesh(handleGeo, handleMat);
+            handleRight.position.set(2.5, 1.6, 0);
+            handleRight.rotation.z = -Math.PI / 2;
+            handleRight.rotation.y = Math.PI / 2;
+            potMesh.add(handleRight);
+        }
+
+        /* Create Liquid Broth Surface */
+        function createLiquidSurface() {
+            // High segment circle plane for wave animation
+            liquidGeometry = new THREE.CircleGeometry(2.12, 64);
+            
+            const liquidMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xffaa44,
+                transmission: 0.7,
+                opacity: 0.95,
+                transparent: true,
+                roughness: 0.08,
+                ior: 1.333,
+                thickness: 1.5,
+                specularIntensity: 1.0
+            });
+
+            liquidMesh = new THREE.Mesh(liquidGeometry, liquidMaterial);
+            liquidMesh.rotation.x = -Math.PI / 2;
+            liquidMesh.position.y = 1.35; // Set soup level in pot
+            scene.add(liquidMesh);
+        }
+
+        /* Create Floating Hotpot Ingredients */
+        function createIngredients() {
+            const ingGroup = new THREE.Group();
+
+            // 1. Tofu Blocks (White cubes)
+            const tofuGeo = new THREE.BoxGeometry(0.45, 0.35, 0.45);
+            const tofuMat = new THREE.MeshStandardMaterial({ color: 0xfaf4e8, roughness: 0.6 });
+            
+            const tofu1 = new THREE.Mesh(tofuGeo, tofuMat);
+            tofu1.position.set(-0.8, 1.32, -0.5);
+            tofu1.rotation.y = 0.4;
+            ingGroup.add(tofu1);
+
+            const tofu2 = new THREE.Mesh(tofuGeo, tofuMat);
+            tofu2.position.set(-0.5, 1.3, -0.9);
+            tofu2.rotation.y = -0.2;
+            ingGroup.add(tofu2);
+
+            // 2. Shiitake Mushroom Cap
+            const shiiGeo = new THREE.SphereGeometry(0.4, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            const shiiMat = new THREE.MeshStandardMaterial({ color: 0x3d281c, roughness: 0.9 });
+            const shiitake = new THREE.Mesh(shiiGeo, shiiMat);
+            shiitake.position.set(0.7, 1.3, 0.4);
+            shiitake.rotation.x = 0.2;
+            ingGroup.add(shiitake);
+
+            // 3. Chili Peppers (Red Cone)
+            const chiliGeo = new THREE.ConeGeometry(0.08, 0.5, 12);
+            const chiliMat = new THREE.MeshStandardMaterial({ color: 0xdd1100, roughness: 0.3 });
+            const chili1 = new THREE.Mesh(chiliGeo, chiliMat);
+            chili1.position.set(0.2, 1.38, -0.7);
+            chili1.rotation.z = Math.PI / 2.3;
+            ingGroup.add(chili1);
+
+            // 4. Green Onion Rings
+            const onionGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.1, 12);
+            const onionMat = new THREE.MeshStandardMaterial({ color: 0x44aa44, roughness: 0.5 });
+            for(let i = 0; i < 4; i++) {
+                const ring = new THREE.Mesh(onionGeo, onionMat);
+                ring.position.set(0.3 + (i * 0.25) - 0.4, 1.36, 0.8 - (i * 0.15));
+                ring.rotation.x = Math.random() * 0.3;
+                ingGroup.add(ring);
+            }
+
+            scene.add(ingGroup);
+        }
+
+        /* Create Steam Particles */
+        function createSteamParticles() {
+            const particleCount = 40;
+            steamGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const opacities = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 2.8;
+                positions[i * 3 + 1] = 1.4 + Math.random() * 2.5;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 2.8;
+            }
+
+            steamGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const steamMat = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.35,
+                transparent: true,
+                opacity: 0.25,
+                blur: 1.0
+            });
+
+            steamParticles = new THREE.Points(steamGeometry, steamMat);
+            scene.add(steamParticles);
+        }
+
+        function updateCameraPosition() {
+            camera.position.x = cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            camera.position.y = cameraRadius * Math.cos(cameraPhi);
+            camera.position.z = cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+            camera.lookAt(0, 0.9, 0);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas3DContainer');
+            if (!container) return;
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+
+        /* 3D Animation Loop */
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+
+            const elapsedTime = animClock.getElapsedTime();
+
+            // Boiling Broth Wave Mesh Animation
+            if (isBoiling && liquidGeometry) {
+                const pos = liquidGeometry.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    const u = pos.getX(i);
+                    const v = pos.getY(i);
+                    // Combine sine waves to simulate simmering liquid bubbles
+                    const z = Math.sin(u * 5 + elapsedTime * 4) * 0.03 + Math.cos(v * 6 + elapsedTime * 3) * 0.02;
+                    pos.setZ(i, z);
+                }
+                liquidGeometry.computeVertexNormals();
+                liquidGeometry.attributes.position.needsUpdate = true;
+            }
+
+            // Steam Particle Movement
+            if (isSteamActive && steamParticles) {
+                const pos = steamParticles.geometry.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    let y = pos.getY(i);
+                    y += 0.012;
+                    if (y > 4.0) {
+                        y = 1.4;
+                        pos.setX(i, (Math.random() - 0.5) * 2.8);
+                        pos.setZ(i, (Math.random() - 0.5) * 2.8);
+                    }
+                    pos.setY(i, y);
+                }
+                steamParticles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        /* =========================================================================
+           4. UI CONTROLS & STATE SYNCHRONIZATION
+           ========================================================================= */
+
+        const spicyRange = document.getElementById('spicyRange');
+        const scoreRange = document.getElementById('scoreRange');
+        const spicyValText = document.getElementById('spicyValText');
+        const scoreValText = document.getElementById('scoreValText');
+
+        const c01_picker = document.getElementById('c01_picker');
+        const c11_picker = document.getElementById('c11_picker');
+        const c00_picker = document.getElementById('c00_picker');
+        const c10_picker = document.getElementById('c10_picker');
+
+        // Sliders Listeners
+        spicyRange.addEventListener('input', (e) => {
+            spicyVal = parseInt(e.target.value);
+            syncUIControls();
+            updateAll();
+        });
+
+        scoreRange.addEventListener('input', (e) => {
+            scoreVal = parseInt(e.target.value);
+            syncUIControls();
+            updateAll();
+        });
+
+        // Vertex Color Pickers Listeners
+        [c01_picker, c11_picker, c00_picker, c10_picker].forEach(picker => {
+            picker.addEventListener('input', (e) => {
+                vertexColors.c01 = c01_picker.value;
+                vertexColors.c11 = c11_picker.value;
+                vertexColors.c00 = c00_picker.value;
+                vertexColors.c10 = c10_picker.value;
+
+                document.getElementById('c01_hex').innerText = c01_picker.value.toUpperCase();
+                document.getElementById('c11_hex').innerText = c11_picker.value.toUpperCase();
+                document.getElementById('c00_hex').innerText = c00_picker.value.toUpperCase();
+                document.getElementById('c10_hex').innerText = c10_picker.value.toUpperCase();
+
+                updateAll();
+            });
+        });
+
+        function syncUIControls() {
+            spicyRange.value = spicyVal;
+            scoreRange.value = scoreVal;
+            spicyValText.innerText = spicyVal > 0 ? `+${spicyVal}` : spicyVal;
+            scoreValText.innerText = scoreVal > 0 ? `+${scoreVal}` : scoreVal;
+
+            document.getElementById('badgeSpicy').innerText = spicyVal > 0 ? `+${spicyVal}` : spicyVal;
+            document.getElementById('badgeScore').innerText = scoreVal > 0 ? `+${scoreVal}` : scoreVal;
+        }
+
+        function setColorSpace(mode) {
+            colorSpaceMode = mode;
+            
+            // Toggle Buttons UI
+            const oklabBtn = document.getElementById('spaceOklabBtn');
+            const srgbBtn = document.getElementById('spaceSrgbBtn');
+
+            if (mode === 'oklab') {
+                oklabBtn.className = "px-3 py-1.5 rounded-md font-semibold transition-all bg-amber-500 text-slate-950 shadow-sm";
+                srgbBtn.className = "px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-all";
+            } else {
+                srgbBtn.className = "px-3 py-1.5 rounded-md font-semibold transition-all bg-amber-500 text-slate-950 shadow-sm";
+                oklabBtn.className = "px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-all";
+            }
+
+            updateAll();
+        }
+
+        /* Update All Renderers and Displays */
+        function updateAll() {
+            // 1. Calculate current interpolated color
+            const u = (spicyVal + 100) / 200;
+            const v = (scoreVal + 100) / 200;
+            const result = interpolateColor(u, v);
+
+            // 2. Render 2D Matrix Canvas
+            render2DMatrix();
+
+            // 3. Update 3D Hotpot Soup Material Color
+            if (liquidMesh) {
+                liquidMesh.material.color.set(result.hex);
+            }
+
+            // 4. Update Output Card
+            document.getElementById('resultSwatch').style.backgroundColor = result.hex;
+            document.getElementById('resHexText').innerText = result.hex;
+            document.getElementById('resRgbText').innerText = `rgb(${result.rgb.r}, ${result.rgb.g}, ${result.rgb.b})`;
+            document.getElementById('resOklabText').innerText = `L: ${result.oklab.L.toFixed(2)}, a: ${result.oklab.a.toFixed(2)}, b: ${result.oklab.b.toFixed(2)}`;
+        }
+
+        /* Presets Handler */
+        function applyPreset(presetKey) {
+            const presets = {
+                classic: { c01: '#FFE17D', c11: '#FF3300', c00: '#2D3B2D', c10: '#4A001F' },
+                curry:   { c01: '#F5C242', c11: '#D94800', c00: '#3D4F28', c10: '#3B1808' },
+                tomato:  { c01: '#FFF3BF', c11: '#E63946', c00: '#1B4332', c10: '#58111A' },
+                abyssal: { c01: '#E0FAFF', c11: '#FF0055', c00: '#002B20', c10: '#2B0038' }
+            };
+
+            if (presets[presetKey]) {
+                const p = presets[presetKey];
+                vertexColors = { ...p };
+
+                c01_picker.value = p.c01;
+                c11_picker.value = p.c11;
+                c00_picker.value = p.c00;
+                c10_picker.value = p.c10;
+
+                document.getElementById('c01_hex').innerText = p.c01;
+                document.getElementById('c11_hex').innerText = p.c11;
+                document.getElementById('c00_hex').innerText = p.c00;
+                document.getElementById('c10_hex').innerText = p.c10;
+
+                updateAll();
+                showToast('プリセットを適用しました');
+            }
+        }
+
+        function resetToDefaults() {
+            spicyVal = 0;
+            scoreVal = 0;
+            applyPreset('classic');
+            syncUIControls();
+            showToast('初期設定にリセットしました');
+        }
+
+        function toggleBoiling() {
+            isBoiling = !isBoiling;
+            const btn = document.getElementById('toggleBoilBtn');
+            btn.className = isBoiling 
+                ? "w-9 h-9 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-amber-400 flex items-center justify-center text-sm shadow transition"
+                : "w-9 h-9 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-500 flex items-center justify-center text-sm shadow transition";
+            showToast(isBoiling ? '沸騰アニメーション: ON' : '沸騰アニメーション: OFF');
+        }
+
+        function toggleSteam() {
+            isSteamActive = !isSteamActive;
+            steamParticles.visible = isSteamActive;
+            const btn = document.getElementById('toggleSteamBtn');
+            btn.className = isSteamActive 
+                ? "w-9 h-9 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center text-sm shadow transition"
+                : "w-9 h-9 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-600 flex items-center justify-center text-sm shadow transition";
+            showToast(isSteamActive ? '湯気効果: ON' : '湯気効果: OFF');
+        }
+
+        function resetCamera() {
+            cameraRadius = 8.5;
+            cameraTheta = Math.PI / 4;
+            cameraPhi = Math.PI / 3.5;
+            updateCameraPosition();
+            showToast('カメラ視点をリセットしました');
+        }
+
+        function copyCssCode() {
+            const hex = document.getElementById('resHexText').innerText;
+            const code = `background-color: ${hex}; /* Spicy: ${spicyVal}, Score: ${scoreVal} */`;
+            
+            // Clipboard Fallback
+            const el = document.createElement('textarea');
+            el.value = code;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast('CSSカラーコードをコピーしました！');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.innerText = msg;
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        /* Initial Startup */
+        window.onload = function() {
+            init3DScene();
+            syncUIControls();
+            updateAll();
+        };
+    </script>
+</body>
+</html>

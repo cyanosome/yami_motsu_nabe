@@ -249,6 +249,7 @@ export function syncOnlineStateToLocal(data) {
 
     // PhaseごとのUI画面切り替えと描画
     if (data.currentPhase === 1) {
+        if (typeof window.disposePot3D === 'function') window.disposePot3D();
         document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
         document.getElementById('phase-1-view').classList.add('active');
         renderOnlineDraftPhase(data);
@@ -256,7 +257,12 @@ export function syncOnlineStateToLocal(data) {
         document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
         document.getElementById('phase-2-view').classList.add('active');
         renderOnlinePotPhase(data);
+        // 3D鍋を初期化
+        if (typeof window.initPot3D === 'function') {
+            requestAnimationFrame(() => window.initPot3D());
+        }
     } else if (data.currentPhase === 3) {
+        if (typeof window.disposePot3D === 'function') window.disposePot3D();
         document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
         document.getElementById('phase-3-view').classList.add('active');
         initPhase3Results();

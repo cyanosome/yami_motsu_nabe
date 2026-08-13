@@ -75,6 +75,11 @@ export function resetToStart() {
     document.getElementById('phase-stepper-bar').classList.remove('active');
     document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
     
+    // 3D鍋のリソース解放
+    if (typeof window.disposePot3D === 'function') {
+        window.disposePot3D();
+    }
+    
     // UI側の入力やリストのクリア
     const listEl = document.getElementById('lobby-players-list');
     if (listEl) listEl.innerHTML = '';
@@ -267,6 +272,13 @@ export function initPhase2Pot() {
     gameState.currentScoopOptions = [];
     prepareScoopForCurrentTurn();
     renderPotUI();
+
+    // 3D鍋を初期化（Phase 2 表示後に呼び出す）
+    if (typeof window.initPot3D === 'function') {
+        // DOMが表示された後にレンダラーを初期化するため少し遅延
+        requestAnimationFrame(() => window.initPot3D());
+    }
+
     logPhase2Debug("Phase 2 初期化完了");
     addGameLog('🍲 鍋がグツグツ煮立ちました！影絵の取札から具材を選んでください。', true);
     checkTurnStep();

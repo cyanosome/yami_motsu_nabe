@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Yuji+Syuku&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <!-- Three.js 3D Rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Firebase JS SDK (compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -178,11 +180,7 @@
                     </div>
 
                     <div class="pot-container" id="pot-element">
-                        <div class="pot-soup">
-                            <div class="steam-bubble" style="width:20px; height:20px; left:30%; bottom:20%; animation-delay:0s;"></div>
-                            <div class="steam-bubble" style="width:30px; height:30px; left:60%; bottom:30%; animation-delay:0.8s;"></div>
-                            <div class="steam-bubble" style="width:15px; height:15px; left:45%; bottom:15%; animation-delay:1.5s;"></div>
-                        </div>
+                        <div id="pot-3d-viewport"></div>
                         <div class="pot-count-badge">
                             <span id="pot-count">0</span>
                             <span class="pot-count-label">残り具材</span>
