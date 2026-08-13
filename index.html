@@ -767,6 +767,49 @@
             line-height: 1.4;
         }
 
+        /* 食材サイズバッジ & セレクトボタン スタイル */
+        .card-size-badge {
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+            display: inline-block;
+        }
+        .size-small { background: #0984e3; color: #fff; }
+        .size-mid   { background: #6c5ce7; color: #fff; }
+        .size-large { background: #d63031; color: #fff; border: 1px solid #ff7675; }
+
+        .size-selector-group {
+            display: flex;
+            gap: 3px;
+            background: rgba(0,0,0,0.4);
+            padding: 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .size-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .size-btn.active {
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 0 6px rgba(253,203,110,0.5);
+        }
+        .size-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
         /* オンライン対戦用モーダル スタイル */
         .modal-overlay {
             position: fixed;
@@ -1062,31 +1105,75 @@
         /* --- 具材マスターデータ --- */
         const INGREDIENTS_DATABASE = [
             // もつ系
-            { id: 'motsu_premium', name: '極上牛もつ', category: 'motsu', score: 6, spice: 0, icon: '🥩', desc: 'ぷりぷりの脂がのった高級もつ。高得点！' },
-            { id: 'motsu_normal', name: '国産牛もつ', category: 'motsu', score: 4, spice: 0, icon: '🥓', desc: '定番のうまみ豊かな牛もつ。' },
-            { id: 'motsu_mince', name: 'もつダンゴ', category: 'motsu', score: 3, spice: 0, icon: '🧆', desc: '出汁がよく染み込む絶品つくね。' },
-            { id: 'motsu_suburi', name: '特選ハツ・センマイ', category: 'motsu', score: 4, spice: 0, icon: '🍖', desc: 'コリコリ食感がたまらない部位。' },
+            { id: 'motsu_premium', name: '極上牛もつ', category: 'motsu', score: 6, spice: 0, icon: '🥩', allowedSizes: ['large'], desc: 'ぷりぷりの脂がのった高級もつ。高得点！' },
+            { id: 'motsu_normal', name: '国産牛もつ', category: 'motsu', score: 4, spice: 0, icon: '🥓', allowedSizes: ['small', 'mid', 'large'], desc: '定番のうまみ豊かな牛もつ。' },
+            { id: 'motsu_mince', name: 'もつダンゴ', category: 'motsu', score: 3, spice: 0, icon: '🧆', allowedSizes: ['small', 'mid'], desc: '出汁がよく染み込む絶品つくね。' },
+            { id: 'motsu_suburi', name: '特選ハツ・センマイ', category: 'motsu', score: 4, spice: 0, icon: '🍖', allowedSizes: ['mid', 'large'], desc: 'コリコリ食感がたまらない部位。' },
             
             // 野菜系
-            { id: 'vege_cabbage', name: 'シャキシャキキャベツ', category: 'vege', score: 2, spice: 0, icon: '🥬', desc: '甘みがあってスープとよく合う。' },
-            { id: 'vege_nira', name: 'シャキッとニラ', category: 'vege', score: 2, spice: 0, icon: '🌱', desc: 'もつ鍋には欠かせないスタミナ野菜。' },
-            { id: 'vege_tofu', name: '絹ごし豆腐', category: 'vege', score: 3, spice: 0, icon: '🧊', desc: 'アツアツの味が染みた豆腐。' },
-            { id: 'vege_garlic', name: 'にんにくスライス', category: 'vege', score: 2, spice: 0, icon: '🧄', desc: 'もつの旨味を爆発させる！' },
-            { id: 'vege_gobou', name: 'ささがきゴボウ', category: 'vege', score: 3, spice: 0, icon: '🪵', desc: '香りと食感のアクセント。' },
+            { id: 'vege_cabbage', name: 'シャキシャキキャベツ', category: 'vege', score: 2, spice: 0, icon: '🥬', allowedSizes: ['small'], desc: '甘みがあってスープとよく合う。' },
+            { id: 'vege_nira', name: 'シャキッとニラ', category: 'vege', score: 2, spice: 0, icon: '🌱', allowedSizes: ['small', 'mid'], desc: 'もつ鍋には欠かせないスタミナ野菜。' },
+            { id: 'vege_tofu', name: '絹ごし豆腐', category: 'vege', score: 3, spice: 0, icon: '🧊', allowedSizes: ['mid', 'large'], desc: 'アツアツの味が染みた豆腐。' },
+            { id: 'vege_garlic', name: 'にんにくスライス', category: 'vege', score: 2, spice: 0, icon: '🧄', allowedSizes: ['small', 'mid'], desc: 'もつの旨味を爆発させる！' },
+            { id: 'vege_gobou', name: 'ささがきゴボウ', category: 'vege', score: 3, spice: 0, icon: '🪵', allowedSizes: ['small', 'mid'], desc: '香りと食感のアクセント。' },
 
             // スパイス / 特殊
-            { id: 'spice_chili', name: '鷹の爪唐辛子', category: 'spice', score: 1, spice: 1, icon: '🌶️', desc: 'ピリッと引き締める。激辛度+1。' },
-            { id: 'spice_dashi', name: '秘伝の特製出汁', category: 'spice', score: 4, spice: 0, icon: '🍶', desc: '全体の旨味を大幅アップ。' },
-            { id: 'spice_ramen', name: '〆のちゃんぽん麺', category: 'spice', score: 5, spice: 0, icon: '🍜', desc: '最後の満足度を加速させる麺。' },
-            { id: 'spice_yuzu', name: '爽やか柚子胡椒', category: 'spice', score: 3, spice: 1, icon: '🍋', desc: '風味豊かな高級薬味。激辛度+1。' },
+            { id: 'spice_chili', name: '鷹の爪唐辛子', category: 'spice', score: 1, spice: 1, icon: '🌶️', allowedSizes: ['small', 'mid', 'large'], desc: 'ピリッと引き締める。激辛度+1。' },
+            { id: 'spice_dashi', name: '秘伝の特製出汁', category: 'spice', score: 4, spice: 0, icon: '🍶', allowedSizes: ['mid', 'large'], desc: '全体の旨味を大幅アップ。' },
+            { id: 'spice_ramen', name: '〆のちゃんぽん麺', category: 'spice', score: 5, spice: 0, icon: '🍜', allowedSizes: ['mid', 'large'], desc: '最後の満足度を加速させる麺。' },
+            { id: 'spice_yuzu', name: '爽やか柚子胡椒', category: 'spice', score: 3, spice: 1, icon: '🍋', allowedSizes: ['small', 'mid'], desc: '風味豊かな高級薬味。激辛度+1。' },
 
             // 闇具材（トラップ / バースト要素）
-            { id: 'yami_pepper', name: 'デスソースペッパー', category: 'yami', score: -2, spice: 2, icon: '🔥', desc: '超危険！一気に激辛度+2。' },
-            { id: 'yami_tawashi', name: '謎のたわし', category: 'yami', score: -6, spice: 0, icon: '🧽', desc: '食べられない！大幅マイナス点。' },
-            { id: 'yami_slime', name: '紫色物体X', category: 'yami', score: -4, spice: 1, icon: '👾', desc: '闇鍋の象徴。怪しいエキスが溢れ出る。' },
-            { id: 'yami_wasabi', name: '大量の生ワサビ', category: 'yami', score: -1, spice: 2, icon: '🟢', desc: '鼻に抜ける痛烈なツーン！激辛度+2。' },
-            { id: 'yami_habanero', name: '魔界ハバネロ', category: 'yami', score: -3, spice: 3, icon: '💀', desc: '一発即死レベルの超極悪唐辛子！激辛度+3。' }
+            { id: 'yami_pepper', name: 'デスソースペッパー', category: 'yami', score: -2, spice: 2, icon: '🔥', allowedSizes: ['small', 'mid', 'large'], desc: '超危険！一気に激辛度+2。' },
+            { id: 'yami_tawashi', name: '謎のたわし', category: 'yami', score: -6, spice: 0, icon: '🧽', allowedSizes: ['large'], desc: '食べられない！大幅マイナス点。' },
+            { id: 'yami_slime', name: '紫色物体X', category: 'yami', score: -4, spice: 1, icon: '👾', allowedSizes: ['mid', 'large'], desc: '闇鍋の象徴。怪しいエキスが溢れ出る。' },
+            { id: 'yami_wasabi', name: '大量の生ワサビ', category: 'yami', score: -1, spice: 2, icon: '🟢', allowedSizes: ['small', 'mid'], desc: '鼻に抜ける痛烈なツーン！激辛度+2。' },
+            { id: 'yami_habanero', name: '魔界ハバネロ', category: 'yami', score: -3, spice: 3, icon: '💀', allowedSizes: ['mid', 'large'], desc: '一発即死レベルの超極悪唐辛子！激辛度+3。' }
         ];
+
+        /* --- 食材カードインスタンス生成 (サイズ補正適用) --- */
+        function createIngredientInstance(baseItem, forceSize = null) {
+            const allowed = baseItem.allowedSizes || ['mid'];
+            const chosenSize = forceSize || allowed[Math.floor(Math.random() * allowed.length)];
+            
+            let score = baseItem.score;
+            let spice = baseItem.spice;
+            let sizeLabel = '';
+            let sizeBadgeText = '中';
+            let sizeBadgeClass = 'size-mid';
+
+            if (chosenSize === 'small') {
+                score = (baseItem.score >= 0) 
+                    ? Math.max(1, Math.floor(baseItem.score * 0.6))
+                    : Math.min(-1, Math.ceil(baseItem.score * 0.6));
+                sizeLabel = ' (小)';
+                sizeBadgeText = '小';
+                sizeBadgeClass = 'size-small';
+            } else if (chosenSize === 'large') {
+                score = (baseItem.score >= 0)
+                    ? Math.ceil(baseItem.score * 1.5)
+                    : Math.floor(baseItem.score * 1.5);
+                if (spice > 0) spice += 1; // 大盛は激辛度も増加
+                sizeLabel = ' (大盛)';
+                sizeBadgeText = '大';
+                sizeBadgeClass = 'size-large';
+            }
+
+            const uniqueId = `${baseItem.id}_${chosenSize}_${Math.random().toString(36).substring(2, 7)}`;
+
+            return {
+                ...baseItem,
+                id: uniqueId, // 一意なインスタンスID
+                baseId: baseItem.id,
+                size: chosenSize,
+                sizeBadgeText: sizeBadgeText,
+                sizeBadgeClass: sizeBadgeClass,
+                name: baseItem.name + sizeLabel,
+                rawName: baseItem.name,
+                score: score,
+                spice: spice
+            };
+        }
 
         /* --- Firebase Realtime Database 初期化 --- */
         const firebaseConfig = {
@@ -1303,11 +1390,10 @@
                     isBusted: false
                 }));
 
-                // Phase 1 ドラフト用オプションの事前生成 (全プレイヤー分)
+                // Phase 1 ドラフト用オプションの事前生成 (全プレイヤー分、インスタンス化済みカード配列)
                 const draftOptionsPerPlayer = {};
                 initialPlayers.forEach(p => {
-                    // p.uid (文字列) をキーにして保存
-                    draftOptionsPerPlayer[p.uid] = getRandomIngredients(6).map(item => item.id);
+                    draftOptionsPerPlayer[p.uid] = getRandomIngredients(6);
                 });
 
                 const gameInitData = {
@@ -1381,14 +1467,21 @@
             const grid = document.getElementById('draft-grid');
 
             if (isMyTurn) {
-                // 自分の手番：選択カードリストを描画
-                const optionsIds = (data.draftOptionsPerPlayer && data.draftOptionsPerPlayer[curPlayer.uid]) || [];
-                const options = optionsIds.map(id => INGREDIENTS_DATABASE.find(item => item.id === id)).filter(Boolean);
+                // 自分の手番：選択カードリスト（インスタンス化済み）を取得
+                const rawOptions = (data.draftOptionsPerPlayer && data.draftOptionsPerPlayer[curPlayer.uid]) || [];
+                // 生のオブジェクトまたはIDからインスタンスを補完
+                currentDraftOptions = rawOptions.map(item => {
+                    if (typeof item === 'string') {
+                        const base = INGREDIENTS_DATABASE.find(x => x.id === item);
+                        return base ? createIngredientInstance(base) : null;
+                    }
+                    return item;
+                }).filter(Boolean);
                 
                 // 初回または手番変更時にカードを描画
                 if (!grid.querySelector('.card-item') || gameState.renderedPlayerUid !== curPlayer.uid) {
                     gameState.renderedPlayerUid = curPlayer.uid;
-                    renderDraftGrid(options);
+                    renderDraftGrid(currentDraftOptions);
                 }
                 updateDraftButtonState();
             } else {
@@ -1583,7 +1676,8 @@
 
         function getRandomIngredients(count) {
             const shuffled = [...INGREDIENTS_DATABASE].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
+            const selectedBases = shuffled.slice(0, count);
+            return selectedBases.map(base => createIngredientInstance(base));
         }
 
         function renderDraftGrid(options) {
@@ -1601,8 +1695,23 @@
                 if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '薬味/出汁'; }
                 if (item.category === 'yami') { badgeClass = 'badge-yami'; badgeText = '闇具材'; }
 
+                const base = INGREDIENTS_DATABASE.find(b => b.id === (item.baseId || item.id.split('_')[0])) || item;
+                const allowed = base.allowedSizes || ['mid'];
+
+                const canSmall = allowed.includes('small');
+                const canMid = allowed.includes('mid');
+                const canLarge = allowed.includes('large');
+                const curSize = item.size || 'mid';
+
                 card.innerHTML = `
-                    <div class="card-badge ${badgeClass}">${badgeText}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="card-badge ${badgeClass}">${badgeText}</div>
+                        <div class="size-selector-group" onclick="event.stopPropagation();">
+                            <button class="size-btn ${curSize === 'small' ? 'active' : ''}" ${canSmall ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'small')">S</button>
+                            <button class="size-btn ${curSize === 'mid' ? 'active' : ''}" ${canMid ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'mid')">M</button>
+                            <button class="size-btn ${curSize === 'large' ? 'active' : ''}" ${canLarge ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'large')">L</button>
+                        </div>
+                    </div>
                     <div class="card-icon">${item.icon}</div>
                     <div class="card-name">${item.name}</div>
                     <div class="card-desc">${item.desc}</div>
@@ -1611,9 +1720,56 @@
                     </div>
                 `;
 
+                if (gameState.selectedDraftIds.includes(item.id)) {
+                    card.classList.add('selected');
+                }
+
                 card.onclick = () => toggleCardSelection(item.id);
                 grid.appendChild(card);
             });
+        }
+
+        function changeCardSize(e, itemId, newSize) {
+            if (e) e.stopPropagation();
+            playSound('select');
+
+            const itemIdx = currentDraftOptions.findIndex(x => x.id === itemId);
+            if (itemIdx < 0) return;
+
+            const item = currentDraftOptions[itemIdx];
+            const base = INGREDIENTS_DATABASE.find(b => b.id === (item.baseId || item.id.split('_')[0]));
+            if (!base) return;
+
+            // 許可されたサイズでなければ何もしない
+            if (base.allowedSizes && !base.allowedSizes.includes(newSize)) return;
+
+            const newInstance = createIngredientInstance(base, newSize);
+            newInstance.id = item.id; // 一貫性保持
+
+            currentDraftOptions[itemIdx] = newInstance;
+
+            // カード要素の再描画
+            const cardEl = document.getElementById(`card-${itemId}`);
+            if (cardEl) {
+                const nameEl = cardEl.querySelector('.card-name');
+                const ptsEl = cardEl.querySelector('.card-pts');
+                if (nameEl) nameEl.innerText = newInstance.name;
+                if (ptsEl) {
+                    ptsEl.className = `card-pts ${newInstance.score < 0 ? 'negative' : ''}`;
+                    ptsEl.innerHTML = `${newInstance.score >= 0 ? '+' : ''}${newInstance.score} pt ${newInstance.spice > 0 ? '🔥+'+newInstance.spice : ''}`;
+                }
+
+                const btns = cardEl.querySelectorAll('.size-btn');
+                btns.forEach(btn => {
+                    const btnLabel = btn.innerText.toUpperCase();
+                    const sizeMap = { 'S': 'small', 'M': 'mid', 'L': 'large' };
+                    if (sizeMap[btnLabel] === newSize) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
         }
 
         function toggleCardSelection(itemId) {
@@ -1621,11 +1777,13 @@
             const idx = gameState.selectedDraftIds.indexOf(itemId);
             if (idx >= 0) {
                 gameState.selectedDraftIds.splice(idx, 1);
-                document.getElementById(`card-${itemId}`).classList.remove('selected');
+                const el = document.getElementById(`card-${itemId}`);
+                if (el) el.classList.remove('selected');
             } else {
                 if (gameState.selectedDraftIds.length < 3) {
                     gameState.selectedDraftIds.push(itemId);
-                    document.getElementById(`card-${itemId}`).classList.add('selected');
+                    const el = document.getElementById(`card-${itemId}`);
+                    if (el) el.classList.add('selected');
                 } else {
                     showToast('選択できる具材は3枚までです');
                 }
@@ -1643,14 +1801,16 @@
         function submitDraftChoice() {
             playSound('add');
 
+            // 選択されたインスタンスカードを取得
+            const selectedCards = currentDraftOptions.filter(x => gameState.selectedDraftIds.includes(x.id));
+
             if (gameState.mode === 'online') {
                 if (!roomRef) return;
                 
                 const curPlayer = gameState.players[gameState.currentDraftPlayerIndex];
                 if (curPlayer.uid !== myPlayerId) return;
 
-                const newPotItems = gameState.selectedDraftIds.map(id => INGREDIENTS_DATABASE.find(x => x.id === id)).filter(Boolean);
-                const updatedPotStack = [...(gameState.potStack || []), ...newPotItems];
+                const updatedPotStack = [...(gameState.potStack || []), ...selectedCards];
                 const nextDraftIndex = gameState.currentDraftPlayerIndex + 1;
 
                 if (nextDraftIndex < gameState.players.length) {
@@ -1662,8 +1822,8 @@
                     // 全員のドラフト完了：基本具材を追加してPhase 2へ
                     const baseItemIds = ['motsu_normal', 'motsu_premium', 'vege_cabbage', 'vege_nira', 'vege_tofu', 'spice_chili', 'spice_dashi', 'yami_pepper'];
                     baseItemIds.forEach(id => {
-                        const item = INGREDIENTS_DATABASE.find(x => x.id === id);
-                        if (item) updatedPotStack.push({ ...item });
+                        const base = INGREDIENTS_DATABASE.find(x => x.id === id);
+                        if (base) updatedPotStack.push(createIngredientInstance(base));
                     });
                     updatedPotStack.sort(() => 0.5 - Math.random());
 
@@ -1678,9 +1838,8 @@
                 return;
             }
 
-            gameState.selectedDraftIds.forEach(id => {
-                const item = INGREDIENTS_DATABASE.find(x => x.id === id);
-                gameState.potStack.push({ ...item });
+            selectedCards.forEach(card => {
+                gameState.potStack.push(card);
             });
 
             showToast(`${gameState.players[gameState.currentDraftPlayerIndex].name} が具材を3枚投入しました！`);
@@ -1697,11 +1856,10 @@
         function handleCpuDraft(cpuPlayer) {
             const options = getRandomIngredients(6);
             options.sort((a, b) => b.score - a.score);
-            const chosen = [options[0].id, options[1].id, options[options.length - 1].id];
+            const chosen = [options[0], options[1], options[options.length - 1]];
 
-            chosen.forEach(id => {
-                const item = INGREDIENTS_DATABASE.find(x => x.id === id);
-                gameState.potStack.push({ ...item });
+            chosen.forEach(card => {
+                gameState.potStack.push(card);
             });
 
             showToast(`${cpuPlayer.name} が具材3枚を鍋に投入しました！`);
@@ -1719,7 +1877,7 @@
             const baseItems = ['motsu_normal', 'motsu_premium', 'vege_cabbage', 'vege_nira', 'vege_tofu', 'spice_chili', 'spice_dashi', 'yami_pepper'];
             baseItems.forEach(id => {
                 const item = INGREDIENTS_DATABASE.find(x => x.id === id);
-                gameState.potStack.push({ ...item });
+                if (item) gameState.potStack.push(createIngredientInstance(item));
             });
             gameState.potStack.sort(() => 0.5 - Math.random());
         }
@@ -1755,10 +1913,11 @@
                 for (let s = 0; s < 4; s++) {
                     const item = pBowl[s];
                     if (item) {
+                        const szText = item.sizeBadgeText ? `[${item.sizeBadgeText}]` : '';
                         slotsHtml += `
                             <div class="item-slot filled" title="${item.name}: ${item.desc}">
                                 <span>${item.icon}</span>
-                                <span class="slot-score">${item.score >= 0 ? '+'+item.score : item.score}</span>
+                                <span class="slot-score">${item.score >= 0 ? '+'+item.score : item.score} <small style="font-size:0.65rem; opacity:0.8;">${szText}</small></span>
                             </div>
                         `;
                     } else {
