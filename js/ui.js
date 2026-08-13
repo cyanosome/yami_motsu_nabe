@@ -1,7 +1,7 @@
 import { gameState, draftState, calculateFinalScores, reshuffleScoop, handlePassClick, selectScoopedItem, BURST_PENALTY_SCORE } from './gameLogic.js';
 import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
-import { INGREDIENTS_DATABASE, createIngredientInstance } from './ingredients.js';
+import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE } from './ingredients.js';
 
 export function getIngredientIconHtml(item, extraClass = '') {
     if (!item) return '';
@@ -511,3 +511,139 @@ window.changeCardSize = changeCardSize;
 window.toggleCardSelection = toggleCardSelection;
 window.openOnlineModal = openOnlineModal;
 window.handlePassClick = handlePassClick;
+
+export let currentEncyclopediaTab = 'ingredients';
+export let currentEncyclopediaCategory = 'all';
+
+export function openEncyclopediaModal() {
+    playSound('select');
+    const modal = document.getElementById('encyclopedia-modal');
+    if (modal) {
+        modal.classList.add('active');
+        renderEncyclopediaContent();
+    }
+}
+
+export function closeEncyclopediaModal() {
+    playSound('select');
+    const modal = document.getElementById('encyclopedia-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+export function switchEncyclopediaTab(tabName) {
+    playSound('select');
+    currentEncyclopediaTab = tabName;
+
+    const btnIngredients = document.getElementById('tab-btn-ingredients');
+    const btnCombos = document.getElementById('tab-btn-combos');
+    const filterBox = document.getElementById('encyclopedia-filters');
+
+    if (tabName === 'ingredients') {
+        if (btnIngredients) btnIngredients.classList.add('active');
+        if (btnCombos) btnCombos.classList.remove('active');
+        if (filterBox) filterBox.style.display = 'flex';
+    } else {
+        if (btnIngredients) btnIngredients.classList.remove('active');
+        if (btnCombos) btnCombos.classList.add('active');
+        if (filterBox) filterBox.style.display = 'none';
+    }
+
+    renderEncyclopediaContent();
+}
+
+export function filterEncyclopediaCategory(category) {
+    playSound('select');
+    currentEncyclopediaCategory = category;
+
+    const filterBtns = document.querySelectorAll('.enc-filter-btn');
+    filterBtns.forEach(btn => {
+        const catAttr = btn.getAttribute('onclick');
+        if (catAttr && catAttr.includes(`'${category}'`)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    renderEncyclopediaIngredients();
+}
+
+export function renderEncyclopediaContent() {
+    if (currentEncyclopediaTab === 'ingredients') {
+        renderEncyclopediaIngredients();
+    } else {
+        renderEncyclopediaCombos();
+    }
+}
+
+export function renderEncyclopediaIngredients() {
+    const container = document.getElementById('encyclopedia-body');
+    if (!container) return;
+
+    let items = INGREDIENTS_DATABASE;
+    if (currentEncyclopediaCategory !== 'all') {
+        items = items.filter(x => x.category === currentEncyclopediaCategory);
+    }
+
+    let html = `<div class="encyclopedia-grid">`;
+    items.forEach(item => {
+        let badgeClass = 'badge-motsu';
+        let badgeText = 'もつ';
+        if (item.category === 'vege') { badgeClass = 'badge-vege'; badgeText = '野菜'; }
+        if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '薬味/出汁'; }
+        if (item.category === 'sweets') { badgeClass = 'badge-sweets'; badgeText = 'お菓子'; }
+        if (item.category === 'yami') { badgeClass = 'badge-yami'; badgeText = '闇具材'; }
+
+        const allowed = item.allowedSizes || ['mid'];
+        const sizesText = allowed.map(s => s === 'small' ? 'S' : (s === 'mid' ? 'M' : 'L')).join('/');
+
+        const tasteText = (item.taste > 0) ? `🔥+${item.taste}` : ((item.taste < 0) ? `🍬${item.taste}` : '');
+
+        html += `
+            <div class="enc-card-item">
+                <div class="enc-card-header">
+                    <div class="card-badge ${badgeClass}">${badgeText}</div>
+                    <div class="enc-sizes-badge">サイズ: ${sizesText}</div>
+                </div>
+                <div class="card-icon size-mid">${getIngredientIconHtml(item)}</div>
+                <div class="card-name">${item.name}</div>
+                <div class="card-desc">${item.desc}</div>
+                <div class="card-pts ${item.score < 0 ? 'negative' : ''}">
+                    基本: ${item.score >= 0 ? '+' : ''}${item.score} pt ${tasteText}
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+export function renderEncyclopediaCombos() {
+    const container = document.getElementById('encyclopedia-body');
+    if (!container) return;
+
+    let html = `<div class="enc-combo-list">`;
+    COMBOS_DATABASE.forEach(combo => {
+        html += `
+            <div class="enc-combo-card">
+                <div class="enc-combo-icon">${combo.icon || '✨'}</div>
+                <div class="enc-combo-info">
+                    <div class="enc-combo-title">${combo.name}</div>
+                    <div class="enc-combo-condition">条件: ${combo.conditionText}</div>
+                    <div class="enc-combo-desc">${combo.desc}</div>
+                </div>
+                <div class="enc-combo-badge">+${combo.score} pt</div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+window.openEncyclopediaModal = openEncyclopediaModal;
+window.closeEncyclopediaModal = closeEncyclopediaModal;
+window.switchEncyclopediaTab = switchEncyclopediaTab;
+window.filterEncyclopediaCategory = filterEncyclopediaCategory;
+

@@ -1,6 +1,6 @@
 import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
-import { INGREDIENTS_DATABASE, createIngredientInstance } from './ingredients.js';
+import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE } from './ingredients.js';
 import { 
     updatePhaseStepper, 
     renderOnlineDraftPhase, 
@@ -535,23 +535,12 @@ export function calculateFinalScores() {
         let bonus = 0;
         let details = [];
 
-        const hasMotsu = bowl.some(b => b.category === 'motsu');
-        const hasVege = bowl.some(b => b.category === 'vege');
-        const hasSpice = bowl.some(b => b.category === 'spice');
-        const motsuCount = bowl.filter(b => b.category === 'motsu').length;
-
-        if (hasMotsu && hasVege) {
-            bonus += 3;
-            details.push('王道組み合わせ(+3)');
-        }
-        if (hasMotsu && hasSpice) {
-            bonus += 2;
-            details.push('出汁マリアージュ(+2)');
-        }
-        if (motsuCount >= 3) {
-            bonus += 4;
-            details.push('メガ盛りもつコンボ(+4)');
-        }
+        COMBOS_DATABASE.forEach(combo => {
+            if (combo.check && combo.check(bowl)) {
+                bonus += combo.score;
+                details.push(`${combo.name}(+${combo.score})`);
+            }
+        });
 
         let finalScore = baseScore + bonus;
         p.finalScore = finalScore;

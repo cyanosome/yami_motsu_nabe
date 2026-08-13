@@ -60,6 +60,35 @@
         </div>
     </div>
 
+    <!-- 食材・コンボ図鑑モーダル -->
+    <div class="modal-overlay" id="encyclopedia-modal">
+        <div class="modal-card encyclopedia-card">
+            <button class="modal-close-btn" onclick="closeEncyclopediaModal()">✕</button>
+            <div class="modal-title" style="margin-bottom:12px;">📖 食材 & コンボ図鑑</div>
+
+            <!-- タブ切り替え -->
+            <div class="encyclopedia-tabs">
+                <button class="encyclopedia-tab active" id="tab-btn-ingredients" onclick="switchEncyclopediaTab('ingredients')">🥩 食材一覧</button>
+                <button class="encyclopedia-tab" id="tab-btn-combos" onclick="switchEncyclopediaTab('combos')">✨ コンボ一覧</button>
+            </div>
+
+            <!-- 食材カテゴリフィルター (食材タブ用) -->
+            <div class="encyclopedia-filters" id="encyclopedia-filters">
+                <button class="enc-filter-btn active" onclick="filterEncyclopediaCategory('all')">すべて</button>
+                <button class="enc-filter-btn" onclick="filterEncyclopediaCategory('motsu')">🥩 もつ</button>
+                <button class="enc-filter-btn" onclick="filterEncyclopediaCategory('vege')">🥬 野菜</button>
+                <button class="enc-filter-btn" onclick="filterEncyclopediaCategory('spice')">🍶 薬味/出汁</button>
+                <button class="enc-filter-btn" onclick="filterEncyclopediaCategory('sweets')">🍬 お菓子</button>
+                <button class="enc-filter-btn" onclick="filterEncyclopediaCategory('yami')">🔥 闇具材</button>
+            </div>
+
+            <!-- モーダル本文 (スクロール可) -->
+            <div class="encyclopedia-body" id="encyclopedia-body">
+                <!-- 動的生成 -->
+            </div>
+        </div>
+    </div>
+
     <main>
         <!-- フェーズプログレスバー (ゲーム開始後に表示) -->
         <div class="phase-stepper" id="phase-stepper-bar">
@@ -124,9 +153,12 @@
 
         <!-- PHASE 2: 鍋漁り/チキンレース -->
         <div class="phase-container" id="phase-2-view">
-            <div class="phase-title-box">
-                <h2 class="phase-title">鍋漁りフェーズ（チキンレース）</h2>
-                <p class="phase-desc">掬い上げた3枚の影絵カードから1枚を選択してください（最大4枚までお椀に確保可能）</p>
+            <div class="phase-title-box" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 class="phase-title">鍋漁りフェーズ（チキンレース）</h2>
+                    <p class="phase-desc">掬い上げた3枚の影絵カードから1枚を選択してください（最大4枚までお椀に確保可能）</p>
+                </div>
+                <button class="btn-encyclopedia" onclick="openEncyclopediaModal()">📖 食材・コンボ図鑑</button>
             </div>
 
             <div class="game-layout">
@@ -158,6 +190,7 @@
                     <div class="action-bar" style="margin-top: 10px;">
                         <button class="btn-primary" id="btn-reroll" onclick="reshuffleScoop()">🥄 もう一回掬う (残り1回)</button>
                         <button class="btn-secondary" id="btn-pass" onclick="handlePassClick()">🛑 パス（いただきます）</button>
+                        <button class="btn-encyclopedia" onclick="openEncyclopediaModal()">📖 図鑑を見る</button>
                     </div>
 
                     <div class="bowls-container" id="bowls-container">

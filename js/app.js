@@ -1,7 +1,7 @@
 import { toggleSound } from './sound.js';
 import { closeOnlineModal, createOnlineRoom, joinOnlineRoom, startOnlineGameHost, firebaseState } from './firebase.js';
 import { gameState, startGame, resetToStart, submitDraftChoice, reshuffleScoop, handlePassClick } from './gameLogic.js';
-import { openOnlineModal } from './ui.js';
+import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory } from './ui.js';
 
 // HTMLから呼び出されるグローバル関数をwindowオブジェクトに登録
 window.toggleSound = toggleSound;
@@ -15,6 +15,10 @@ window.submitDraftChoice = submitDraftChoice;
 window.reshuffleScoop = reshuffleScoop;
 window.handlePassClick = handlePassClick;
 window.resetToStart = resetToStart;
+window.openEncyclopediaModal = openEncyclopediaModal;
+window.closeEncyclopediaModal = closeEncyclopediaModal;
+window.switchEncyclopediaTab = switchEncyclopediaTab;
+window.filterEncyclopediaCategory = filterEncyclopediaCategory;
 
 // デバッグ・監視用オブジェクトの登録
 window.gameState = gameState;

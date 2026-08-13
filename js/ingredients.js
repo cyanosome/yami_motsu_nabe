@@ -31,6 +31,7 @@ export const INGREDIENTS_DATABASE = [
             { id: 'yami_hellsauce', name: '地獄の激辛ソース', category: 'yami', score: -3, taste: 3, icon: '🍾', iconUrl: 'assets/icon/HellSauce.png', allowedSizes: ['mid', 'large'], desc: '一発即死レベルの極悪激辛ソース！(辛さ+3)' },
             { id: 'yami_syrup', name: '大量の角砂糖シロップ', category: 'yami', score: -3, taste: -3, icon: '🍯', allowedSizes: ['mid', 'large'], desc: '超危険！一発即死レベルの激甘トラップ！(甘さ-3)' }
         ];
+        
 export function createIngredientInstance(baseItem, forceSize = null) {
             const allowed = baseItem.allowedSizes || ['mid'];
             const chosenSize = forceSize || allowed[Math.floor(Math.random() * allowed.length)];
@@ -75,3 +76,33 @@ export function createIngredientInstance(baseItem, forceSize = null) {
                 spice: taste // 後方互換維持
             };
         }
+
+export const COMBOS_DATABASE = [
+    {
+        id: 'combo_classic',
+        name: '王道組み合わせ',
+        score: 3,
+        icon: '🍲',
+        conditionText: 'もつ系 × 1以上 + 野菜系 × 1以上',
+        desc: 'もつの旨味とシャキシャキ野菜の甘みがベストマッチした王道もつ鍋！',
+        check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'vege')
+    },
+    {
+        id: 'combo_dashi',
+        name: '出汁マリアージュ',
+        score: 2,
+        icon: '🍶',
+        conditionText: 'もつ系 × 1以上 + 薬味/出汁系 × 1以上',
+        desc: '特製出汁や薬味がもつの脂を引き立てる絶品マリアージュ！',
+        check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'spice')
+    },
+    {
+        id: 'combo_mega_motsu',
+        name: 'メガ盛りもつコンボ',
+        score: 4,
+        icon: '🥩',
+        conditionText: 'もつ系 × 3以上',
+        desc: 'とにかくもつを喰らい尽くす！もつ好きにはたまらない圧倒的満足感。',
+        check: (bowl) => bowl.filter(b => b.category === 'motsu').length >= 3
+    }
+];
