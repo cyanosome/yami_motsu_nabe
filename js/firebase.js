@@ -242,6 +242,8 @@ export function syncOnlineStateToLocal(data) {
     gameState.currentDraftPlayerIndex = data.currentDraftPlayerIndex || 0;
     gameState.currentTurnPlayerIndex = data.currentTurnPlayerIndex || 0;
     gameState.potStack = data.potStack || [];
+    gameState.currentScoopOptions = data.currentScoopOptions || [];
+    gameState.hasRerolledThisTurn = data.hasRerolledThisTurn || false;
 
     updatePhaseStepper(data.currentPhase);
 

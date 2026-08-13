@@ -90,13 +90,9 @@ export function renderOnlinePotPhase(data) {
     const btnDraw = document.getElementById('btn-draw');
     const btnPass = document.getElementById('btn-pass');
 
-    if (curPlayer && curPlayer.uid === myPlayerId && !curPlayer.isPassed && !curPlayer.isBusted && curPlayer.bowl.length < 4) {
-        btnDraw.disabled = false;
-        btnPass.disabled = false;
-    } else {
-        btnDraw.disabled = true;
-        btnPass.disabled = true;
-    }
+    const canAct = curPlayer && curPlayer.uid === myPlayerId && !curPlayer.isPassed && !curPlayer.isBusted && (curPlayer.bowl ? curPlayer.bowl.length < 4 : true);
+    if (btnDraw) btnDraw.disabled = !canAct;
+    if (btnPass) btnPass.disabled = !canAct;
 }
 
 export function renderDraftGrid(options) {
