@@ -12,7 +12,8 @@ import {
     updateRerollButtonState, 
     addGameLog, 
     initPhase3Results, 
-    showToast 
+    showToast,
+    getPotSoupColorDetails
 } from './ui.js';
 import { executeOnlineReroll, executeOnlineScoopSelect, executeOnlinePass } from './firebase.js';
 
@@ -234,6 +235,28 @@ export function logPhase2Debug(actionName) {
     console.log("🎳現在の鍋の残り枚数:", pot.length);
     console.log("🥁現在の取札の中身:", scoops.map(c => c.name || c.id));
     console.log("🔄 リロール使用済みか:", !!gameState.hasRerolledThisTurn);
+
+    // 山札の各カードのScoreとSpicy/Tasteを出力
+    const potCardDetails = pot.map(c => {
+        const t = (c.taste !== undefined) ? c.taste : (c.spice || 0);
+        return `${c.rawName || c.name}(Score:${c.score >= 0 ? '+'+c.score : c.score}, Spicy:${t >= 0 ? '+'+t : t})`;
+    });
+    console.log("📊 山札の全カード内訳:", potCardDetails);
+
+    // 計算された HSL 値の詳細を別の group で出力
+    const colorDetails = getPotSoupColorDetails(pot);
+    console.groupCollapsed(`🎨 鍋のスープ色計算結果 (HSL) [H:${colorDetails.H}deg, S:${colorDetails.S}%, L:${colorDetails.L}%]`);
+    console.log("📈 山札合計Score:", colorDetails.totalScore, `(平均Score: ${colorDetails.avgScore}, 健全度Factor: ${colorDetails.fHealth})`);
+    console.log("🌶️ 山札合計Spicy/Taste:", colorDetails.totalTaste, `(平均Spicy: ${colorDetails.avgTaste}, 味覚Factor: ${colorDetails.fTaste})`);
+    console.log("🌈 計算色相 (Hue):", `${colorDetails.H}deg`);
+    console.log("✨ 計算彩度 (Saturation):", `${colorDetails.S}%`);
+    console.log("💡 計算明度 (Lightness):", `${colorDetails.L}%`);
+    console.log("🎨 中央色 (Center):", colorDetails.centerColor);
+    console.log("🎨 中間色 (Mid):", colorDetails.midColor);
+    console.log("🎨 外縁色 (Outer):", colorDetails.outerColor);
+    console.log("🖼️ 適用CSS Gradient:", colorDetails.gradient);
+    console.groupEnd();
+
     console.groupEnd();
 }
 

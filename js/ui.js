@@ -228,8 +228,83 @@ export function updateDraftButtonState() {
     btn.disabled = (count !== 3);
 }
 
+export function getPotSoupColorDetails(potStack) {
+    if (!potStack || potStack.length === 0) {
+        return {
+            totalCount: 0,
+            totalScore: 0,
+            avgScore: 0,
+            totalTaste: 0,
+            avgTaste: 0,
+            fHealth: 1.0,
+            fTaste: 0.0,
+            H: 0,
+            S: 75,
+            L: 45,
+            centerColor: 'hsl(0deg, 75%, 55%)',
+            midColor: 'hsl(0deg, 75%, 45%)',
+            outerColor: 'hsl(0deg, 60%, 25%)',
+            gradient: 'radial-gradient(circle, #d63031 20%, #a71d2a 60%, #4a090b 100%)'
+        };
+    }
+
+    const totalCount = potStack.length;
+    const totalScore = potStack.reduce((acc, cur) => acc + (cur.score || 0), 0);
+    const totalTaste = potStack.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
+
+    const avgScore = Number((totalScore / totalCount).toFixed(2));
+    const avgTaste = Number((totalTaste / totalCount).toFixed(2));
+
+    const clampScore = Math.max(-3, Math.min(4, avgScore));
+    const fHealth = Number(((clampScore - (-3)) / (4 - (-3))).toFixed(2));
+
+    const clampTaste = Math.max(-2, Math.min(2, avgTaste));
+    const fTaste = Number((clampTaste / 2).toFixed(2));
+
+    let H = 0;
+    if (fTaste >= 0) {
+        H = Math.round(25 * fTaste);
+    } else {
+        H = Math.round(360 + (30 * fTaste));
+    }
+
+    const S = Math.round(30 + (45 * fHealth));
+    const L = Math.round(10 + (35 * fHealth));
+
+    const centerColor = `hsl(${H}deg, ${S}%, ${Math.min(100, L + 10)}%)`;
+    const midColor    = `hsl(${H}deg, ${S}%, ${L}%)`;
+    const outerColor  = `hsl(${H}deg, ${Math.max(10, S - 15)}%, ${Math.max(5, L - 20)}%)`;
+    const gradient    = `radial-gradient(circle, ${centerColor} 20%, ${midColor} 60%, ${outerColor} 100%)`;
+
+    return {
+        totalCount,
+        totalScore,
+        avgScore,
+        totalTaste,
+        avgTaste,
+        fHealth,
+        fTaste,
+        H,
+        S,
+        L,
+        centerColor,
+        midColor,
+        outerColor,
+        gradient
+    };
+}
+
+export function calculatePotSoupGradient(potStack) {
+    return getPotSoupColorDetails(potStack).gradient;
+}
+
 export function renderPotUI() {
     document.getElementById('pot-count').innerText = (gameState.potStack ? gameState.potStack.length : 0);
+
+    const potSoupEl = document.querySelector('.pot-soup');
+    if (potSoupEl) {
+        potSoupEl.style.background = calculatePotSoupGradient(gameState.potStack);
+    }
 
     const container = document.getElementById('bowls-container');
     container.innerHTML = '';

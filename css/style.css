@@ -510,6 +510,7 @@
             height: 85%;
             border-radius: 50%;
             background: radial-gradient(circle, #d63031 20%, #a71d2a 60%, #4a090b 100%);
+            transition: background 1.2s ease-in-out;
             position: relative;
             display: flex;
             justify-content: center;
