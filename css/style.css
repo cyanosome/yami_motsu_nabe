@@ -1,4 +1,4 @@
-﻿        :root {
+        :root {
             --bg-dark: #0f0a0c;
             --bg-card: #1c1417;
             --bg-card-hover: #2a1e23;
@@ -352,6 +352,40 @@
             font-size: 3rem;
             text-align: center;
             margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 64px;
+        }
+
+        .ingredient-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            vertical-align: middle;
+            user-select: none;
+        }
+
+        .card-icon .ingredient-img {
+            width: 64px;
+            height: 64px;
+        }
+
+        .item-slot .ingredient-img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .silhouette-icon .ingredient-img {
+            width: 54px;
+            height: 54px;
+            filter: brightness(0) drop-shadow(0 0 6px rgba(255,255,255,0.5));
+        }
+
+        .rank-bowl-icons .ingredient-img {
+            width: 24px;
+            height: 24px;
+            margin: 0 2px;
         }
 
         .card-name {

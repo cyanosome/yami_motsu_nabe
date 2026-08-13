@@ -3,6 +3,15 @@ import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
 import { INGREDIENTS_DATABASE, createIngredientInstance } from './ingredients.js';
 
+export function getIngredientIconHtml(item, extraClass = '') {
+    if (!item) return '';
+    if (item.iconUrl) {
+        return `<img src="${item.iconUrl}" alt="${item.name || ''}" class="ingredient-img ${extraClass}" />`;
+    }
+    return item.icon || '';
+}
+
+
 export function openOnlineModal() {
     document.getElementById('online-modal').classList.add('active');
     document.getElementById('modal-step-menu').style.display = 'block';
@@ -130,7 +139,7 @@ export function renderDraftGrid(options) {
                     <button class="size-btn ${curSize === 'large' ? 'active' : ''}" ${canLarge ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'large')">L</button>
                 </div>
             </div>
-            <div class="card-icon">${item.icon}</div>
+            <div class="card-icon">${getIngredientIconHtml(item)}</div>
             <div class="card-name">${item.name}</div>
             <div class="card-desc">${item.desc}</div>
             <div class="card-pts ${item.score < 0 ? 'negative' : ''}">
@@ -245,7 +254,7 @@ export function renderPotUI() {
                 const szText = item.sizeBadgeText ? `[${item.sizeBadgeText}]` : '';
                 slotsHtml += `
                     <div class="item-slot filled" title="${item.name}: ${item.desc}">
-                        <span>${item.icon}</span>
+                        <span>${getIngredientIconHtml(item)}</span>
                         <span class="slot-score">${item.score >= 0 ? '+'+item.score : item.score} <small style="font-size:0.65rem; opacity:0.8;">${szText}</small></span>
                     </div>
                 `;
@@ -327,7 +336,7 @@ export function renderScoopCards() {
         card.className = 'silhouette-card';
         card.innerHTML = `
             <div style="font-size:0.75rem; color:var(--accent-gold); font-weight:bold;">取札 #${idx+1}</div>
-            <div class="silhouette-icon">${item.icon}</div>
+            <div class="silhouette-icon">${getIngredientIconHtml(item)}</div>
             <div class="silhouette-label">❓ 謎の具材</div>
         `;
 
@@ -395,7 +404,7 @@ export function initPhase3Results() {
         const item = document.createElement('div');
         item.className = `ranking-item rank-${rankIdx + 1}`;
 
-        const bowlIcons = p.bowl.map(b => b.icon).join(' ');
+        const bowlIcons = p.bowl.map(b => getIngredientIconHtml(b)).join(' ');
 
         item.innerHTML = `
             <div class="rank-badge">${rankIdx + 1}</div>
