@@ -1306,7 +1306,8 @@
                 // Phase 1 ドラフト用オプションの事前生成 (全プレイヤー分)
                 const draftOptionsPerPlayer = {};
                 initialPlayers.forEach(p => {
-                    draftOptionsPerPlayer[p.id] = getRandomIngredients(6).map(item => item.id);
+                    // p.uid (文字列) をキーにして保存
+                    draftOptionsPerPlayer[p.uid] = getRandomIngredients(6).map(item => item.id);
                 });
 
                 const gameInitData = {
@@ -1377,19 +1378,22 @@
             document.getElementById('p1-player-title').innerText = `${curPlayer.name} の手番：具材選択 ${isMyTurn ? '(あなた)' : ''}`;
 
             const btn = document.getElementById('btn-add-pot');
+            const grid = document.getElementById('draft-grid');
+
             if (isMyTurn) {
                 // 自分の手番：選択カードリストを描画
                 const optionsIds = (data.draftOptionsPerPlayer && data.draftOptionsPerPlayer[curPlayer.uid]) || [];
                 const options = optionsIds.map(id => INGREDIENTS_DATABASE.find(item => item.id === id)).filter(Boolean);
                 
-                // 初回のみ描画
-                if (document.getElementById('draft-grid').children.length === 0 || gameState.selectedDraftIds.length === 0) {
+                // 初回または手番変更時にカードを描画
+                if (!grid.querySelector('.card-item') || gameState.renderedPlayerUid !== curPlayer.uid) {
+                    gameState.renderedPlayerUid = curPlayer.uid;
                     renderDraftGrid(options);
                 }
                 updateDraftButtonState();
             } else {
                 // 他プレイヤーの手番
-                const grid = document.getElementById('draft-grid');
+                gameState.renderedPlayerUid = null;
                 grid.innerHTML = `
                     <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color: var(--accent-gold); font-size:1.2rem;">
                         ⏳ <b>${curPlayer.name}</b> が具材を選択中...
