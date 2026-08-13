@@ -20,12 +20,12 @@ export const INGREDIENTS_DATABASE = [
 
             // お菓子系 (辛さを相殺する甘み属性)
             { id: 'sweets_candy', name: 'カラフルキャンディ', category: 'sweets', score: 2, taste: -1, icon: '🍬', allowedSizes: ['small', 'mid'], desc: '甘くて可愛いお菓子。辛さを和らげる！(甘さ-1)' },
-            { id: 'sweets_dogcookie', name: 'DogCookie', category: 'sweets', score: 4, taste: -1, icon: '🍪', iconUrl: 'assets/icon/DogCookie.png', allowedSizes: ['small', 'mid', 'large'], desc: '犬の形をしたクッキー。甘くて香ばしい！(甘さ-1)' },
+            { id: 'sweets_dogcookie', name: '子犬のクッキー', category: 'sweets', score: 4, taste: -1, icon: '🍪', iconUrl: 'assets/icon/DogCookie.png', allowedSizes: ['small', 'mid', 'large'], desc: '犬の形をしたクッキー。甘くて香ばしい！(甘さ-1)' },
             { id: 'sweets_donut', name: '濃厚ドーナツ', category: 'sweets', score: 3, taste: -2, icon: '🍩', iconUrl: 'assets/icon/Donut.png', allowedSizes: ['mid', 'large'], desc: '甘さたっぷり！味覚を一気に甘くする。(甘さ-2)' },
 
             // 闇具材（トラップ / バースト要素）
             { id: 'yami_pepper', name: 'デスソースペッパー', category: 'yami', score: -2, taste: 2, icon: '🔥', allowedSizes: ['small', 'mid', 'large'], desc: '超危険！一気に辛さ+2。' },
-            { id: 'yami_tyre', name: '古タイヤ (Tyre)', category: 'yami', score: -6, taste: 0, icon: '🛞', iconUrl: 'assets/icon/Tire.png', allowedSizes: ['large'], desc: '固くて噛み切れないタイヤ！食べられない！大幅マイナス点。' },
+            { id: 'yami_tyre', name: 'ゴムタイヤ ', category: 'yami', score: -6, taste: 0, icon: '🛞', iconUrl: 'assets/icon/Tire.png', allowedSizes: ['large'], desc: '固くて噛み切れないタイヤ！食べられない！大幅マイナス点。' },
             { id: 'yami_slime', name: '紫色物体X', category: 'yami', score: -4, taste: 1, icon: '👾', allowedSizes: ['mid', 'large'], desc: '闇鍋の象徴。怪しいエキスが溢れ出る。' },
             { id: 'yami_wasabi', name: '大量の生ワサビ', category: 'yami', score: -1, taste: 2, icon: '🟢', allowedSizes: ['small', 'mid'], desc: '鼻に抜ける痛烈なツーン！辛さ+2。' },
             { id: 'yami_hellsauce', name: '地獄の激辛ソース', category: 'yami', score: -3, taste: 3, icon: '🍾', iconUrl: 'assets/icon/HellSauce.png', allowedSizes: ['mid', 'large'], desc: '一発即死レベルの極悪激辛ソース！(辛さ+3)' },
