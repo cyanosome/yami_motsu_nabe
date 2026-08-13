@@ -766,18 +766,165 @@
             margin-top: 15px;
             line-height: 1.4;
         }
+
+        /* オンライン対戦用モーダル スタイル */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            color: var(--text-main);
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            color: var(--accent-gold);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .room-code-badge {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            letter-spacing: 6px;
+            background: rgba(253, 203, 110, 0.1);
+            border: 2px dashed var(--accent-gold);
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+            user-select: all;
+        }
+
+        .input-text {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-gold);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .input-text:focus {
+            border-color: var(--accent-gold);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .lobby-players-list {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 15px 0;
+            min-height: 80px;
+        }
+
+        .lobby-player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .lobby-player-item:last-child {
+            border-bottom: none;
+        }
+
+        .host-badge {
+            font-size: 0.75rem;
+            background: var(--accent-red);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
     </style>
+    <!-- Firebase JS SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
     <header>
         <div class="title-logo">
-            🍲 闇もつ鍋 <span>MOCK</span>
+            🍲 闇もつ鍋 <span>ONLINE</span>
         </div>
         <button class="sound-toggle" id="sound-btn" onclick="toggleSound()">🔊 効果音: ON</button>
     </header>
 
     <div id="toast" class="toast-notification">メッセージ</div>
+
+    <!-- オンラインモーダル -->
+    <div class="modal-overlay" id="online-modal">
+        <div class="modal-card">
+            <button class="modal-close-btn" onclick="closeOnlineModal()">✕</button>
+            <div id="modal-step-menu">
+                <div class="modal-title">🌐 オンライン対戦</div>
+                <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:6px;">あなたのプレイヤー名</label>
+                <input type="text" id="input-player-name" class="input-text" maxlength="10" placeholder="名前を入力...">
+
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                    <button class="btn-primary" style="width:100%; text-align:center;" onclick="createOnlineRoom()">➕ 部屋を作成する</button>
+                    <div style="text-align:center; color:var(--text-sub); font-size:0.85rem; margin:4px 0;">― または ―</div>
+                    <input type="text" id="input-room-code" class="input-text" maxlength="4" placeholder="4桁の部屋コード (例: 1234)" style="text-align:center; font-size:1.2rem; letter-spacing:4px;">
+                    <button class="btn-secondary" style="width:100%; text-align:center;" onclick="joinOnlineRoom()">🚪 部屋に入る</button>
+                </div>
+            </div>
+
+            <div id="modal-step-lobby" style="display:none;">
+                <div class="modal-title">🏠 対戦ロビー</div>
+                <div style="text-align:center; color:var(--text-sub); font-size:0.85rem;">合言葉（相手に教えてください）</div>
+                <div class="room-code-badge" id="lobby-room-code">----</div>
+
+                <div style="font-size:0.9rem; margin-top:10px;">参加メンバー (<span id="lobby-player-count">1</span>/4)</div>
+                <div class="lobby-players-list" id="lobby-players-list">
+                    <!-- 動的生成 -->
+                </div>
+
+                <div id="lobby-host-controls" style="display:none;">
+                    <button class="btn-primary" style="width:100%; text-align:center;" onclick="startOnlineGameHost()">🚀 ゲームを開始する！</button>
+                </div>
+                <div id="lobby-guest-notice" style="display:none; text-align:center; color:var(--accent-gold); font-size:0.9rem; margin-top:10px;">
+                    ⏳ ホストがゲームを開始するのを待っています...
+                </div>
+            </div>
+        </div>
+    </div>
 
     <main>
         <!-- フェーズプログレスバー (ゲーム開始後に表示) -->
@@ -804,13 +951,17 @@
                 チキンレースで最高の「お椀」を作り上げよう！
             </p>
             <div class="mode-selector">
+                <button class="btn-mode" onclick="openOnlineModal()" style="border-color: var(--accent-gold); background: rgba(253, 203, 110, 0.08);">
+                    <span>🌐 オンラインマルチ対戦 モード</span>
+                    <span style="font-size: 0.85rem; color: var(--accent-gold);">ルーム作成/参加 ➔</span>
+                </button>
                 <button class="btn-mode" onclick="startGame('vs-cpu')">
                     <span>🤖 VS CPU モード (1P vs CPU3体)</span>
-                    <span style="font-size: 0.85rem; color: var(--accent-gold);">手軽にプレイ ➔</span>
+                    <span style="font-size: 0.85rem; color: var(--text-sub);">オフライン ➔</span>
                 </button>
                 <button class="btn-mode" onclick="startGame('hotseat')">
-                    <span>👥 2人対戦 モード (1P vs 2P)</span>
-                    <span style="font-size: 0.85rem; color: var(--accent-gold);">交互に操作 ➔</span>
+                    <span>👥 2人パス対戦 モード (1台で交代)</span>
+                    <span style="font-size: 0.85rem; color: var(--text-sub);">オフライン ➔</span>
                 </button>
             </div>
             <div class="help-box">
@@ -937,9 +1088,31 @@
             { id: 'yami_habanero', name: '魔界ハバネロ', category: 'yami', score: -3, spice: 3, icon: '💀', desc: '一発即死レベルの超極悪唐辛子！激辛度+3。' }
         ];
 
+        /* --- Firebase Realtime Database 初期化 --- */
+        const firebaseConfig = {
+            databaseURL: "https://yami-motsu-nabe-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        /* --- プレイヤーセッション設定 --- */
+        function getMyPlayerId() {
+            let pid = sessionStorage.getItem('yami_motsu_pid');
+            if (!pid) {
+                pid = 'p_' + Math.random().toString(36).substring(2, 9);
+                sessionStorage.setItem('yami_motsu_pid', pid);
+            }
+            return pid;
+        }
+
+        const myPlayerId = getMyPlayerId();
+        let currentRoomId = null;
+        let isHost = false;
+        let roomRef = null;
+
         /* --- ゲーム状態構造 --- */
         let gameState = {
-            mode: 'vs-cpu',
+            mode: 'vs-cpu', // 'vs-cpu' | 'hotseat' | 'online'
             soundEnabled: true,
             currentPhase: 1,
             players: [],
@@ -948,6 +1121,300 @@
             potStack: [],
             selectedDraftIds: []
         };
+
+        /* --- オンラインモーダル / ロビー制御 --- */
+        function openOnlineModal() {
+            document.getElementById('online-modal').classList.add('active');
+            document.getElementById('modal-step-menu').style.display = 'block';
+            document.getElementById('modal-step-lobby').style.display = 'none';
+
+            let savedName = localStorage.getItem('yami_motsu_name') || `プレイヤー_${Math.floor(100 + Math.random() * 900)}`;
+            document.getElementById('input-player-name').value = savedName;
+        }
+
+        function closeOnlineModal() {
+            if (roomRef) {
+                // ロビー中に閉じたら退室処理
+                roomRef.child('players/' + myPlayerId).remove();
+                roomRef.off();
+                roomRef = null;
+            }
+            document.getElementById('online-modal').classList.remove('active');
+        }
+
+        function getEnteredPlayerName() {
+            const nameInput = document.getElementById('input-player-name').value.trim();
+            const name = nameInput || `プレイヤー_${Math.floor(100 + Math.random() * 900)}`;
+            localStorage.setItem('yami_motsu_name', name);
+            return name;
+        }
+
+        function createOnlineRoom() {
+            const playerName = getEnteredPlayerName();
+            const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+            currentRoomId = roomId;
+            isHost = true;
+
+            roomRef = db.ref('rooms/' + roomId);
+            
+            const initialRoomData = {
+                roomId: roomId,
+                status: 'waiting',
+                hostPlayerId: myPlayerId,
+                createdAt: Date.now(),
+                players: {
+                    [myPlayerId]: {
+                        id: myPlayerId,
+                        name: playerName,
+                        isHost: true,
+                        joinedAt: Date.now()
+                    }
+                }
+            };
+
+            roomRef.set(initialRoomData).then(() => {
+                // 切断時に自動削除
+                roomRef.child('players/' + myPlayerId).onDisconnect().remove();
+                showLobbyUI(roomId);
+                listenLobbyChanges();
+            }).catch(err => {
+                showToast("部屋の作成に失敗しました: " + err.message);
+            });
+        }
+
+        function joinOnlineRoom() {
+            const playerName = getEnteredPlayerName();
+            const codeInput = document.getElementById('input-room-code').value.trim();
+
+            if (!codeInput || codeInput.length !== 4) {
+                showToast("4桁の部屋コードを入力してください");
+                return;
+            }
+
+            const targetRoomRef = db.ref('rooms/' + codeInput);
+            targetRoomRef.once('value').then(snapshot => {
+                if (!snapshot.exists()) {
+                    showToast("指定された部屋コードが存在しません");
+                    return;
+                }
+
+                const roomData = snapshot.val();
+                if (roomData.status !== 'waiting') {
+                    showToast("既にゲームが開始されている部屋です");
+                    return;
+                }
+
+                const playerKeys = Object.keys(roomData.players || {});
+                if (playerKeys.length >= 4) {
+                    showToast("部屋が満員です(最大4人)");
+                    return;
+                }
+
+                currentRoomId = codeInput;
+                isHost = false;
+                roomRef = targetRoomRef;
+
+                // プレイヤー追加
+                roomRef.child('players/' + myPlayerId).set({
+                    id: myPlayerId,
+                    name: playerName,
+                    isHost: false,
+                    joinedAt: Date.now()
+                }).then(() => {
+                    roomRef.child('players/' + myPlayerId).onDisconnect().remove();
+                    showLobbyUI(currentRoomId);
+                    listenLobbyChanges();
+                });
+            });
+        }
+
+        function showLobbyUI(roomId) {
+            document.getElementById('modal-step-menu').style.display = 'none';
+            document.getElementById('modal-step-lobby').style.display = 'block';
+            document.getElementById('lobby-room-code').innerText = roomId;
+
+            if (isHost) {
+                document.getElementById('lobby-host-controls').style.display = 'block';
+                document.getElementById('lobby-guest-notice').style.display = 'none';
+            } else {
+                document.getElementById('lobby-host-controls').style.display = 'none';
+                document.getElementById('lobby-guest-notice').style.display = 'block';
+            }
+        }
+
+        function listenLobbyChanges() {
+            if (!roomRef) return;
+
+            roomRef.on('value', snapshot => {
+                const roomData = snapshot.val();
+                if (!roomData) {
+                    showToast("部屋が解散されました");
+                    closeOnlineModal();
+                    return;
+                }
+
+                if (roomData.status === 'waiting') {
+                    // 参加者リストの更新
+                    const playersObj = roomData.players || {};
+                    const playersArr = Object.values(playersObj).sort((a, b) => a.joinedAt - b.joinedAt);
+
+                    document.getElementById('lobby-player-count').innerText = playersArr.length;
+                    const listEl = document.getElementById('lobby-players-list');
+                    listEl.innerHTML = '';
+
+                    playersArr.forEach(p => {
+                        const item = document.createElement('div');
+                        item.className = 'lobby-player-item';
+                        item.innerHTML = `
+                            <span>${p.name} ${p.isHost ? '<span class="host-badge">ホスト</span>' : ''} ${p.id === myPlayerId ? '<span style="color:var(--accent-gold); font-size:0.8rem;">(あなた)</span>' : ''}</span>
+                            <span style="color:var(--accent-green); font-size:0.85rem;">✔ 参加中</span>
+                        `;
+                        listEl.appendChild(item);
+                    });
+                } else if (roomData.status === 'playing') {
+                    // ホストがゲームを開始した！
+                    document.getElementById('online-modal').classList.remove('active');
+                    setupOnlineGameClient(roomData);
+                }
+            });
+        }
+
+        function startOnlineGameHost() {
+            if (!roomRef || !isHost) return;
+
+            roomRef.once('value').then(snapshot => {
+                const roomData = snapshot.val();
+                const playersObj = roomData.players || {};
+                const playersArr = Object.values(playersObj).sort((a, b) => a.joinedAt - b.joinedAt);
+
+                if (playersArr.length < 2) {
+                    showToast("対戦相手が参加するまで待ってください (2人以上で開始可能)");
+                    return;
+                }
+
+                // 初期対戦プレイヤー配列の構築
+                const initialPlayers = playersArr.map((p, idx) => ({
+                    id: idx,
+                    uid: p.id,
+                    name: p.name,
+                    isCpu: false,
+                    bowl: [],
+                    isPassed: false,
+                    isBusted: false
+                }));
+
+                // Phase 1 ドラフト用オプションの事前生成 (全プレイヤー分)
+                const draftOptionsPerPlayer = {};
+                initialPlayers.forEach(p => {
+                    draftOptionsPerPlayer[p.id] = getRandomIngredients(6).map(item => item.id);
+                });
+
+                const gameInitData = {
+                    status: 'playing',
+                    mode: 'online',
+                    currentPhase: 1,
+                    players: initialPlayers,
+                    currentDraftPlayerIndex: 0,
+                    currentTurnPlayerIndex: 0,
+                    potStack: [],
+                    draftOptionsPerPlayer: draftOptionsPerPlayer,
+                    selectedDraftIds: []
+                };
+
+                roomRef.update(gameInitData);
+            });
+        }
+
+        /* --- オンラインゲームリアルタイム同期 --- */
+        let isOnlineSetupDone = false;
+
+        function setupOnlineGameClient(roomData) {
+            gameState.mode = 'online';
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('phase-stepper-bar').classList.add('active');
+
+            if (isOnlineSetupDone) return;
+            isOnlineSetupDone = true;
+
+            // ゲーム進行状態のリアルタイムリスナー
+            roomRef.on('value', snapshot => {
+                const data = snapshot.val();
+                if (!data || data.status !== 'playing') return;
+                syncOnlineStateToLocal(data);
+            });
+        }
+
+        function syncOnlineStateToLocal(data) {
+            gameState.currentPhase = data.currentPhase;
+            gameState.players = data.players || [];
+            gameState.currentDraftPlayerIndex = data.currentDraftPlayerIndex || 0;
+            gameState.currentTurnPlayerIndex = data.currentTurnPlayerIndex || 0;
+            gameState.potStack = data.potStack || [];
+
+            updatePhaseStepper(data.currentPhase);
+
+            // PhaseごとのUI画面切り替えと描画
+            if (data.currentPhase === 1) {
+                document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
+                document.getElementById('phase-1-view').classList.add('active');
+                renderOnlineDraftPhase(data);
+            } else if (data.currentPhase === 2) {
+                document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
+                document.getElementById('phase-2-view').classList.add('active');
+                renderOnlinePotPhase(data);
+            } else if (data.currentPhase === 3) {
+                document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
+                document.getElementById('phase-3-view').classList.add('active');
+                initPhase3Results();
+            }
+        }
+
+        function renderOnlineDraftPhase(data) {
+            const curPlayer = data.players[data.currentDraftPlayerIndex];
+            if (!curPlayer) return;
+
+            const isMyTurn = (curPlayer.uid === myPlayerId);
+            document.getElementById('p1-player-title').innerText = `${curPlayer.name} の手番：具材選択 ${isMyTurn ? '(あなた)' : ''}`;
+
+            const btn = document.getElementById('btn-add-pot');
+            if (isMyTurn) {
+                // 自分の手番：選択カードリストを描画
+                const optionsIds = (data.draftOptionsPerPlayer && data.draftOptionsPerPlayer[curPlayer.uid]) || [];
+                const options = optionsIds.map(id => INGREDIENTS_DATABASE.find(item => item.id === id)).filter(Boolean);
+                
+                // 初回のみ描画
+                if (document.getElementById('draft-grid').children.length === 0 || gameState.selectedDraftIds.length === 0) {
+                    renderDraftGrid(options);
+                }
+                updateDraftButtonState();
+            } else {
+                // 他プレイヤーの手番
+                const grid = document.getElementById('draft-grid');
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color: var(--accent-gold); font-size:1.2rem;">
+                        ⏳ <b>${curPlayer.name}</b> が具材を選択中...
+                    </div>
+                `;
+                btn.innerText = `相手の選択待ち...`;
+                btn.disabled = true;
+            }
+        }
+
+        function renderOnlinePotPhase(data) {
+            renderPotUI();
+
+            const curPlayer = data.players[data.currentTurnPlayerIndex];
+            const btnDraw = document.getElementById('btn-draw');
+            const btnPass = document.getElementById('btn-pass');
+
+            if (curPlayer && curPlayer.uid === myPlayerId && !curPlayer.isPassed && !curPlayer.isBusted && curPlayer.bowl.length < 4) {
+                btnDraw.disabled = false;
+                btnPass.disabled = false;
+            } else {
+                btnDraw.disabled = true;
+                btnPass.disabled = true;
+            }
+        }
 
         /* --- 効果音 (Web Audio API) --- */
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1054,6 +1521,12 @@
         }
 
         function resetToStart() {
+            if (roomRef) {
+                roomRef.off();
+                roomRef = null;
+            }
+            isOnlineSetupDone = false;
+            currentRoomId = null;
             document.getElementById('start-screen').style.display = 'block';
             document.getElementById('phase-stepper-bar').classList.remove('active');
             document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
@@ -1165,6 +1638,42 @@
 
         function submitDraftChoice() {
             playSound('add');
+
+            if (gameState.mode === 'online') {
+                if (!roomRef) return;
+                
+                const curPlayer = gameState.players[gameState.currentDraftPlayerIndex];
+                if (curPlayer.uid !== myPlayerId) return;
+
+                const newPotItems = gameState.selectedDraftIds.map(id => INGREDIENTS_DATABASE.find(x => x.id === id)).filter(Boolean);
+                const updatedPotStack = [...(gameState.potStack || []), ...newPotItems];
+                const nextDraftIndex = gameState.currentDraftPlayerIndex + 1;
+
+                if (nextDraftIndex < gameState.players.length) {
+                    roomRef.update({
+                        potStack: updatedPotStack,
+                        currentDraftPlayerIndex: nextDraftIndex
+                    });
+                } else {
+                    // 全員のドラフト完了：基本具材を追加してPhase 2へ
+                    const baseItemIds = ['motsu_normal', 'motsu_premium', 'vege_cabbage', 'vege_nira', 'vege_tofu', 'spice_chili', 'spice_dashi', 'yami_pepper'];
+                    baseItemIds.forEach(id => {
+                        const item = INGREDIENTS_DATABASE.find(x => x.id === id);
+                        if (item) updatedPotStack.push({ ...item });
+                    });
+                    updatedPotStack.sort(() => 0.5 - Math.random());
+
+                    roomRef.update({
+                        potStack: updatedPotStack,
+                        currentDraftPlayerIndex: nextDraftIndex,
+                        currentPhase: 2,
+                        currentTurnPlayerIndex: 0
+                    });
+                }
+                gameState.selectedDraftIds = [];
+                return;
+            }
+
             gameState.selectedDraftIds.forEach(id => {
                 const item = INGREDIENTS_DATABASE.find(x => x.id === id);
                 gameState.potStack.push({ ...item });
@@ -1235,11 +1744,12 @@
                 if (p.isPassed) statusTag = '<span class="bowl-status-tag status-pass">パス(確定)</span>';
                 if (p.isBusted) statusTag = '<span class="bowl-status-tag status-bust">🔥激辛バースト</span>';
 
-                const totalSpice = p.bowl.reduce((acc, cur) => acc + cur.spice, 0);
+                const pBowl = p.bowl || [];
+                const totalSpice = pBowl.reduce((acc, cur) => acc + cur.spice, 0);
 
                 let slotsHtml = '';
                 for (let s = 0; s < 4; s++) {
-                    const item = p.bowl[s];
+                    const item = pBowl[s];
                     if (item) {
                         slotsHtml += `
                             <div class="item-slot filled" title="${item.name}: ${item.desc}">
@@ -1254,7 +1764,7 @@
 
                 card.innerHTML = `
                     <div class="bowl-header">
-                        <span>${p.name}</span>
+                        <span>${p.name} ${p.uid === myPlayerId ? '<span style="color:var(--accent-gold); font-size:0.8rem;">(あなた)</span>' : ''}</span>
                         ${statusTag}
                     </div>
                     <div class="bowl-items-slots">
@@ -1262,7 +1772,7 @@
                     </div>
                     <div style="font-size:0.8rem; color:var(--text-sub); width:100%; display:flex; justify-content:space-between;">
                         <span>激辛度: ${'🔥'.repeat(totalSpice) || '0'}</span>
-                        <span>確定枚数: ${p.bowl.length}/4</span>
+                        <span>確定枚数: ${pBowl.length}/4</span>
                     </div>
                 `;
                 container.appendChild(card);
@@ -1284,6 +1794,8 @@
         }
 
         function checkTurnStep() {
+            if (gameState.mode === 'online') return; // オンライン時はFirebaseリスナーが描画
+
             const activePlayers = gameState.players.filter(p => !p.isPassed && !p.isBusted);
             if (activePlayers.length === 0 || gameState.potStack.length === 0) {
                 addGameLog('全員の行動が終了したか、鍋が空になりました！点数集計へ進みます。', true);
@@ -1292,8 +1804,8 @@
             }
 
             const p = gameState.players[gameState.currentTurnPlayerIndex];
-            if (p.isPassed || p.isBusted || p.bowl.length >= 4) {
-                if (p.bowl.length >= 4 && !p.isPassed && !p.isBusted) {
+            if (p.isPassed || p.isBusted || (p.bowl && p.bowl.length >= 4)) {
+                if (p.bowl && p.bowl.length >= 4 && !p.isPassed && !p.isBusted) {
                     p.isPassed = true;
                     addGameLog(`${p.name} は4枚引いたためお椀を確定しました。`);
                 }
@@ -1320,7 +1832,13 @@
 
         function handleDrawClick() {
             const p = gameState.players[gameState.currentTurnPlayerIndex];
-            if (p.isCpu || p.isPassed || p.isBusted || p.bowl.length >= 4) return;
+            if (p.isCpu || p.isPassed || p.isBusted || (p.bowl && p.bowl.length >= 4)) return;
+
+            if (gameState.mode === 'online') {
+                if (!roomRef || p.uid !== myPlayerId) return;
+                executeOnlineDraw();
+                return;
+            }
 
             executeDraw(p);
         }
@@ -1329,10 +1847,102 @@
             const p = gameState.players[gameState.currentTurnPlayerIndex];
             if (p.isCpu || p.isPassed || p.isBusted) return;
 
+            if (gameState.mode === 'online') {
+                if (!roomRef || p.uid !== myPlayerId) return;
+                executeOnlinePass();
+                return;
+            }
+
             p.isPassed = true;
             playSound('select');
             addGameLog(`${p.name} が「いただきます！」とパスしてお椀を確定しました。`, true);
             advanceTurn();
+        }
+
+        function executeOnlineDraw() {
+            if (gameState.potStack.length === 0) return;
+
+            playSound('draw');
+            const updatedPotStack = [...gameState.potStack];
+            const drawnItem = updatedPotStack.pop();
+
+            const updatedPlayers = JSON.parse(JSON.stringify(gameState.players));
+            const playerIndex = gameState.currentTurnPlayerIndex;
+            const player = updatedPlayers[playerIndex];
+
+            if (!player.bowl) player.bowl = [];
+            player.bowl.push(drawnItem);
+
+            const pot = document.getElementById('pot-element');
+            pot.classList.add('shaking');
+            setTimeout(() => pot.classList.remove('shaking'), 400);
+
+            const currentSpice = player.bowl.reduce((acc, cur) => acc + cur.spice, 0);
+            if (currentSpice >= 4) {
+                player.isBusted = true;
+                playSound('bust');
+            } else if (player.bowl.length >= 4) {
+                player.isPassed = true;
+            }
+
+            // 次の手番を探す
+            let nextTurnIndex = (playerIndex + 1) % updatedPlayers.length;
+            let loopCount = 0;
+            while (loopCount < updatedPlayers.length) {
+                const nextP = updatedPlayers[nextTurnIndex];
+                if (!nextP.isPassed && !nextP.isBusted && (nextP.bowl ? nextP.bowl.length < 4 : true)) {
+                    break;
+                }
+                nextTurnIndex = (nextTurnIndex + 1) % updatedPlayers.length;
+                loopCount++;
+            }
+
+            const activePlayers = updatedPlayers.filter(p => !p.isPassed && !p.isBusted);
+            const isGameOver = (activePlayers.length === 0 || updatedPotStack.length === 0);
+
+            const updateData = {
+                potStack: updatedPotStack,
+                players: updatedPlayers,
+                currentTurnPlayerIndex: nextTurnIndex
+            };
+
+            if (isGameOver) {
+                updateData.currentPhase = 3;
+            }
+
+            roomRef.update(updateData);
+        }
+
+        function executeOnlinePass() {
+            playSound('select');
+            const updatedPlayers = JSON.parse(JSON.stringify(gameState.players));
+            const playerIndex = gameState.currentTurnPlayerIndex;
+            updatedPlayers[playerIndex].isPassed = true;
+
+            let nextTurnIndex = (playerIndex + 1) % updatedPlayers.length;
+            let loopCount = 0;
+            while (loopCount < updatedPlayers.length) {
+                const nextP = updatedPlayers[nextTurnIndex];
+                if (!nextP.isPassed && !nextP.isBusted && (nextP.bowl ? nextP.bowl.length < 4 : true)) {
+                    break;
+                }
+                nextTurnIndex = (nextTurnIndex + 1) % updatedPlayers.length;
+                loopCount++;
+            }
+
+            const activePlayers = updatedPlayers.filter(p => !p.isPassed && !p.isBusted);
+            const isGameOver = (activePlayers.length === 0 || gameState.potStack.length === 0);
+
+            const updateData = {
+                players: updatedPlayers,
+                currentTurnPlayerIndex: nextTurnIndex
+            };
+
+            if (isGameOver) {
+                updateData.currentPhase = 3;
+            }
+
+            roomRef.update(updateData);
         }
 
         function executeDraw(player) {
@@ -1425,20 +2035,21 @@
 
         function calculateFinalScores() {
             gameState.players.forEach(p => {
+                const bowl = p.bowl || [];
                 if (p.isBusted) {
                     p.finalScore = 0;
                     p.scoreBreakdown = '激辛バーストにより 0 pt';
                     return;
                 }
 
-                let baseScore = p.bowl.reduce((acc, cur) => acc + cur.score, 0);
+                let baseScore = bowl.reduce((acc, cur) => acc + cur.score, 0);
                 let bonus = 0;
                 let details = [];
 
-                const hasMotsu = p.bowl.some(b => b.category === 'motsu');
-                const hasVege = p.bowl.some(b => b.category === 'vege');
-                const hasSpice = p.bowl.some(b => b.category === 'spice');
-                const motsuCount = p.bowl.filter(b => b.category === 'motsu').length;
+                const hasMotsu = bowl.some(b => b.category === 'motsu');
+                const hasVege = bowl.some(b => b.category === 'vege');
+                const hasSpice = bowl.some(b => b.category === 'spice');
+                const motsuCount = bowl.filter(b => b.category === 'motsu').length;
 
                 if (hasMotsu && hasVege) {
                     bonus += 3;
