@@ -28,6 +28,7 @@ export let gameState = {
     selectedDraftIds: []
 };
 
+
 export const draftState = { options: [] };
 
 /* --- ゲーム初期化 --- */
