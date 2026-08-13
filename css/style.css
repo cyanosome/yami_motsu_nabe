@@ -925,14 +925,24 @@
         /* Sサイズ (小盛り) */
         .silhouette-icon.size-small { font-size: 1.8rem; }
         .silhouette-icon.size-small .ingredient-img { width: 36px; height: 36px; }
+        .silhouette-icon.size-small .silhouette-circle { width: 36px; height: 36px; }
 
         /* Mサイズ (中盛り) */
         .silhouette-icon.size-mid { font-size: 2.6rem; }
         .silhouette-icon.size-mid .ingredient-img { width: 52px; height: 52px; }
+        .silhouette-icon.size-mid .silhouette-circle { width: 52px; height: 52px; }
 
         /* Lサイズ (大盛り) */
         .silhouette-icon.size-large { font-size: 3.4rem; }
         .silhouette-icon.size-large .ingredient-img { width: 72px; height: 72px; }
+        .silhouette-icon.size-large .silhouette-circle { width: 72px; height: 72px; }
+
+        .silhouette-circle {
+            background: #000;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        }
 
         .silhouette-label {
             font-size: 0.8rem;

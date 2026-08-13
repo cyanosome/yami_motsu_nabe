@@ -418,9 +418,13 @@ export function renderScoopCards() {
         const card = document.createElement('div');
         card.className = 'silhouette-card';
         const sizeClass = `size-${item.size || 'mid'}`;
+        const iconContent = (item && item.unique === true)
+            ? getIngredientIconHtml(item)
+            : `<div class="silhouette-circle"></div>`;
+
         card.innerHTML = `
             <div style="font-size:0.75rem; color:var(--accent-gold); font-weight:bold;">取札 #${idx+1}</div>
-            <div class="silhouette-icon ${sizeClass}">${getIngredientIconHtml(item)}</div>
+            <div class="silhouette-icon ${sizeClass}">${iconContent}</div>
             <div class="silhouette-label">❓ 謎の具材</div>
         `;
 
