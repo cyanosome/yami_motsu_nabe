@@ -31,6 +31,7 @@ export let gameState = {
 
 
 export const draftState = { options: [] };
+export const BURST_PENALTY_SCORE = -5;
 
 /* --- ゲーム初期化 --- */
 export function startGame(mode) {
@@ -364,11 +365,11 @@ export function selectScoopedItem(scoopIndex) {
     if (currentTaste >= 3) {
         curPlayer.isBusted = true;
         playSound('bust');
-        addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！0点確定！`, false, true);
+        addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！${BURST_PENALTY_SCORE}点確定！`, false, true);
     } else if (currentTaste <= -3) {
         curPlayer.isBusted = true;
         playSound('bust');
-        addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！0点確定！`, false, true);
+        addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！${BURST_PENALTY_SCORE}点確定！`, false, true);
     } else if (curPlayer.bowl.length >= 4) {
         curPlayer.isPassed = true;
         addGameLog(`🥣 ${curPlayer.name} は上限の4枚の具材を確保し、お椀が完成しました！`);
@@ -485,7 +486,7 @@ export function executeDraw(player) {
     if (currentSpice >= 4) {
         player.isBusted = true;
         playSound('bust');
-        addGameLog(`💥💥 ${player.name} のお椀が激辛度 (🔥${currentSpice}) に達し【激辛バースト】しました！0点確定！`, false, true);
+        addGameLog(`💥💥 ${player.name} のお椀が激辛度 (🔥${currentSpice}) に達し【激辛バースト】しました！${BURST_PENALTY_SCORE}点確定！`, false, true);
     } else if (player.bowl.length >= 4) {
         player.isPassed = true;
         addGameLog(`🥣 ${player.name} は上限の4枚の具材を確保し、お椀が完成しました！`);
@@ -525,8 +526,8 @@ export function calculateFinalScores() {
     gameState.players.forEach(p => {
         const bowl = p.bowl || [];
         if (p.isBusted) {
-            p.finalScore = 0;
-            p.scoreBreakdown = '激辛バーストにより 0 pt';
+            p.finalScore = BURST_PENALTY_SCORE;
+            p.scoreBreakdown = `バーストペナルティにより ${BURST_PENALTY_SCORE} pt`;
             return;
         }
 

@@ -1,4 +1,4 @@
-import { gameState, draftState, calculateFinalScores, reshuffleScoop, handlePassClick, selectScoopedItem } from './gameLogic.js';
+import { gameState, draftState, calculateFinalScores, reshuffleScoop, handlePassClick, selectScoopedItem, BURST_PENALTY_SCORE } from './gameLogic.js';
 import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
 import { INGREDIENTS_DATABASE, createIngredientInstance } from './ingredients.js';
@@ -304,6 +304,11 @@ export function renderPotUI() {
     const potSoupEl = document.querySelector('.pot-soup');
     if (potSoupEl) {
         potSoupEl.style.background = calculatePotSoupGradient(gameState.potStack);
+    }
+
+    const helpScoreTextEl = document.getElementById('burst-penalty-score-text');
+    if (helpScoreTextEl) {
+        helpScoreTextEl.textContent = `${BURST_PENALTY_SCORE}点`;
     }
 
     const container = document.getElementById('bowls-container');
