@@ -14,7 +14,7 @@ import {
     initPhase3Results, 
     showToast 
 } from './ui.js';
-import { executeOnlineReroll, executeOnlineScoopSelect, executeOnlinePass } from './app.js';
+import { executeOnlineReroll, executeOnlineScoopSelect, executeOnlinePass } from './firebase.js';
 
 /* --- ゲーム状態構造 --- */
 export let gameState = {
@@ -82,7 +82,7 @@ export function resetToStart() {
 }
 
 // import resetOnlineSetup callback
-import { resetOnlineSetup } from './app.js';
+import { resetOnlineSetup } from './firebase.js';
 
 export function switchPhase(phaseNum) {
     gameState.currentPhase = phaseNum;

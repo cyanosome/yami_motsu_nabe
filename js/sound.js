@@ -1,4 +1,4 @@
-import { gameState } from './app.js';
+import { gameState } from './gameLogic.js';
 
         /* --- 効果音 (Web Audio API) --- */
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
