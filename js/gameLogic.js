@@ -315,6 +315,7 @@ export function selectScoopedItem(scoopIndex) {
     if (!scoops || !scoops[scoopIndex]) return;
 
     playSound('draw');
+    if (window.triggerSplashEffect) window.triggerSplashEffect();
     const chosenItem = scoops.splice(scoopIndex, 1)[0];
 
     if (!curPlayer.bowl) curPlayer.bowl = [];

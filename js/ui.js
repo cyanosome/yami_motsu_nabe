@@ -2,6 +2,7 @@ import { gameState, draftState, calculateFinalScores, reshuffleScoop, handlePass
 import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
 import { INGREDIENTS_DATABASE, createIngredientInstance } from './ingredients.js';
+import { initThreePot, triggerSplashEffect } from './threePot.js';
 
 export function getIngredientIconHtml(item, extraClass = '') {
     if (!item) return '';
@@ -139,7 +140,7 @@ export function renderDraftGrid(options) {
                     <button class="size-btn ${curSize === 'large' ? 'active' : ''}" ${canLarge ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'large')">L</button>
                 </div>
             </div>
-            <div class="card-icon">${getIngredientIconHtml(item)}</div>
+            <div class="card-icon size-${curSize}">${getIngredientIconHtml(item)}</div>
             <div class="card-name">${item.name}</div>
             <div class="card-desc">${item.desc}</div>
             <div class="card-pts ${item.score < 0 ? 'negative' : ''}">
@@ -179,7 +180,10 @@ export function changeCardSize(e, itemId, newSize) {
     if (cardEl) {
         const nameEl = cardEl.querySelector('.card-name');
         const ptsEl = cardEl.querySelector('.card-pts');
+        const cardIconEl = cardEl.querySelector('.card-icon');
+
         if (nameEl) nameEl.innerText = newInstance.name;
+        if (cardIconEl) cardIconEl.className = `card-icon size-${newSize}`;
         if (ptsEl) {
             const tasteText = (newInstance.taste > 0) ? `🔥+${newInstance.taste}` : ((newInstance.taste < 0) ? `🍬${newInstance.taste}` : '');
             ptsEl.className = `card-pts ${newInstance.score < 0 ? 'negative' : ''}`;
@@ -227,6 +231,12 @@ export function updateDraftButtonState() {
 
 export function renderPotUI() {
     document.getElementById('pot-count').innerText = (gameState.potStack ? gameState.potStack.length : 0);
+
+    // 3D Canvasが未初期化の場合にThree.js 3D鍋を構築
+    const potContainer = document.getElementById('pot-element');
+    if (potContainer && !potContainer.querySelector('canvas#pot-3d-canvas')) {
+        initThreePot(potContainer);
+    }
 
     const container = document.getElementById('bowls-container');
     container.innerHTML = '';
@@ -334,9 +344,10 @@ export function renderScoopCards() {
     options.forEach((item, idx) => {
         const card = document.createElement('div');
         card.className = 'silhouette-card';
+        const sizeClass = `size-${item.size || 'mid'}`;
         card.innerHTML = `
             <div style="font-size:0.75rem; color:var(--accent-gold); font-weight:bold;">取札 #${idx+1}</div>
-            <div class="silhouette-icon">${getIngredientIconHtml(item)}</div>
+            <div class="silhouette-icon ${sizeClass}">${getIngredientIconHtml(item)}</div>
             <div class="silhouette-label">❓ 謎の具材</div>
         `;
 
