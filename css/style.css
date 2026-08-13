@@ -1274,3 +1274,154 @@
             box-shadow: 0 4px 10px rgba(253, 203, 110, 0.3);
         }
 
+        /* --- おすすめコンボ表示ボックス (サイドパネル) --- */
+        .recommend-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-gold);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 15px;
+        }
+
+        .recommended-combos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .rec-combo-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .rec-combo-card:hover {
+            background: rgba(253, 203, 110, 0.12);
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(253, 203, 110, 0.2);
+        }
+
+        .rec-combo-icon {
+            font-size: 1.6rem;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .rec-combo-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .rec-combo-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        .rec-combo-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: inline-block;
+            width: fit-content;
+        }
+
+        .rec-combo-status.achieved {
+            background: rgba(85, 239, 196, 0.2);
+            color: #55efc4;
+            border: 1px solid rgba(85, 239, 196, 0.4);
+        }
+
+        .rec-combo-status.close {
+            background: rgba(253, 203, 110, 0.2);
+            color: #fdcb6e;
+            border: 1px solid rgba(253, 203, 110, 0.4);
+        }
+
+        .rec-combo-status.default, .rec-combo-status.normal {
+            background: rgba(116, 185, 255, 0.15);
+            color: #74b9ff;
+            border: 1px solid rgba(116, 185, 255, 0.3);
+        }
+
+        .rec-combo-pts {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #fdcb6e;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 3px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        /* コンボ詳細ポップアップモーダル */
+        .combo-detail-card {
+            max-width: 480px;
+            width: 90%;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .combo-detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .combo-detail-icon {
+            font-size: 2.8rem;
+        }
+
+        .combo-detail-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        .combo-detail-badge {
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+            color: #1a1a2e;
+            font-weight: bold;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            display: inline-block;
+            margin-bottom: 14px;
+        }
+
+        .combo-detail-section {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .combo-detail-label {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .combo-detail-val {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+

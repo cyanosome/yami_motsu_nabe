@@ -106,3 +106,101 @@ export const COMBOS_DATABASE = [
         check: (bowl) => bowl.filter(b => b.category === 'motsu').length >= 3
     }
 ];
+
+export function getRecommendedCombos(bowl = []) {
+    const hasMotsu = bowl.some(b => b.category === 'motsu');
+    const hasVege = bowl.some(b => b.category === 'vege');
+    const hasSpice = bowl.some(b => b.category === 'spice');
+    const motsuCount = bowl.filter(b => b.category === 'motsu').length;
+
+    if (!bowl || bowl.length === 0) {
+        return [
+            {
+                ...COMBOS_DATABASE.find(c => c.id === 'combo_classic'),
+                statusText: '💡 おすすめ狙い目',
+                statusType: 'default',
+                priority: 1
+            },
+            {
+                ...COMBOS_DATABASE.find(c => c.id === 'combo_dashi'),
+                statusText: '💡 スープの狙い目',
+                statusType: 'default',
+                priority: 2
+            }
+        ];
+    }
+
+    const evaluated = COMBOS_DATABASE.map(combo => {
+        let isAchieved = combo.check(bowl);
+        let statusText = '';
+        let statusType = 'normal';
+        let priority = 0;
+
+        if (combo.id === 'combo_classic') {
+            if (isAchieved) {
+                statusText = '🎉 達成中！';
+                statusType = 'achieved';
+                priority = 80;
+            } else if (hasMotsu && !hasVege) {
+                statusText = '🎯 あと「野菜」で完成！';
+                statusType = 'close';
+                priority = 100;
+            } else if (!hasMotsu && hasVege) {
+                statusText = '🎯 あと「もつ」で完成！';
+                statusType = 'close';
+                priority = 95;
+            } else {
+                statusText = '💡 狙い目コンボ';
+                statusType = 'default';
+                priority = 40;
+            }
+        } else if (combo.id === 'combo_dashi') {
+            if (isAchieved) {
+                statusText = '🎉 達成中！';
+                statusType = 'achieved';
+                priority = 75;
+            } else if (hasMotsu && !hasSpice) {
+                statusText = '🎯 あと「薬味/出汁」で完成！';
+                statusType = 'close';
+                priority = 90;
+            } else if (!hasMotsu && hasSpice) {
+                statusText = '🎯 あと「もつ」で完成！';
+                statusType = 'close';
+                priority = 85;
+            } else {
+                statusText = '💡 狙い目コンボ';
+                statusType = 'default';
+                priority = 35;
+            }
+        } else if (combo.id === 'combo_mega_motsu') {
+            if (isAchieved) {
+                statusText = '🎉 達成中！';
+                statusType = 'achieved';
+                priority = 85;
+            } else if (motsuCount === 2) {
+                statusText = '🎯 あと「もつ」1個で完成！';
+                statusType = 'close';
+                priority = 98;
+            } else if (motsuCount === 1) {
+                statusText = '🎯 あと「もつ」2個必要';
+                statusType = 'normal';
+                priority = 50;
+            } else {
+                statusText = '💡 もつ特化狙い目';
+                statusType = 'default';
+                priority = 30;
+            }
+        }
+
+        return {
+            ...combo,
+            isAchieved,
+            statusText,
+            statusType,
+            priority
+        };
+    });
+
+    evaluated.sort((a, b) => b.priority - a.priority);
+    return evaluated.slice(0, 2);
+}

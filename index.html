@@ -89,6 +89,16 @@
         </div>
     </div>
 
+    <!-- コンボ詳細ポップアップモーダル -->
+    <div class="modal-overlay" id="combo-detail-modal">
+        <div class="modal-card combo-detail-card">
+            <button class="modal-close-btn" onclick="closeComboDetailModal()">✕</button>
+            <div id="combo-detail-content">
+                <!-- 動的生成 -->
+            </div>
+        </div>
+    </div>
+
     <main>
         <!-- フェーズプログレスバー (ゲーム開始後に表示) -->
         <div class="phase-stepper" id="phase-stepper-bar">
@@ -199,6 +209,14 @@
                 </div>
 
                 <div class="side-panel">
+                    <!-- おすすめコンボ表示領域 -->
+                    <div class="recommend-box">
+                        <div class="panel-title">💡 狙い目のコンボ (タップで詳細)</div>
+                        <div class="recommended-combos-list" id="recommended-combos-list">
+                            <!-- 動的生成 -->
+                        </div>
+                    </div>
+
                     <div class="log-box">
                         <div class="panel-title">📜 鍋の状況ログ</div>
                         <div class="log-messages" id="game-log">

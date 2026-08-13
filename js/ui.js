@@ -1,7 +1,7 @@
 import { gameState, draftState, calculateFinalScores, reshuffleScoop, handlePassClick, selectScoopedItem, BURST_PENALTY_SCORE } from './gameLogic.js';
 import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
-import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE } from './ingredients.js';
+import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE, getRecommendedCombos } from './ingredients.js';
 
 export function getIngredientIconHtml(item, extraClass = '') {
     if (!item) return '';
@@ -395,6 +395,7 @@ export function renderPotUI() {
 
     renderScoopCards();
     updateRerollButtonState();
+    renderRecommendedCombos();
 }
 
 export function renderScoopCards() {
@@ -650,4 +651,85 @@ window.openEncyclopediaModal = openEncyclopediaModal;
 window.closeEncyclopediaModal = closeEncyclopediaModal;
 window.switchEncyclopediaTab = switchEncyclopediaTab;
 window.filterEncyclopediaCategory = filterEncyclopediaCategory;
+
+export function renderRecommendedCombos() {
+    const container = document.getElementById('recommended-combos-list');
+    if (!container) return;
+
+    const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+    const bowl = curPlayer ? (curPlayer.bowl || []) : [];
+    const recommendedList = getRecommendedCombos(bowl);
+
+    container.innerHTML = '';
+
+    recommendedList.forEach(combo => {
+        const card = document.createElement('div');
+        card.className = 'rec-combo-card';
+        card.onclick = () => openComboDetailModal(combo.id);
+
+        const statusClass = combo.statusType || 'default';
+
+        card.innerHTML = `
+            <div class="rec-combo-icon">${combo.icon || '✨'}</div>
+            <div class="rec-combo-info">
+                <div class="rec-combo-title">${combo.name}</div>
+                <div class="rec-combo-status ${statusClass}">${combo.statusText || '💡 狙い目'}</div>
+            </div>
+            <div class="rec-combo-pts">+${combo.score}pt</div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+export function openComboDetailModal(comboId) {
+    playSound('select');
+    const combo = COMBOS_DATABASE.find(c => c.id === comboId);
+    if (!combo) return;
+
+    const modal = document.getElementById('combo-detail-modal');
+    const container = document.getElementById('combo-detail-content');
+    if (!modal || !container) return;
+
+    const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
+    const bowl = curPlayer ? (curPlayer.bowl || []) : [];
+    const isAchieved = combo.check(bowl);
+
+    container.innerHTML = `
+        <div class="combo-detail-header">
+            <div class="combo-detail-icon">${combo.icon || '✨'}</div>
+            <div class="combo-detail-title">${combo.name}</div>
+        </div>
+        <div class="combo-detail-badge">+${combo.score} pt ボーナス</div>
+        <div class="combo-detail-section">
+            <div class="combo-detail-label">📋 発動条件</div>
+            <div class="combo-detail-val">${combo.conditionText}</div>
+        </div>
+        <div class="combo-detail-section">
+            <div class="combo-detail-label">💡 解説・特徴</div>
+            <div class="combo-detail-val">${combo.desc}</div>
+        </div>
+        <div class="combo-detail-section" style="background: rgba(253, 203, 110, 0.08); border-color: var(--border-gold);">
+            <div class="combo-detail-label">📊 ${curPlayer ? curPlayer.name : 'プレイヤー'}の達成状況</div>
+            <div class="combo-detail-val" style="color: ${isAchieved ? '#55efc4' : '#fdcb6e'}; font-weight:bold;">
+                ${isAchieved ? '🎉 現在条件を達成中！(+'+combo.score+'pt確定)' : '⌛ 未達成（手札の具材を増やして狙おう！）'}
+            </div>
+        </div>
+    `;
+
+    modal.classList.add('active');
+}
+
+export function closeComboDetailModal() {
+    playSound('select');
+    const modal = document.getElementById('combo-detail-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+window.renderRecommendedCombos = renderRecommendedCombos;
+window.openComboDetailModal = openComboDetailModal;
+window.closeComboDetailModal = closeComboDetailModal;
+
 
