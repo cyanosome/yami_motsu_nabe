@@ -24,6 +24,115 @@ const CAMERA_LOOK_AT_Y = 0.9;
 // デフォルトスープ色
 const DEFAULT_SOUP_COLOR = 0xd63031;
 
+// --- 4頂点キーカラー（バイリニア補間用） ---
+const VERTEX_COLORS = {
+    c01: '#FC42FF', // TL: 甘口 × 高スコア (U=0, V=1)
+    c11: '#FF0A0A', // TR: 辛口 × 高スコア (U=1, V=1)
+    c00: '#38113C', // BL: 甘口 × 低スコア (U=0, V=0)
+    c10: '#4A001F'  // BR: 辛口 × 低スコア (U=1, V=0)
+};
+
+// 正規化パラメータ
+const SCORE_MIN = -20;
+const SCORE_MAX = 20;
+const TASTE_MIN = -10;
+const TASTE_MAX = 10;
+
+/* =========================================================================
+   OKLab 色空間変換（Hotpot Color Interpolator から移植）
+   ========================================================================= */
+
+function hexToRgb(hex) {
+    let clean = hex.replace('#', '');
+    if (clean.length === 3) {
+        clean = clean.split('').map(c => c + c).join('');
+    }
+    const num = parseInt(clean, 16);
+    return {
+        r: (num >> 16) & 255,
+        g: (num >> 8) & 255,
+        b: num & 255
+    };
+}
+
+function rgbToHex(r, g, b) {
+    const toHex = (c) => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+}
+
+function rgbToOklab(r, g, b) {
+    let rL = r / 255, gL = g / 255, bL = b / 255;
+
+    // Linearize sRGB
+    rL = rL > 0.04045 ? Math.pow((rL + 0.055) / 1.055, 2.4) : rL / 12.92;
+    gL = gL > 0.04045 ? Math.pow((gL + 0.055) / 1.055, 2.4) : gL / 12.92;
+    bL = bL > 0.04045 ? Math.pow((bL + 0.055) / 1.055, 2.4) : bL / 12.92;
+
+    let l = 0.4122214708 * rL + 0.5363325363 * gL + 0.0514459929 * bL;
+    let m = 0.2119034982 * rL + 0.6806995451 * gL + 0.1073969767 * bL;
+    let s = 0.0883024619 * rL + 0.2817188376 * gL + 0.6299787005 * bL;
+
+    let l_ = Math.cbrt(l);
+    let m_ = Math.cbrt(m);
+    let s_ = Math.cbrt(s);
+
+    return {
+        L: 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_,
+        a: 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_,
+        b: 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757971 * s_
+    };
+}
+
+function oklabToRgb(L, a, b) {
+    let l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+    let m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+    let s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+    let l = l_ * l_ * l_;
+    let m = m_ * m_ * m_;
+    let s = s_ * s_ * s_;
+
+    let r = +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+    let g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+    let b_ = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+    // Delinearize to sRGB
+    let rd = r > 0.0031308 ? 1.055 * Math.pow(r, 1/2.4) - 0.055 : 12.92 * r;
+    let gd = g > 0.0031308 ? 1.055 * Math.pow(g, 1/2.4) - 0.055 : 12.92 * g;
+    let bd = b_ > 0.0031308 ? 1.055 * Math.pow(b_, 1/2.4) - 0.055 : 12.92 * b_;
+
+    return {
+        r: Math.max(0, Math.min(255, Math.round(rd * 255))),
+        g: Math.max(0, Math.min(255, Math.round(gd * 255))),
+        b: Math.max(0, Math.min(255, Math.round(bd * 255)))
+    };
+}
+
+/**
+ * OKLab 色空間でのバイリニア補間
+ * @param {number} u - Taste 軸 [0..1] (0=甘口, 1=辛口)
+ * @param {number} v - Score 軸 [0..1] (0=低スコア, 1=高スコア)
+ * @returns {string} HEX カラー文字列
+ */
+function interpolateSoupColor(u, v) {
+    const rgb00 = hexToRgb(VERTEX_COLORS.c00); // BL
+    const rgb10 = hexToRgb(VERTEX_COLORS.c10); // BR
+    const rgb01 = hexToRgb(VERTEX_COLORS.c01); // TL
+    const rgb11 = hexToRgb(VERTEX_COLORS.c11); // TR
+
+    const lab00 = rgbToOklab(rgb00.r, rgb00.g, rgb00.b);
+    const lab10 = rgbToOklab(rgb10.r, rgb10.g, rgb10.b);
+    const lab01 = rgbToOklab(rgb01.r, rgb01.g, rgb01.b);
+    const lab11 = rgbToOklab(rgb11.r, rgb11.g, rgb11.b);
+
+    const L = (1 - u) * (1 - v) * lab00.L + u * (1 - v) * lab10.L + (1 - u) * v * lab01.L + u * v * lab11.L;
+    const a = (1 - u) * (1 - v) * lab00.a + u * (1 - v) * lab10.a + (1 - u) * v * lab01.a + u * v * lab11.a;
+    const b = (1 - u) * (1 - v) * lab00.b + u * (1 - v) * lab10.b + (1 - u) * v * lab01.b + u * v * lab11.b;
+
+    const finalRgb = oklabToRgb(L, a, b);
+    return rgbToHex(finalRgb.r, finalRgb.g, finalRgb.b);
+}
+
 /**
  * 3Dシーンを初期化し、#pot-3d-viewport にレンダリングを開始する。
  * 既に初期化済みの場合はスキップする。
@@ -151,6 +260,40 @@ export function updateSoupColor(hexColor) {
 
     const color = new THREE.Color(hexColor);
     liquidMesh.material.color.set(color);
+}
+
+/**
+ * ゲーム状態（山札＋取札）から合計 score / taste を算出し、
+ * OKLab バイリニア補間でスープ色を更新する。
+ * 
+ * プレイヤーの手札（bowl）は含めない。
+ * 鍋に残っている具材の傾向を視覚的に推測するヒントとして機能する。
+ * 
+ * @param {object} gameState - ゲーム状態オブジェクト
+ */
+export function updateSoupColorFromGameState(gameState) {
+    if (!gameState) return;
+
+    // 山札 + 取札のカードを集約
+    const potCards = gameState.potStack || [];
+    const scoopCards = Object.values(gameState.currentScoopOptions || {});
+    const allPotCards = [...potCards, ...scoopCards];
+
+    // 合計 score / taste を算出
+    const totalScore = allPotCards.reduce((acc, cur) => acc + (cur.score || 0), 0);
+    const totalTaste = allPotCards.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
+
+    // 正規化: score -20〜+20 → 0.0〜1.0（クランプ）
+    const clampedScore = Math.max(SCORE_MIN, Math.min(SCORE_MAX, totalScore));
+    const v = (clampedScore - SCORE_MIN) / (SCORE_MAX - SCORE_MIN);
+
+    // 正規化: taste -10〜+10 → 0.0〜1.0（クランプ）
+    const clampedTaste = Math.max(TASTE_MIN, Math.min(TASTE_MAX, totalTaste));
+    const u = (clampedTaste - TASTE_MIN) / (TASTE_MAX - TASTE_MIN);
+
+    // OKLab バイリニア補間で色を算出
+    const hex = interpolateSoupColor(u, v);
+    updateSoupColor(hex);
 }
 
 /**

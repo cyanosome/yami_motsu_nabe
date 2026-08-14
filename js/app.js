@@ -2,7 +2,7 @@ import { toggleSound } from './sound.js';
 import { closeOnlineModal, createOnlineRoom, joinOnlineRoom, startOnlineGameHost, firebaseState } from './firebase.js';
 import { gameState, startGame, resetToStart, submitDraftChoice, reshuffleScoop, handlePassClick } from './gameLogic.js';
 import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory, openComboDetailModal, closeComboDetailModal } from './ui.js';
-import { initPot3D, disposePot3D, updateSoupColor } from './pot3d.js';
+import { initPot3D, disposePot3D, updateSoupColor, updateSoupColorFromGameState } from './pot3d.js';
 
 // HTMLから呼び出されるグローバル関数をwindowオブジェクトに登録
 window.toggleSound = toggleSound;
@@ -27,6 +27,7 @@ window.closeComboDetailModal = closeComboDetailModal;
 window.initPot3D = initPot3D;
 window.disposePot3D = disposePot3D;
 window.updateSoupColor = updateSoupColor;
+window.updateSoupColorFromGameState = updateSoupColorFromGameState;
 
 // デバッグ・監視用オブジェクトの登録
 window.gameState = gameState;
