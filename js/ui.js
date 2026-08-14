@@ -218,7 +218,7 @@ export function renderDraftGrid(options) {
             <div class="card-name">${item.name}</div>
             <div class="card-desc">${item.desc}</div>
             <div class="card-pts ${item.score < 0 ? 'negative' : ''}">
-                ${item.score >= 0 ? '+' : ''}${item.score} pt ${tasteText}
+                ${item.score >= 0 ? '+' : ''}${item.score.toLocaleString()} pt ${tasteText}
             </div>
         `;
 
@@ -264,7 +264,7 @@ export function changeCardSize(e, itemId, newSize) {
         if (ptsEl) {
             const tasteText = (newInstance.taste > 0) ? `🔥+${newInstance.taste}` : ((newInstance.taste < 0) ? `🍬${newInstance.taste}` : '');
             ptsEl.className = `card-pts ${newInstance.score < 0 ? 'negative' : ''}`;
-            ptsEl.innerHTML = `${newInstance.score >= 0 ? '+' : ''}${newInstance.score} pt ${tasteText}`;
+            ptsEl.innerHTML = `${newInstance.score >= 0 ? '+' : ''}${newInstance.score.toLocaleString()} pt ${tasteText}`;
         }
 
         const btns = cardEl.querySelectorAll('.size-btn');
@@ -330,8 +330,8 @@ export function getPotSoupColorDetails(potStack) {
     const totalScore = potStack.reduce((acc, cur) => acc + (cur.score || 0), 0);
     const totalTaste = potStack.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
 
-    // 100倍スケール対応: 平均値を x/100 して 2D 色計算に適用
-    const avgScore = Number(((totalScore / totalCount) / 100).toFixed(2));
+    // 万点スケール対応: 平均スコアを /10000 して 2D 色計算に適用（既存ロジック完全維持）
+    const avgScore = Number(((totalScore / totalCount) / 10000).toFixed(2));
     const avgTaste = Number(((totalTaste / totalCount) / 100).toFixed(2));
 
     const clampScore = Math.max(-3, Math.min(4, avgScore));
@@ -403,7 +403,7 @@ export function renderPotUI() {
 
     const helpScoreTextEl = document.getElementById('burst-penalty-score-text');
     if (helpScoreTextEl) {
-        helpScoreTextEl.textContent = `${BURST_PENALTY_SCORE}点`;
+        helpScoreTextEl.textContent = `${BURST_PENALTY_SCORE.toLocaleString()}点`;
     }
 
     const container = document.getElementById('bowls-container');
@@ -412,6 +412,7 @@ export function renderPotUI() {
     gameState.players.forEach((p, idx) => {
         const isCurrentTurn = (idx === gameState.currentTurnPlayerIndex && !p.isPassed && !p.isBusted);
         const pBowl = p.bowl || [];
+        const totalScore = pBowl.reduce((acc, cur) => acc + (cur.score || 0), 0);
         const totalTaste = pBowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
 
         const card = document.createElement('div');
@@ -429,11 +430,14 @@ export function renderPotUI() {
         for (let s = 0; s < 4; s++) {
             const item = pBowl[s];
             if (item) {
-                const szText = item.sizeBadgeText ? `[${item.sizeBadgeText}]` : '';
+                const sizeBadgeHtml = (item.size === 'small') 
+                    ? '<span class="slot-size-badge size-small">小</span>' 
+                    : ((item.size === 'large') ? '<span class="slot-size-badge size-large">大</span>' : '');
+                
                 slotsHtml += `
-                    <div class="item-slot filled" title="${item.name}: ${item.desc}">
-                        <span>${getIngredientIconHtml(item)}</span>
-                        <span class="slot-score">${item.score >= 0 ? '+'+item.score : item.score} <small style="font-size:0.65rem; opacity:0.8;">${szText}</small></span>
+                    <div class="item-slot filled" title="${item.name}: ${item.desc} (${item.score >= 0 ? '+' : ''}${item.score.toLocaleString()} pt)">
+                        <span class="slot-icon">${getIngredientIconHtml(item)}</span>
+                        ${sizeBadgeHtml}
                     </div>
                 `;
             } else {
@@ -484,6 +488,12 @@ export function renderPotUI() {
             </div>
             <div class="bowl-items-slots">
                 ${slotsHtml}
+            </div>
+            <div class="bowl-score-row">
+                <span class="bowl-score-label">具材基礎点</span>
+                <span class="bowl-score-val ${totalScore < 0 ? 'negative' : ''}">
+                    ${totalScore >= 0 ? '+' : ''}${totalScore.toLocaleString()} <span style="font-size:0.75rem; font-weight:normal; opacity:0.85;">pt</span>
+                </span>
             </div>
             <div class="taste-meter-container ${meterDangerClass}">
                 <div class="taste-meter-header">
@@ -618,7 +628,7 @@ function renderPhase3FinalInstant() {
 
     const winnerNameEl = document.getElementById('winner-name-text');
     const winnerSubtitleEl = document.getElementById('winner-subtitle-text');
-    if (winnerNameEl) winnerNameEl.innerText = `${winner.name} の勝利！ (${winner.finalScore} pt)`;
+    if (winnerNameEl) winnerNameEl.innerText = `${winner.name} の勝利！ (${winner.finalScore.toLocaleString()} pt)`;
     if (winnerSubtitleEl) winnerSubtitleEl.innerText = '見事に最高のお椀を作り上げました！';
 
     const rankingList = document.getElementById('ranking-list');
@@ -634,7 +644,7 @@ function renderPhase3FinalInstant() {
             const sign = c.score >= 0 ? '+' : '';
             return `
                 <span class="rank-combo-chip clickable" title="クリックしてコンボ詳細を表示" onclick="openComboDetailModal('${c.id}')">
-                    ${c.icon} ${c.name} <span class="combo-score-tag ${c.score < 0 ? 'negative' : ''}">${sign}${c.score}</span>
+                    ${c.icon} ${c.name} <span class="combo-score-tag ${c.score < 0 ? 'negative' : ''}">${sign}${c.score.toLocaleString()}</span>
                 </span>
             `;
         }).join('');
@@ -644,7 +654,7 @@ function renderPhase3FinalInstant() {
             combosHtml = '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>';
         }
         if (p.isBusted) {
-            combosHtml += ` <span class="rank-combo-chip" style="background:rgba(255,118,117,0.2); border-color:#ff7675; color:#ff7675;">💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE}</span></span>`;
+            combosHtml += ` <span class="rank-combo-chip" style="background:rgba(255,118,117,0.2); border-color:#ff7675; color:#ff7675;">💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE.toLocaleString()}</span></span>`;
         }
 
         item.innerHTML = `
@@ -658,7 +668,7 @@ function renderPhase3FinalInstant() {
                 <div class="score-detail-popover">${p.scoreBreakdown}</div>
             </div>
             <div class="rank-score-wrap">
-                <div class="rank-score ${p.isBusted ? 'score-busted' : ''}">${p.finalScore} <span style="font-size:0.9rem;">pt</span></div>
+                <div class="rank-score ${p.isBusted ? 'score-busted' : ''}">${p.finalScore.toLocaleString()} <span style="font-size:0.9rem;">pt</span></div>
             </div>
         `;
 
@@ -732,7 +742,7 @@ export async function initPhase3Results() {
 
     // === Step 1: 基本点のカウントアップ ===
     const maxBase = Math.max(...gameState.players.map(p => Math.abs(p.baseScore || 0)), 1);
-    const steps = Math.min(12, maxBase);
+    const steps = Math.min(14, maxBase);
     const stepDuration = Math.max(25, Math.floor(650 / (steps || 1)));
 
     for (let s = 1; s <= steps; s++) {
@@ -744,7 +754,7 @@ export async function initPhase3Results() {
             if (!elInfo) return;
             const scoreNow = Math.round((p.baseScore || 0) * progress);
             elInfo.currentScore = scoreNow;
-            elInfo.scoreText.innerHTML = `${scoreNow} <span style="font-size:0.9rem;">pt</span>`;
+            elInfo.scoreText.innerHTML = `${scoreNow.toLocaleString()} <span style="font-size:0.9rem;">pt</span>`;
         });
 
         if (s % 2 === 1) {
@@ -758,7 +768,7 @@ export async function initPhase3Results() {
         const elInfo = playerElements.get(p);
         if (!elInfo) return;
         elInfo.currentScore = p.baseScore || 0;
-        elInfo.scoreText.innerHTML = `${elInfo.currentScore} <span style="font-size:0.9rem;">pt</span>`;
+        elInfo.scoreText.innerHTML = `${elInfo.currentScore.toLocaleString()} <span style="font-size:0.9rem;">pt</span>`;
         elInfo.scoreText.classList.add('score-bump');
         setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
     });
@@ -785,20 +795,20 @@ export async function initPhase3Results() {
                 chip.className = 'rank-combo-chip clickable';
                 chip.title = 'クリックしてコンボ詳細を表示';
                 const sign = combo.score >= 0 ? '+' : '';
-                chip.innerHTML = `${combo.icon} ${combo.name} <span class="combo-score-tag ${combo.score < 0 ? 'negative' : ''}">${sign}${combo.score}</span>`;
+                chip.innerHTML = `${combo.icon} ${combo.name} <span class="combo-score-tag ${combo.score < 0 ? 'negative' : ''}">${sign}${combo.score.toLocaleString()}</span>`;
                 chip.onclick = () => openComboDetailModal(combo.id);
                 elInfo.combosBox.appendChild(chip);
 
                 // +X pt フロート表示
                 const floatBonus = document.createElement('div');
                 floatBonus.className = combo.score < 0 ? 'score-float-penalty' : 'score-float-bonus';
-                floatBonus.innerText = `${sign}${combo.score}`;
+                floatBonus.innerText = `${sign}${combo.score.toLocaleString()}`;
                 elInfo.scoreWrap.appendChild(floatBonus);
                 setTimeout(() => floatBonus.remove(), 700);
 
                 // スコア加算
                 elInfo.currentScore += combo.score;
-                elInfo.scoreText.innerHTML = `${elInfo.currentScore} <span style="font-size:0.9rem;">pt</span>`;
+                elInfo.scoreText.innerHTML = `${elInfo.currentScore.toLocaleString()} <span style="font-size:0.9rem;">pt</span>`;
                 elInfo.scoreText.classList.add('score-bump');
                 setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
 
@@ -828,19 +838,19 @@ export async function initPhase3Results() {
             const chip = document.createElement('span');
             chip.className = 'rank-combo-chip';
             chip.style.cssText = 'background:rgba(255,118,117,0.2); border-color:#ff7675; color:#ff7675;';
-            chip.innerHTML = `💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE}</span>`;
+            chip.innerHTML = `💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE.toLocaleString()}</span>`;
             elInfo.combosBox.appendChild(chip);
 
-            // -5 pt フロート表示 (赤色)
+            // フロート表示 (赤色)
             const floatPenalty = document.createElement('div');
             floatPenalty.className = 'score-float-penalty';
-            floatPenalty.innerText = `${BURST_PENALTY_SCORE}`;
+            floatPenalty.innerText = `${BURST_PENALTY_SCORE.toLocaleString()}`;
             elInfo.scoreWrap.appendChild(floatPenalty);
             setTimeout(() => floatPenalty.remove(), 700);
 
             // スコア減算
             elInfo.currentScore += BURST_PENALTY_SCORE;
-            elInfo.scoreText.innerHTML = `${elInfo.currentScore} <span style="font-size:0.9rem;">pt</span>`;
+            elInfo.scoreText.innerHTML = `${elInfo.currentScore.toLocaleString()} <span style="font-size:0.9rem;">pt</span>`;
             elInfo.scoreText.classList.add('score-busted', 'score-bump');
             setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
         });
@@ -866,54 +876,49 @@ export async function initPhase3Results() {
     await wait(500);
     if (cancelPhase3Animation) return;
 
-    // === Step 3: 最終ランキング確定 ＆ 勝者発表 ===
-    isPhase3Animating = false;
-    if (skipBtn) skipBtn.style.display = 'none';
+    // === Step 3: 最終スコアに基づくソート＆順位バッジ・勝者バナー決定 ===
+    const sortedPlayers = [...gameState.players].sort((a, b) => (b.finalScore || 0) - (a.finalScore || 0));
 
-    // 最終スコア順に並び替え
-    const sorted = [...gameState.players].sort((a, b) => b.finalScore - a.finalScore);
-    const winner = sorted[0];
-
-    // 勝者バナー更新
-    if (winnerNameEl) winnerNameEl.innerText = `${winner.name} の勝利！ (${winner.finalScore} pt)`;
-    if (winnerSubtitleEl) winnerSubtitleEl.innerText = '見事に最高のお椀を作り上げました！';
-
-    // リストの順番をスコア順に再配置
-    rankingList.innerHTML = '';
-    sorted.forEach((p, rankIdx) => {
+    // 各要素の順位を更新
+    sortedPlayers.forEach((p, rankIdx) => {
         const elInfo = playerElements.get(p);
-        if (elInfo && elInfo.container) {
-            const item = elInfo.container;
-            item.className = `ranking-item rank-${rankIdx + 1} ${p.isBusted ? 'is-busted' : ''}`;
-            const badge = item.querySelector('.rank-badge');
-            if (badge) {
-                badge.className = 'rank-badge badge-pop';
-                badge.innerText = rankIdx + 1;
-            }
-            rankingList.appendChild(item);
+        if (!elInfo) return;
+
+        const badge = elInfo.container.querySelector('.rank-badge');
+        if (badge) {
+            badge.className = 'rank-badge badge-pop';
+            badge.innerText = `${rankIdx + 1}`;
         }
     });
 
+    // リストの並び順をアニメーションしながら再ソート
+    sortedPlayers.forEach(p => {
+        const elInfo = playerElements.get(p);
+        if (elInfo && elInfo.container) {
+            rankingList.appendChild(elInfo.container);
+        }
+    });
+
+    // 勝者バナー決定
+    const winner = sortedPlayers[0];
+    if (winner && winnerNameEl) {
+        winnerNameEl.innerText = `${winner.name} の勝利！`;
+        if (winnerSubtitleEl) {
+            winnerSubtitleEl.innerText = `スコア: ${winner.finalScore.toLocaleString()} pt で鍋奉行の座を獲得！`;
+        }
+    }
+
+    isPhase3Animating = false;
+    if (skipBtn) skipBtn.style.display = 'none';
     playSound('win');
 }
-
-// Bind to window to allow DOM onclick event handlers to resolve
-window.changeCardSize = changeCardSize;
-window.toggleCardSelection = toggleCardSelection;
-window.openOnlineModal = openOnlineModal;
-window.handlePassClick = handlePassClick;
-window.skipPhase3Animation = skipPhase3Animation;
-
-export let currentEncyclopediaTab = 'ingredients';
-export let currentEncyclopediaCategory = 'all';
 
 export function openEncyclopediaModal() {
     playSound('select');
     const modal = document.getElementById('encyclopedia-modal');
-    if (modal) {
-        modal.classList.add('active');
-        renderEncyclopediaContent();
-    }
+    if (!modal) return;
+    modal.classList.add('active');
+    renderEncyclopediaIngredients();
 }
 
 export function closeEncyclopediaModal() {
@@ -926,75 +931,61 @@ export function closeEncyclopediaModal() {
 
 export function switchEncyclopediaTab(tabName) {
     playSound('select');
-    currentEncyclopediaTab = tabName;
-
-    const btnIngredients = document.getElementById('tab-btn-ingredients');
-    const btnCombos = document.getElementById('tab-btn-combos');
-    const filterBox = document.getElementById('encyclopedia-filters');
-
+    document.querySelectorAll('.enc-tab-btn').forEach(btn => btn.classList.remove('active'));
+    
     if (tabName === 'ingredients') {
-        if (btnIngredients) btnIngredients.classList.add('active');
-        if (btnCombos) btnCombos.classList.remove('active');
-        if (filterBox) filterBox.style.display = 'flex';
-    } else {
-        if (btnIngredients) btnIngredients.classList.remove('active');
-        if (btnCombos) btnCombos.classList.add('active');
-        if (filterBox) filterBox.style.display = 'none';
-    }
-
-    renderEncyclopediaContent();
-}
-
-export function filterEncyclopediaCategory(category) {
-    playSound('select');
-    currentEncyclopediaCategory = category;
-
-    const filterBtns = document.querySelectorAll('.enc-filter-btn');
-    filterBtns.forEach(btn => {
-        const catAttr = btn.getAttribute('onclick');
-        if (catAttr && catAttr.includes(`'${category}'`)) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    renderEncyclopediaIngredients();
-}
-
-export function renderEncyclopediaContent() {
-    if (currentEncyclopediaTab === 'ingredients') {
+        document.getElementById('enc-tab-ingredients').classList.add('active');
+        document.getElementById('enc-filter-bar').style.display = 'flex';
         renderEncyclopediaIngredients();
     } else {
+        document.getElementById('enc-tab-combos').classList.add('active');
+        document.getElementById('enc-filter-bar').style.display = 'none';
         renderEncyclopediaCombos();
     }
 }
 
-export function renderEncyclopediaIngredients() {
+export function filterEncyclopediaCategory(category) {
+    playSound('select');
+    document.querySelectorAll('.enc-filter-chip').forEach(chip => chip.classList.remove('active'));
+    const clickedChip = Array.from(document.querySelectorAll('.enc-filter-chip')).find(c => c.getAttribute('onclick').includes(category));
+    if (clickedChip) clickedChip.classList.add('active');
+    renderEncyclopediaIngredients(category);
+}
+
+export function renderEncyclopediaIngredients(categoryFilter = 'all') {
     const container = document.getElementById('encyclopedia-body');
     if (!container) return;
 
     let items = INGREDIENTS_DATABASE;
-    if (currentEncyclopediaCategory !== 'all') {
-        items = items.filter(x => x.category === currentEncyclopediaCategory);
+    if (categoryFilter !== 'all') {
+        items = items.filter(x => x.category === categoryFilter);
     }
 
-    let html = `<div class="encyclopedia-grid">`;
+    let html = `<div class="enc-grid">`;
     items.forEach(item => {
-        let badgeClass = 'badge-motsu';
-        let badgeText = 'もつ';
-        if (item.category === 'classic' || item.category === 'vege') { badgeClass = 'badge-classic'; badgeText = '定番'; }
-        if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '辛味'; }
-        if (item.category === 'sweets') { badgeClass = 'badge-sweets'; badgeText = '甘味'; }
-        if (item.category === 'yami') { badgeClass = 'badge-yami'; badgeText = '闇具材'; }
-
+        const tasteVal = item.taste !== undefined ? item.taste : (item.spice || 0);
+        const tasteText = (tasteVal > 0 ? `🔥+${tasteVal}` : (tasteVal < 0 ? `🍬${tasteVal}` : ''));
+        const badgeMap = {
+            motsu: '🥩 もつ',
+            classic: '🥬 定番',
+            spice: '🌶️ 辛味',
+            sweets: '🍬 甘味',
+            yami: '💀 闇'
+        };
+        const badgeClassMap = {
+            motsu: 'badge-motsu',
+            classic: 'badge-classic',
+            spice: 'badge-spice',
+            sweets: 'badge-sweets',
+            yami: 'badge-yami'
+        };
+        const badgeText = badgeMap[item.category] || '具材';
+        const badgeClass = badgeClassMap[item.category] || 'badge-motsu';
         const allowed = item.allowedSizes || ['mid'];
-        const sizesText = allowed.map(s => s === 'small' ? 'S' : (s === 'mid' ? 'M' : 'L')).join('/');
-
-        const tasteText = (item.taste > 0) ? `🔥+${item.taste}` : ((item.taste < 0) ? `🍬${item.taste}` : '');
+        const sizesText = allowed.map(s => s === 'small' ? '小' : (s === 'mid' ? '中' : '大')).join('/');
 
         html += `
-            <div class="enc-card-item">
+            <div class="enc-card">
                 <div class="enc-card-header">
                     <div class="card-badge ${badgeClass}">${badgeText}</div>
                     <div class="enc-sizes-badge">サイズ: ${sizesText}</div>
@@ -1003,7 +994,7 @@ export function renderEncyclopediaIngredients() {
                 <div class="card-name">${item.name}</div>
                 <div class="card-desc">${item.desc}</div>
                 <div class="card-pts ${item.score < 0 ? 'negative' : ''}">
-                    基本: ${item.score >= 0 ? '+' : ''}${item.score} pt ${tasteText}
+                    基本: ${item.score >= 0 ? '+' : ''}${item.score.toLocaleString()} pt ${tasteText}
                 </div>
             </div>
         `;
@@ -1028,7 +1019,7 @@ export function renderEncyclopediaCombos() {
                     <div class="enc-combo-condition">条件: ${combo.conditionText}</div>
                     <div class="enc-combo-desc">${combo.desc}</div>
                 </div>
-                <div class="enc-combo-badge ${isNegative ? 'negative' : ''}">${sign}${combo.score} pt</div>
+                <div class="enc-combo-badge ${isNegative ? 'negative' : ''}">${sign}${combo.score.toLocaleString()} pt</div>
             </div>
         `;
     });
@@ -1067,7 +1058,7 @@ export function renderRecommendedCombos() {
                 <div class="rec-combo-title">${combo.name}</div>
                 <div class="rec-combo-status ${statusClass}">${combo.statusText || '💡 狙い目'}</div>
             </div>
-            <div class="rec-combo-pts ${isNegative ? 'negative' : ''}">${sign}${combo.score}pt</div>
+            <div class="rec-combo-pts ${isNegative ? 'negative' : ''}">${sign}${combo.score.toLocaleString()}pt</div>
         `;
 
         container.appendChild(card);
@@ -1091,7 +1082,7 @@ export function openComboDetailModal(comboId) {
             <div class="combo-detail-icon">${combo.icon || '✨'}</div>
             <div class="combo-detail-title">${combo.name}</div>
         </div>
-        <div class="combo-detail-badge ${isNegative ? 'negative' : ''}">${sign}${combo.score} pt ${isNegative ? 'ペナルティ' : 'ボーナス'}</div>
+        <div class="combo-detail-badge ${isNegative ? 'negative' : ''}">${sign}${combo.score.toLocaleString()} pt ${isNegative ? 'ペナルティ' : 'ボーナス'}</div>
         <div class="combo-detail-section">
             <div class="combo-detail-label">📋 発動条件</div>
             <div class="combo-detail-val">${combo.conditionText}</div>
@@ -1150,7 +1141,7 @@ export function openRelatedCombosModal(itemId) {
                         <div style="font-size:0.75rem; color:var(--text-sub);">${combo.conditionText}</div>
                     </div>
                 </div>
-                <div class="combo-score-tag ${isNegative ? 'negative' : ''}" style="font-size:0.82rem; padding:2px 8px; border-radius:6px; font-weight:bold; ${isNegative ? 'background:rgba(214,48,49,0.3); color:#ff7675;' : 'background:rgba(253,203,110,0.2); color:#ffeaa7;'}">${sign}${combo.score}pt</div>
+                <div class="combo-score-tag ${isNegative ? 'negative' : ''}" style="font-size:0.82rem; padding:2px 8px; border-radius:6px; font-weight:bold; ${isNegative ? 'background:rgba(214,48,49,0.3); color:#ff7675;' : 'background:rgba(253,203,110,0.2); color:#ffeaa7;'}">${sign}${combo.score.toLocaleString()}pt</div>
             </div>
         `;
     });
@@ -1317,12 +1308,21 @@ export function renderDraftComboRadar(options) {
                     <div class="draft-combo-name">${c.name} ${c.isPoolComplete ? '<span class="draft-combo-ready-badge">✨揃う！</span>' : ''}</div>
                     <div class="draft-combo-hint">${c.matchHint || c.conditionText}</div>
                 </div>
-                <div class="draft-combo-pts ${isNegative ? 'negative' : ''}">${sign}${c.score}pt</div>
+                <div class="draft-combo-pts ${isNegative ? 'negative' : ''}">${sign}${c.score.toLocaleString()}pt</div>
             </div>
         `;
     }).join('');
 }
 
+window.changeCardSize = changeCardSize;
+window.toggleCardSelection = toggleCardSelection;
+window.openOnlineModal = openOnlineModal;
+window.handlePassClick = handlePassClick;
+window.skipPhase3Animation = skipPhase3Animation;
+window.openEncyclopediaModal = openEncyclopediaModal;
+window.closeEncyclopediaModal = closeEncyclopediaModal;
+window.switchEncyclopediaTab = switchEncyclopediaTab;
+window.filterEncyclopediaCategory = filterEncyclopediaCategory;
 window.renderRecommendedCombos = renderRecommendedCombos;
 window.openComboDetailModal = openComboDetailModal;
 window.closeComboDetailModal = closeComboDetailModal;

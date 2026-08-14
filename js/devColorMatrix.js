@@ -512,8 +512,8 @@ export function updateDevInspector(gameState) {
         avgScore = totalScore / totalCount;
         avgTaste = totalTaste / totalCount;
 
-        // 100倍スケール対応: 平均値を x/100 して正規化
-        ny = Math.max(-1.0, Math.min(1.0, (avgScore / 100) / AVG_SCORE_MAX));
+        // 万点スケール対応: 平均スコアを /10000 して正規化（OKLab補間ロジックは完全維持）
+        ny = Math.max(-1.0, Math.min(1.0, (avgScore / 10000) / AVG_SCORE_MAX));
         nx = Math.max(-1.0, Math.min(1.0, (avgTaste / 100) / AVG_TASTE_MAX));
 
         hex = interpolateSoupColor(nx, ny);
@@ -533,7 +533,7 @@ export function updateDevInspector(gameState) {
     const hexEl = document.getElementById('dev-stat-hex');
     const swatchEl = document.getElementById('dev-color-swatch');
 
-    if (scoreEl) scoreEl.innerText = `${avgScore >= 0 ? '+' : ''}${avgScore.toFixed(0)} (y: ${ny.toFixed(2)})`;
+    if (scoreEl) scoreEl.innerText = `${avgScore >= 0 ? '+' : ''}${Math.round(avgScore).toLocaleString()} (y: ${ny.toFixed(2)})`;
     if (tasteEl) tasteEl.innerText = `${avgTaste >= 0 ? '+' : ''}${avgTaste.toFixed(0)} (x: ${nx.toFixed(2)})`;
     if (hexEl) hexEl.innerText = hex;
     if (swatchEl) swatchEl.style.backgroundColor = hex;

@@ -35,7 +35,7 @@ export let gameState = {
 
 
 export const draftState = { options: [] };
-export const BURST_PENALTY_SCORE = -500;
+export const BURST_PENALTY_SCORE = -50000;
 
 /* --- ゲーム初期化 --- */
 export function startGame(mode) {
@@ -497,7 +497,7 @@ export function handleCpuTurn(cpu) {
 
     // パス判定 (味覚の絶対値が200以上でバースト防止のためパス)
     let shouldPass = false;
-    if ((cpu.bowl || []).length >= 3 && currentScore >= 1000) shouldPass = true;
+    if ((cpu.bowl || []).length >= 3 && currentScore >= 100000) shouldPass = true;
     else if (Math.abs(currentTaste) >= 200 && Math.random() < 0.8) shouldPass = true;
     else if ((cpu.bowl || []).length >= 3 && Math.random() < 0.5) shouldPass = true;
 
@@ -549,7 +549,7 @@ export function handleCpuTurnOld(cpu) {
 
     if (cpu.bowl.length === 0) {
         shouldPass = false;
-    } else if (cpu.bowl.length >= 3 && currentScore >= 1000) {
+    } else if (cpu.bowl.length >= 3 && currentScore >= 100000) {
         shouldPass = true;
     } else if (currentSpice >= 300 && Math.random() < 0.8) {
         shouldPass = true;
