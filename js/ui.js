@@ -360,6 +360,11 @@ export function renderPotUI() {
         window.updateSoupColorFromGameState(gameState);
     }
 
+    // 開発者モードインスペクターのリアルタイム更新
+    if (typeof window.updateDevInspector === 'function') {
+        window.updateDevInspector(gameState);
+    }
+
     const helpScoreTextEl = document.getElementById('burst-penalty-score-text');
     if (helpScoreTextEl) {
         helpScoreTextEl.textContent = `${BURST_PENALTY_SCORE}点`;

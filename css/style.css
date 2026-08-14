@@ -1717,5 +1717,350 @@
             box-shadow: 0 6px 20px rgba(225, 112, 85, 0.6);
         }
 
+        /* ----------------------------------------------------
+           ■ 開発者モード (DEV INSPECTOR) スタイル
+           ---------------------------------------------------- */
+        .dev-toggle-btn {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            z-index: 9999;
+            background: rgba(15, 23, 42, 0.9);
+            color: #fdcb6e;
+            border: 1px solid rgba(253, 203, 110, 0.5);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dev-toggle-btn:hover {
+            transform: scale(1.05);
+            background: #1e293b;
+            border-color: #fdcb6e;
+        }
+
+        .dev-inspector-panel {
+            position: fixed;
+            bottom: 64px;
+            right: 16px;
+            width: 350px;
+            max-height: 85vh;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid rgba(253, 203, 110, 0.4);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(253, 203, 110, 0.15);
+            backdrop-filter: blur(16px);
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #f1f5f9;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .dev-inspector-panel.hidden {
+            display: none !important;
+        }
+
+        .dev-panel-header {
+            background: rgba(30, 41, 59, 0.85);
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .dev-panel-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #fdcb6e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.03em;
+        }
+
+        .dev-pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 6px #10b981;
+            animation: devPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes devPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.6; }
+        }
+
+        .dev-header-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dev-header-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #94a3b8;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+
+        .dev-header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .dev-panel-body {
+            padding: 14px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: calc(85vh - 45px);
+        }
+
+        /* 共通セクション */
+        .dev-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .dev-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 4px;
+        }
+
+        /* 2Dマトリクスエリア */
+        .dev-matrix-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 18px auto 14px auto;
+            border-radius: 8px;
+        }
+
+        .dev-matrix-canvas {
+            width: 220px;
+            height: 220px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+            display: block;
+        }
+
+        .dev-axis-label {
+            position: absolute;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #94a3b8;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .dev-axis-top {
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fdcb6e;
+        }
+
+        .dev-axis-bottom {
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #a29bfe;
+        }
+
+        .dev-axis-left {
+            top: 50%;
+            left: -22px;
+            transform: translateY(-50%) rotate(-90deg);
+            color: #ff7675;
+        }
+
+        .dev-axis-right {
+            top: 50%;
+            right: -22px;
+            transform: translateY(-50%) rotate(90deg);
+            color: #d63031;
+        }
+
+        /* 数値グリッド */
+        .dev-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .dev-stat-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .dev-stat-label {
+            font-size: 0.65rem;
+            color: #94a3b8;
+        }
+
+        .dev-stat-val {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+            font-family: monospace;
+        }
+
+        .dev-color-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dev-color-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            display: inline-block;
+            background-color: #000;
+        }
+
+        .dev-stat-hex {
+            color: #fdcb6e;
+            font-size: 0.75rem;
+        }
+
+        /* カード内訳インスペクター */
+        .dev-cards-summary {
+            font-size: 0.7rem;
+            color: #fdcb6e;
+            font-weight: normal;
+        }
+
+        .dev-cards-box {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 8px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .dev-cards-group-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+
+        .dev-cards-chip-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .dev-empty-text {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-style: italic;
+            padding: 4px 0;
+        }
+
+        .dev-card-chip {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 6px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            border-left: 3px solid #cbd5e1;
+        }
+
+        .dev-card-chip.cat-motsu { border-left-color: #d63031; }
+        .dev-card-chip.cat-classic { border-left-color: #00b894; }
+        .dev-card-chip.cat-spice { border-left-color: #e17055; }
+        .dev-card-chip.cat-sweets { border-left-color: #e84393; }
+        .dev-card-chip.cat-yami { border-left-color: #6c5ce7; }
+
+        .dev-chip-prefix {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #fdcb6e;
+            background: rgba(253, 203, 110, 0.15);
+            padding: 1px 4px;
+            border-radius: 4px;
+        }
+
+        .dev-chip-icon {
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+
+        .dev-chip-name {
+            flex: 1;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #f1f5f9;
+        }
+
+        .dev-chip-name small {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            margin-left: 2px;
+        }
+
+        .dev-chip-stat {
+            font-size: 0.7rem;
+            font-family: monospace;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 4px;
+        }
+
+        .dev-chip-stat.score {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fdcb6e;
+        }
+
+        .dev-chip-stat.taste {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+        }
+
+
 
 

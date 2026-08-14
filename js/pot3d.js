@@ -25,18 +25,18 @@ const CAMERA_LOOK_AT_Y = 0.9;
 const DEFAULT_SOUP_COLOR = 0xd63031;
 
 // --- 4頂点キーカラー（バイリニア補間用） ---
-const VERTEX_COLORS = {
+export const VERTEX_COLORS = {
     c01: '#FC42FF', // TL: 甘口 × 高スコア (U=0, V=1)
     c11: '#FF0A0A', // TR: 辛口 × 高スコア (U=1, V=1)
     c00: '#38113C', // BL: 甘口 × 低スコア (U=0, V=0)
     c10: '#4A001F'  // BR: 辛口 × 低スコア (U=1, V=0)
 };
 
-// 正規化パラメータ
-const SCORE_MIN = -10;
-const SCORE_MAX = 10;
-const TASTE_MIN = -5;
-const TASTE_MAX = 5;
+// 1枚あたりの平均値に基づく正規化パラメータ (アイディア案A)
+export const AVG_SCORE_MIN = -3.0;
+export const AVG_SCORE_MAX = 3.0;
+export const AVG_TASTE_MIN = -1.5;
+export const AVG_TASTE_MAX = 1.5;
 
 /* =========================================================================
    OKLab 色空間変換（Hotpot Color Interpolator から移植）
@@ -114,7 +114,7 @@ function oklabToRgb(L, a, b) {
  * @param {number} v - Score 軸 [0..1] (0=低スコア, 1=高スコア)
  * @returns {string} HEX カラー文字列
  */
-function interpolateSoupColor(u, v) {
+export function interpolateSoupColor(u, v) {
     const rgb00 = hexToRgb(VERTEX_COLORS.c00); // BL
     const rgb10 = hexToRgb(VERTEX_COLORS.c10); // BR
     const rgb01 = hexToRgb(VERTEX_COLORS.c01); // TL
@@ -194,6 +194,16 @@ export function initPot3D() {
     isInitialized = true;
     animate3D();
 
+    // 3D初期化完了直後に、現在のゲーム状態からスープ色を即座に適用
+    if (window.gameState) {
+        updateSoupColorFromGameState(window.gameState);
+    }
+
+    // 開発者モードインスペクターも即時同期
+    if (typeof window.updateDevInspector === 'function' && window.gameState) {
+        window.updateDevInspector(window.gameState);
+    }
+
     console.log('[pot3d] 3D土鍋シーン初期化完了');
 }
 
@@ -263,11 +273,12 @@ export function updateSoupColor(hexColor) {
 }
 
 /**
- * ゲーム状態（山札＋取札）から合計 score / taste を算出し、
+ * ゲーム状態（山札＋取札）から「1枚あたりの平均スコア・平均味覚」を算出し、
  * OKLab バイリニア補間でスープ色を更新する。
  * 
  * プレイヤーの手札（bowl）は含めない。
- * 鍋に残っている具材の傾向を視覚的に推測するヒントとして機能する。
+ * 残り具材の枚数が減っても色が薄まることなく、鍋に残っている具材の濃度と傾向を
+ * ゲーム終盤までダイナミックに可視化する。
  * 
  * @param {object} gameState - ゲーム状態オブジェクト
  */
@@ -278,20 +289,31 @@ export function updateSoupColorFromGameState(gameState) {
     const potCards = gameState.potStack || [];
     const scoopCards = Object.values(gameState.currentScoopOptions || {});
     const allPotCards = [...potCards, ...scoopCards];
+    const totalCount = allPotCards.length;
 
-    // 合計 score / taste を算出
+    // 鍋が完全に空の場合はニュートラル色（中央値）またはデフォルト色
+    if (totalCount === 0) {
+        const hex = interpolateSoupColor(0.5, 0.5);
+        updateSoupColor(hex);
+        return;
+    }
+
+    // 合計値と1枚あたりの平均値を算出
     const totalScore = allPotCards.reduce((acc, cur) => acc + (cur.score || 0), 0);
     const totalTaste = allPotCards.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
 
-    // 正規化: score -20〜+20 → 0.0〜1.0（クランプ）
-    const clampedScore = Math.max(SCORE_MIN, Math.min(SCORE_MAX, totalScore));
-    const v = (clampedScore - SCORE_MIN) / (SCORE_MAX - SCORE_MIN);
+    const avgScore = totalScore / totalCount;
+    const avgTaste = totalTaste / totalCount;
 
-    // 正規化: taste -10〜+10 → 0.0〜1.0（クランプ）
-    const clampedTaste = Math.max(TASTE_MIN, Math.min(TASTE_MAX, totalTaste));
-    const u = (clampedTaste - TASTE_MIN) / (TASTE_MAX - TASTE_MIN);
+    // 正規化: avgScore AVG_SCORE_MIN〜AVG_SCORE_MAX (-6.0〜+6.0) → 0.0〜1.0（クランプ）
+    const clampedScore = Math.max(AVG_SCORE_MIN, Math.min(AVG_SCORE_MAX, avgScore));
+    const v = (clampedScore - AVG_SCORE_MIN) / (AVG_SCORE_MAX - AVG_SCORE_MIN);
 
-    // OKLab バイリニア補間で色を算出
+    // 正規化: avgTaste AVG_TASTE_MIN〜AVG_TASTE_MAX (-3.0〜+3.0) → 0.0〜1.0（クランプ）
+    const clampedTaste = Math.max(AVG_TASTE_MIN, Math.min(AVG_TASTE_MAX, avgTaste));
+    const u = (clampedTaste - AVG_TASTE_MIN) / (AVG_TASTE_MAX - AVG_TASTE_MIN);
+
+    // OKLab バイリニア補間で色を算出して適用
     const hex = interpolateSoupColor(u, v);
     updateSoupColor(hex);
 }
@@ -333,11 +355,11 @@ function setupLighting() {
     mainLight.shadow.mapSize.height = 1024;
     scene.add(mainLight);
 
-    const warmRimLight = new THREE.PointLight(0xff8833, 2, 10);
+    const warmRimLight = new THREE.PointLight(0xffffff, 1, 10);
     warmRimLight.position.set(-4, 3, -4);
     scene.add(warmRimLight);
 
-    const bottomGlow = new THREE.PointLight(0xff2200, 1.2, 5);
+    const bottomGlow = new THREE.PointLight(0xffffff, 1.2, 5);
     bottomGlow.position.set(0, -1.5, 0);
     scene.add(bottomGlow);
 }
@@ -399,13 +421,13 @@ function createLiquidSurface() {
 
     const liquidMaterial = new THREE.MeshPhysicalMaterial({
         color: DEFAULT_SOUP_COLOR,
-        transmission: 0.7,
+        transmission: 0.25, // 適度な出汁の透明感（黒く沈まないバランス）
         opacity: 0.95,
         transparent: true,
-        roughness: 0.08,
-        ior: 1.333,
-        thickness: 1.5,
-        specularIntensity: 1.0
+        roughness: 0.12,    // 表面の適度なとろみと光沢
+        ior: 1.333,        // 水の屈折率
+        thickness: 0.8,     // 光の深み・散乱
+        specularIntensity: 0.9
     });
 
     liquidMesh = new THREE.Mesh(liquidGeometry, liquidMaterial);
