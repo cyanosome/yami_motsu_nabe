@@ -35,7 +35,7 @@ export let gameState = {
 
 
 export const draftState = { options: [] };
-export const BURST_PENALTY_SCORE = -5;
+export const BURST_PENALTY_SCORE = -500;
 
 /* --- ゲーム初期化 --- */
 export function startGame(mode) {
@@ -407,11 +407,11 @@ export function selectScoopedItem(scoopIndex) {
     logPhase2Debug(`具材選択完了 (${chosenItem.name} を獲得, ${remainingCount}枚返却)`);
 
     const currentTaste = curPlayer.bowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
-    if (currentTaste >= 3) {
+    if (currentTaste >= 300) {
         curPlayer.isBusted = true;
         playSound('bust');
         addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
-    } else if (currentTaste <= -3) {
+    } else if (currentTaste <= -300) {
         curPlayer.isBusted = true;
         playSound('bust');
         addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
@@ -495,10 +495,10 @@ export function handleCpuTurn(cpu) {
     const currentTaste = (cpu.bowl || []).reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
     const currentScore = (cpu.bowl || []).reduce((acc, cur) => acc + cur.score, 0);
 
-    // パス判定 (味覚の絶対値が2以上でバースト防止のためパス)
+    // パス判定 (味覚の絶対値が200以上でバースト防止のためパス)
     let shouldPass = false;
-    if ((cpu.bowl || []).length >= 3 && currentScore >= 10) shouldPass = true;
-    else if (Math.abs(currentTaste) >= 2 && Math.random() < 0.8) shouldPass = true;
+    if ((cpu.bowl || []).length >= 3 && currentScore >= 1000) shouldPass = true;
+    else if (Math.abs(currentTaste) >= 200 && Math.random() < 0.8) shouldPass = true;
     else if ((cpu.bowl || []).length >= 3 && Math.random() < 0.5) shouldPass = true;
 
     if (shouldPass) {
@@ -528,7 +528,7 @@ export function executeDraw(player) {
     addGameLog(`${player.name} が鍋から 【${drawnItem.icon} ${drawnItem.name}】 を引きました！ (${drawnItem.score >= 0 ? '+'+drawnItem.score : drawnItem.score}pt)`);
 
     const currentSpice = player.bowl.reduce((acc, cur) => acc + cur.spice, 0);
-    if (currentSpice >= 4) {
+    if (currentSpice >= 400) {
         player.isBusted = true;
         playSound('bust');
         addGameLog(`💥💥 ${player.name} のお椀が激辛度 (🔥${currentSpice}) に達し【激辛バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
@@ -549,9 +549,9 @@ export function handleCpuTurnOld(cpu) {
 
     if (cpu.bowl.length === 0) {
         shouldPass = false;
-    } else if (cpu.bowl.length >= 3 && currentScore >= 10) {
+    } else if (cpu.bowl.length >= 3 && currentScore >= 1000) {
         shouldPass = true;
-    } else if (currentSpice >= 3 && Math.random() < 0.8) {
+    } else if (currentSpice >= 300 && Math.random() < 0.8) {
         shouldPass = true;
     } else if (cpu.bowl.length >= 3 && Math.random() < 0.5) {
         shouldPass = true;

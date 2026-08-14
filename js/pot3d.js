@@ -377,12 +377,12 @@ export function updateSoupColorFromGameState(gameState) {
         return;
     }
 
-    // 合計値と1枚あたりの平均値を算出
+    // 合計値と1枚あたりの平均値を算出（100倍スケール対応: 平均値を x/100 して正規化）
     const totalScore = allPotCards.reduce((acc, cur) => acc + (cur.score || 0), 0);
     const totalTaste = allPotCards.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
 
-    const avgScore = totalScore / totalCount;
-    const avgTaste = totalTaste / totalCount;
+    const avgScore = (totalScore / totalCount) / 100;
+    const avgTaste = (totalTaste / totalCount) / 100;
 
     // 正規化: avgScore AVG_SCORE_MIN〜AVG_SCORE_MAX (-3.0〜+3.0) → ny: -1.0〜+1.0
     const ny = Math.max(-1.0, Math.min(1.0, avgScore / AVG_SCORE_MAX));

@@ -334,7 +334,7 @@ export function executeOnlineScoopSelect(scoopIndex) {
     player.bowl.push(chosenItem);
 
     const currentTaste = player.bowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
-    if (currentTaste >= 3 || currentTaste <= -3) {
+    if (currentTaste >= 300 || currentTaste <= -300) {
         player.isBusted = true;
         playSound('bust');
     } else if (player.bowl.length >= 4) {

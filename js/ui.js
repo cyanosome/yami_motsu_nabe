@@ -295,8 +295,9 @@ export function getPotSoupColorDetails(potStack) {
     const totalScore = potStack.reduce((acc, cur) => acc + (cur.score || 0), 0);
     const totalTaste = potStack.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
 
-    const avgScore = Number((totalScore / totalCount).toFixed(2));
-    const avgTaste = Number((totalTaste / totalCount).toFixed(2));
+    // 100倍スケール対応: 平均値を x/100 して 2D 色計算に適用
+    const avgScore = Number(((totalScore / totalCount) / 100).toFixed(2));
+    const avgTaste = Number(((totalTaste / totalCount) / 100).toFixed(2));
 
     const clampScore = Math.max(-3, Math.min(4, avgScore));
     const fHealth = Number(((clampScore - (-3)) / (4 - (-3))).toFixed(2));
@@ -384,8 +385,8 @@ export function renderPotUI() {
         let statusTag = '<span class="bowl-status-tag status-active">引く順</span>';
         if (p.isPassed) statusTag = '<span class="bowl-status-tag status-pass">パス(確定)</span>';
         if (p.isBusted) {
-            if (totalTaste >= 3) statusTag = '<span class="bowl-status-tag status-active" style="background:var(--accent-red); color:#fff;">🔥激辛バースト</span>';
-            else if (totalTaste <= -3) statusTag = '<span class="bowl-status-tag status-active" style="background:#e84393; color:#fff;">🍬激甘バースト</span>';
+            if (totalTaste >= 300) statusTag = '<span class="bowl-status-tag status-active" style="background:var(--accent-red); color:#fff;">🔥激辛バースト</span>';
+            else if (totalTaste <= -300) statusTag = '<span class="bowl-status-tag status-active" style="background:#e84393; color:#fff;">🍬激甘バースト</span>';
             else statusTag = '<span class="bowl-status-tag status-bust">💥バースト</span>';
         }
 
@@ -405,9 +406,9 @@ export function renderPotUI() {
             }
         }
 
-        // 味覚バランスメーターの計算
-        const clampedTaste = Math.max(-3, Math.min(3, totalTaste));
-        const pointerPercent = 50 + (clampedTaste * 16.66);
+        // 味覚バランスメーターの計算 (±300 スケール)
+        const clampedTaste = Math.max(-300, Math.min(300, totalTaste));
+        const pointerPercent = 50 + (clampedTaste * (50 / 300));
 
         let tasteBadgeClass = 'neutral';
         let tasteBadgeContent = '⚖️ 0';
@@ -416,22 +417,22 @@ export function renderPotUI() {
 
         if (totalTaste > 0) {
             tasteBadgeClass = 'spicy';
-            if (totalTaste === 2 && !p.isPassed && !p.isBusted) {
+            if (totalTaste >= 200 && totalTaste < 300 && !p.isPassed && !p.isBusted) {
                 isDangerSpicy = true;
                 tasteBadgeClass = 'spicy danger';
                 tasteBadgeContent = `🔥+${totalTaste} <span class="taste-warning-pill spicy">⚠️危険</span>`;
-            } else if (totalTaste >= 3) {
+            } else if (totalTaste >= 300) {
                 tasteBadgeContent = `🔥+${totalTaste} 💥`;
             } else {
                 tasteBadgeContent = `🔥+${totalTaste}`;
             }
         } else if (totalTaste < 0) {
             tasteBadgeClass = 'sweet';
-            if (totalTaste === -2 && !p.isPassed && !p.isBusted) {
+            if (totalTaste <= -200 && totalTaste > -300 && !p.isPassed && !p.isBusted) {
                 isDangerSweet = true;
                 tasteBadgeClass = 'sweet danger';
                 tasteBadgeContent = `🍬${totalTaste} <span class="taste-warning-pill sweet">⚠️危険</span>`;
-            } else if (totalTaste <= -3) {
+            } else if (totalTaste <= -300) {
                 tasteBadgeContent = `🍬${totalTaste} 💥`;
             } else {
                 tasteBadgeContent = `🍬${totalTaste}`;

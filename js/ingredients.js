@@ -7,7 +7,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'motsu_normal',
         name: '国産ぷりぷり牛もつ',
         category: 'motsu',
-        score: 4,
+        score: 400,
         taste: 0,
         icon: '🥩',
         iconUrl: 'assets/icon/Motsu.png',
@@ -21,7 +21,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'classic_nira',
         name: '鮮緑スタミナニラ',
         category: 'classic',
-        score: 3,
+        score: 300,
         taste: 0,
         icon: '🌱',
         iconUrl: 'assets/icon/GarlicChives.png',
@@ -33,7 +33,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'classic_hakusai',
         name: 'みずみずしい甘白菜',
         category: 'classic',
-        score: 3,
+        score: 300,
         taste: 0,
         icon: '🥬',
         iconUrl: 'assets/icon/NapaCabbage.png',
@@ -45,7 +45,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'classic_men',
         name: '〆の特製ちゃんぽん麺',
         category: 'classic',
-        score: 4,
+        score: 400,
         taste: 0,
         icon: '🍜',
         iconUrl: null,
@@ -59,36 +59,36 @@ export const INGREDIENTS_DATABASE = [
         id: 'spice_chili',
         name: '深紅の一本唐辛子',
         category: 'spice',
-        score: 2,
-        taste: 2,
+        score: 200,
+        taste: 200,
         icon: '🌶️',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'ピリッとスープを引き締める定番の辛味。(小:+1/中:+2/大:+3)',
+        desc: 'ピリッとスープを引き締める定番の辛味。(小:+100/中:+200/大:+300)',
         unique: false
     },
     {
         id: 'spice_pepper',
         name: '粗挽き黒胡椒ミル',
         category: 'spice',
-        score: 2,
-        taste: 2,
+        score: 200,
+        taste: 200,
         icon: '🧂',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'スパイシーな香りで食欲をそそる本格薬味。(小:+1/中:+2/大:+3)',
+        desc: 'スパイシーな香りで食欲をそそる本格薬味。(小:+100/中:+200/大:+300)',
         unique: false
     },
     {
         id: 'spice_mentai',
         name: '博多熟成明太子',
         category: 'spice',
-        score: 3,
-        taste: 2,
+        score: 300,
+        taste: 200,
         icon: '🔴',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'ピリ辛の粒々がスープに溶け込む贅沢具材。(小:+1/中:+2/大:+3)',
+        desc: 'ピリ辛の粒々がスープに溶け込む贅沢具材。(小:+100/中:+200/大:+300)',
         unique: false
     },
 
@@ -97,36 +97,36 @@ export const INGREDIENTS_DATABASE = [
         id: 'sweets_castella',
         name: '黄金の長崎カステラ',
         category: 'sweets',
-        score: 2,
-        taste: -2,
+        score: 200,
+        taste: -200,
         icon: '🥮',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'しっとり甘いカステラ。辛さを和らげる！(小:-1/中:-2/大:-3)',
+        desc: 'しっとり甘いカステラ。辛さを和らげる！(小:-100/中:-200/大:-300)',
         unique: false
     },
     {
         id: 'sweets_choco',
         name: 'とろけるビターチョコ',
         category: 'sweets',
-        score: 2,
-        taste: -2,
+        score: 200,
+        taste: -200,
         icon: '🍫',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: '濃厚な甘みとコクが広がるお菓子具材。(小:-1/中:-2/大:-3)',
+        desc: '濃厚な甘みとコクが広がるお菓子具材。(小:-100/中:-200/大:-300)',
         unique: false
     },
     {
         id: 'sweets_lollipop',
         name: '虹色ぐるぐるキャンディ',
         category: 'sweets',
-        score: 2,
-        taste: -2,
+        score: 200,
+        taste: -200,
         icon: '🍭',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'ポップで甘いキャンディ。辛味を中和する！(小:-1/中:-2/大:-3)',
+        desc: 'ポップで甘いキャンディ。辛味を中和する！(小:-100/中:-200/大:-300)',
         unique: false
     },
 
@@ -135,7 +135,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'yami_compass',
         name: '狂った真鍮の羅針盤',
         category: 'yami',
-        score: -3,
+        score: -300,
         taste: 0,
         icon: '🧭',
         iconUrl: null,
@@ -147,7 +147,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'yami_pencil',
         name: '芯の尖った黒鉛筆',
         category: 'yami',
-        score: -2,
+        score: -200,
         taste: 0,
         icon: '✏️',
         iconUrl: null,
@@ -159,7 +159,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'yami_gear',
         name: '錆びついた古歯車',
         category: 'yami',
-        score: -3,
+        score: -300,
         taste: 0,
         icon: '⚙️',
         iconUrl: null,
@@ -171,7 +171,7 @@ export const INGREDIENTS_DATABASE = [
         id: 'yami_capsule',
         name: '怪光を放つカプセル錠剤',
         category: 'yami',
-        score: -3,
+        score: -300,
         taste: 0,
         icon: '💊',
         iconUrl: null,
@@ -189,7 +189,7 @@ export const INGREDIENTS_DATABASE = [
         name: '至高の一本マルチョウ',
         category: 'motsu',
         silhouetteType: 'motsu_supreme',
-        score: 10,
+        score: 1000,
         taste: 0,
         icon: '🥩',
         iconUrl: null,
@@ -202,8 +202,8 @@ export const INGREDIENTS_DATABASE = [
         name: '黄金の渦巻きチュロス',
         category: 'sweets',
         silhouetteType: 'motsu_supreme',
-        score: 8,
-        taste: -4,
+        score: 800,
+        taste: -400,
         icon: '🥨',
         iconUrl: null,
         allowedSizes: ['large'],
@@ -215,8 +215,8 @@ export const INGREDIENTS_DATABASE = [
         name: '旨辛もっちりトッポギ',
         category: 'spice',
         silhouetteType: 'motsu_supreme',
-        score: 8,
-        taste: 4,
+        score: 800,
+        taste: 400,
         icon: '🥢',
         iconUrl: null,
         allowedSizes: ['large'],
@@ -228,7 +228,7 @@ export const INGREDIENTS_DATABASE = [
         name: '超強力U字マグネット',
         category: 'yami',
         silhouetteType: 'motsu_supreme',
-        score: -9,
+        score: -900,
         taste: 0,
         icon: '🧲',
         iconUrl: null,
@@ -243,7 +243,7 @@ export const INGREDIENTS_DATABASE = [
         name: '秘伝・黄金の極み出汁',
         category: 'classic',
         silhouetteType: 'sauce',
-        score: 9,
+        score: 900,
         taste: 0,
         icon: '🍶',
         iconUrl: null,
@@ -256,8 +256,8 @@ export const INGREDIENTS_DATABASE = [
         name: '特濃とろける練乳クリーム',
         category: 'sweets',
         silhouetteType: 'sauce',
-        score: 7,
-        taste: -5,
+        score: 700,
+        taste: -500,
         icon: '🥛',
         iconUrl: null,
         allowedSizes: ['large'],
@@ -269,8 +269,8 @@ export const INGREDIENTS_DATABASE = [
         name: '地獄の激辛ソース',
         category: 'spice',
         silhouetteType: 'sauce',
-        score: 7,
-        taste: 5,
+        score: 700,
+        taste: 500,
         icon: '🍾',
         iconUrl: 'assets/icon/HellSauce.png',
         allowedSizes: ['large'],
@@ -282,7 +282,7 @@ export const INGREDIENTS_DATABASE = [
         name: '危険な泡立つ青色洗剤',
         category: 'yami',
         silhouetteType: 'sauce',
-        score: -8,
+        score: -800,
         taste: 0,
         icon: '🧴',
         iconUrl: null,
@@ -297,8 +297,8 @@ export const INGREDIENTS_DATABASE = [
         name: '贅沢ショコラドーナツ',
         category: 'sweets',
         silhouetteType: 'donut',
-        score: 6,
-        taste: -3,
+        score: 600,
+        taste: -300,
         icon: '🍩',
         iconUrl: 'assets/icon/Donut.png',
         allowedSizes: ['mid', 'large'],
@@ -310,7 +310,7 @@ export const INGREDIENTS_DATABASE = [
         name: '極厚重機ゴムタイヤ',
         category: 'yami',
         silhouetteType: 'donut',
-        score: -6,
+        score: -600,
         taste: 0,
         icon: '🛞',
         iconUrl: 'assets/icon/Tire.png',
@@ -323,7 +323,7 @@ export const INGREDIENTS_DATABASE = [
         name: '幻のコリコリハツモト',
         category: 'motsu',
         silhouetteType: 'donut',
-        score: 6,
+        score: 600,
         taste: 0,
         icon: '🥩',
         iconUrl: null,
@@ -338,8 +338,8 @@ export const INGREDIENTS_DATABASE = [
         name: '愛らしき仔犬のクッキー',
         category: 'sweets',
         silhouetteType: 'boots',
-        score: 6,
-        taste: -3,
+        score: 600,
+        taste: -300,
         icon: '🍪',
         iconUrl: 'assets/icon/DogCookie.png',
         allowedSizes: ['mid', 'large'],
@@ -351,7 +351,7 @@ export const INGREDIENTS_DATABASE = [
         name: '泥まみれの作業用長靴',
         category: 'yami',
         silhouetteType: 'boots',
-        score: -6,
+        score: -600,
         taste: 0,
         icon: '👢',
         iconUrl: 'assets/icon/Shoes.png',
@@ -364,7 +364,7 @@ export const INGREDIENTS_DATABASE = [
         name: '薫り高き極上松茸',
         category: 'classic',
         silhouetteType: 'boots',
-        score: 6,
+        score: 600,
         taste: 0,
         icon: '🍄',
         iconUrl: null,
@@ -379,7 +379,7 @@ export const INGREDIENTS_DATABASE = [
         name: '極上なめらか絹ごし豆腐',
         category: 'classic',
         silhouetteType: 'cube',
-        score: 4,
+        score: 400,
         taste: 0,
         icon: '🧊',
         iconUrl: null,
@@ -392,8 +392,8 @@ export const INGREDIENTS_DATABASE = [
         name: '熟成スパイシーカレールー',
         category: 'spice',
         silhouetteType: 'cube',
-        score: 4,
-        taste: 3,
+        score: 400,
+        taste: 300,
         icon: '🍛',
         iconUrl: null,
         allowedSizes: ['mid', 'large'],
@@ -405,8 +405,8 @@ export const INGREDIENTS_DATABASE = [
         name: '高純度クリスタル角砂糖',
         category: 'sweets',
         silhouetteType: 'cube',
-        score: 4,
-        taste: -3,
+        score: 400,
+        taste: -300,
         icon: '🧊',
         iconUrl: null,
         allowedSizes: ['mid', 'large'],
@@ -418,7 +418,7 @@ export const INGREDIENTS_DATABASE = [
         name: '四角い新品プラスチック消しゴム',
         category: 'yami',
         silhouetteType: 'cube',
-        score: -4,
+        score: -400,
         taste: 0,
         icon: '🧼',
         iconUrl: null,
@@ -450,14 +450,14 @@ export function createIngredientInstance(baseItem, forceSize = null) {
             sizeBadgeClass = 'size-large';
         }
     } else {
-        // 汎用具材のサイズ連動計算
+        // 汎用具材のサイズ連動計算 (100倍スケール)
         if (chosenSize === 'small') {
             score = (baseItem.score >= 0) 
-                ? Math.max(1, Math.floor(baseItem.score * 0.6))
-                : Math.min(-1, Math.ceil(baseItem.score * 0.6));
-            // taste: 小は ±1
-            if (baseItem.taste > 0) taste = 1;
-            else if (baseItem.taste < 0) taste = -1;
+                ? Math.max(100, Math.floor(baseItem.score * 0.6))
+                : Math.min(-100, Math.ceil(baseItem.score * 0.6));
+            // taste: 小は ±100
+            if (baseItem.taste > 0) taste = 100;
+            else if (baseItem.taste < 0) taste = -100;
             else taste = 0;
 
             sizeLabel = ' (小)';
@@ -467,18 +467,18 @@ export function createIngredientInstance(baseItem, forceSize = null) {
             score = (baseItem.score >= 0)
                 ? Math.ceil(baseItem.score * 1.5)
                 : Math.floor(baseItem.score * 1.5);
-            // taste: 大は ±3
-            if (baseItem.taste > 0) taste = 3;
-            else if (baseItem.taste < 0) taste = -3;
+            // taste: 大は ±300
+            if (baseItem.taste > 0) taste = 300;
+            else if (baseItem.taste < 0) taste = -300;
             else taste = 0;
 
             sizeLabel = ' (大盛)';
             sizeBadgeText = '大';
             sizeBadgeClass = 'size-large';
         } else {
-            // mid: 中は ±2 (ベース値)
-            if (baseItem.taste > 0) taste = 2;
-            else if (baseItem.taste < 0) taste = -2;
+            // mid: 中は ±200 (ベース値)
+            if (baseItem.taste > 0) taste = 200;
+            else if (baseItem.taste < 0) taste = -200;
             else taste = 0;
         }
     }
@@ -504,7 +504,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_classic',
         name: '王道もつ鍋',
-        score: 3,
+        score: 300,
         icon: '🍲',
         conditionText: 'もつ系 × 1以上 + 定番具材 × 1以上',
         desc: 'もつの旨味と定番具材（ニラ・白菜・麺・出汁等）がベストマッチした王道鍋！',
@@ -513,7 +513,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_dashi',
         name: '絶品アクセント',
-        score: 2,
+        score: 200,
         icon: '🍶',
         conditionText: 'もつ系 × 1以上 + 辛味/甘味系 × 1以上',
         desc: 'もつの脂にスパイスや甘味アクセントが効いた刺激的なマリアージュ！',
@@ -522,7 +522,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_mega_motsu',
         name: 'メガ盛りもつコンボ',
-        score: 4,
+        score: 400,
         icon: '🥩',
         conditionText: 'もつ系 × 3以上',
         desc: 'とにかくもつを喰らい尽くす！もつ好きにはたまらない圧倒的満足感。',
@@ -531,7 +531,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_dark_lord',
         name: '♰暗黒素材大明神♰',
-        score: 15,
+        score: 1500,
         icon: '💀',
         conditionText: 'お椀が3枚以上かつ全て闇具材',
         desc: '危険物とゴミだけで満たされた伝説の禁忌鍋。奇跡的に生還できれば莫大な加点！',
@@ -540,7 +540,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_king',
         name: '王様のもつ鍋',
-        score: 20,
+        score: 2000,
         icon: '👑',
         conditionText: '大盛(large)の「もつ」「定番」「辛味」を揃える',
         desc: 'すべてが特大！極限まで贅を尽くした至高のプレミアムもつ鍋。',
@@ -551,7 +551,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_sweet_spicy',
         name: '甘辛マリアージュ',
-        score: 4,
+        score: 400,
         icon: '🍯',
         conditionText: '甘味(taste < 0) と 辛味(taste > 0) が両方ある',
         desc: '辛さを甘さで中和する究極の味覚バランス。クセになる旨さ！',
@@ -560,7 +560,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_common',
         name: '庶民のもつ鍋',
-        score: 5,
+        score: 500,
         icon: '🥣',
         conditionText: 'お椀が3枚以上かつ全て小サイズ(small)',
         desc: '小ぶりな具材でちまちま味わう、慎ましくも温かい一杯。',
@@ -569,7 +569,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_have_not',
         name: 'もたざるもの',
-        score: -3,
+        score: -300,
         icon: '🙅',
         conditionText: 'お椀に「もつ」が1枚も入っていない',
         desc: 'もつが入っていない鍋をもつ鍋と呼べるのか…？悲哀の減点ペナルティ。',
@@ -578,7 +578,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_quad_card',
         name: 'フォーカード',
-        score: 6,
+        score: 600,
         icon: '🃏',
         conditionText: '同一ジャンル(カテゴリ)の具材が4枚以上',
         desc: '同じ系統の具材を極限まで重ねたポーカーライクな役！',
@@ -587,7 +587,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_gentle_life',
         name: 'やさしいせいかつ',
-        score: 6,
+        score: 600,
         icon: '🥗',
         conditionText: 'お椀が3枚以上かつ全て「定番具材」',
         desc: 'もつすら入れず、野菜・出汁・麺だけで満たされた極めて健康的な鍋。',
@@ -596,7 +596,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_thin_meat',
         name: '肉はペラペラですか？',
-        score: 3,
+        score: 300,
         icon: '🥓',
         conditionText: '小サイズ(small)のもつを2個以上含む',
         desc: '「これ肉入ってます…？」薄切り小粒もつでかさ増しした鍋。',
@@ -605,7 +605,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_balanced_diet',
         name: 'バランスの取れた食事',
-        score: 5,
+        score: 500,
         icon: '🍱',
         conditionText: '「もつ」「定番」「辛味」が各1枚以上ある',
         desc: 'お肉、野菜、スパイスが黄金比で調和した栄養満点なもつ鍋。',
@@ -616,7 +616,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_metaphysical',
         name: '形而上学的もつ鍋',
-        score: 8,
+        score: 800,
         icon: '🍩',
         conditionText: '「贅沢ショコラドーナツ」と「極厚重機ゴムタイヤ」',
         desc: '同じドーナツ型でありながら、甘美と硬質という対立概念を内包した哲学的一杯。',
@@ -625,7 +625,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_puss_in_boots',
         name: '長靴をはいた犬',
-        score: 8,
+        score: 800,
         icon: '👢',
         conditionText: '「泥まみれの作業用長靴」と「愛らしき仔犬のクッキー」',
         desc: '長靴の影に寄り添う仔犬のクッキー。童話の世界が闇鍋に顕現する。',
@@ -634,7 +634,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_kids',
         name: 'お子様もつ鍋',
-        score: 5,
+        score: 500,
         icon: '👶',
         conditionText: 'お椀が2枚以上かつ全て「もつ」',
         desc: '野菜は嫌い！肉だけをもりもり食べたいわんぱくな鍋。',
@@ -643,7 +643,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_halloween',
         name: 'HAPPY HALLOWEEN',
-        score: 7,
+        score: 700,
         icon: '🎃',
         conditionText: '甘味具材(sweets)を3枚以上集めて完食',
         desc: 'トリック・オア・トリート！甘いお菓子で満たされたスイーツパラダイス鍋。',
@@ -652,7 +652,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_hot_pot',
         name: '灼熱火鍋',
-        score: 7,
+        score: 700,
         icon: '🔥',
         conditionText: '辛味具材(spice)を3枚以上集めて完食',
         desc: '真っ赤に燃え盛る激辛スパイス尽くし！汗だくで平らげる本格火鍋。',
@@ -661,7 +661,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_civilization',
         name: '文明開化',
-        score: 6,
+        score: 600,
         icon: '⚙️',
         conditionText: '「芯の尖った黒鉛筆」と「錆びついた古歯車」',
         desc: '近代科学と筆記用具の融合。産業革命の風が鍋に吹き荒れる。',
@@ -670,7 +670,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_recycle',
         name: 'リサイクルSDGs',
-        score: 5,
+        score: 500,
         icon: '♻️',
         conditionText: '歯車・タイヤ・長靴・消しゴム・磁石から2枚以上',
         desc: '資源は大切に！鍋に沈んだ産業廃棄物を有効活用したエコフレンドリーな鍋。',
@@ -679,7 +679,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_minimum_life',
         name: '最低限度の生活',
-        score: 3,
+        score: 300,
         icon: '📦',
         conditionText: '定番具材1枚 ＋ 闇具材1枚以上',
         desc: 'わずかな野菜と怪しいゴミで飢えをしのぐ、限界サバイバル鍋。',
@@ -688,7 +688,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_abandoned_motsu',
         name: '世捨てもつ',
-        score: 6,
+        score: 600,
         icon: '🧘',
         conditionText: '辛味具材3枚 ＋ もつ1枚',
         desc: '辛味の嵐の中にポツンと浮かぶ一粒の肉。俗世を離れた境地。',
@@ -697,7 +697,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_shojin',
         name: '精進料理',
-        score: 5,
+        score: 500,
         icon: '🎋',
         conditionText: 'お椀が3枚以上かつ「定番」と「辛味」のみで構成',
         desc: '殺生を断ち、清らかな野菜と出汁・薬味だけで仕立てた仏の御膳。',
