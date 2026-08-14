@@ -327,9 +327,11 @@ export function resizePot3D() {
 
     const w = container.clientWidth;
     const h = container.clientHeight;
+    if (w <= 0 || h <= 0) return;
+
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    renderer.setSize(w, h, false);
 }
 
 // --- Internal Functions ---

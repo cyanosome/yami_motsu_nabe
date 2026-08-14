@@ -409,16 +409,37 @@ export function renderPotUI() {
         const clampedTaste = Math.max(-3, Math.min(3, totalTaste));
         const pointerPercent = 50 + (clampedTaste * 16.66);
 
-        let tasteStatusText = '⚖️ 絶妙バランス';
-        if (totalTaste > 0) tasteStatusText = `🔥+${totalTaste} (辛め)`;
-        if (totalTaste < 0) tasteStatusText = `🍬${totalTaste} (甘め)`;
+        let tasteBadgeClass = 'neutral';
+        let tasteBadgeContent = '⚖️ 0';
+        let isDangerSpicy = false;
+        let isDangerSweet = false;
 
-        let warningHtml = '';
-        if (totalTaste === 2 && !p.isPassed && !p.isBusted) {
-            warningHtml = '<div class="taste-warning warning-spicy">⚠️ あと辛み +1 で激辛バースト！</div>';
-        } else if (totalTaste === -2 && !p.isPassed && !p.isBusted) {
-            warningHtml = '<div class="taste-warning warning-sweet">⚠️ あと甘み -1 で激甘バースト！</div>';
+        if (totalTaste > 0) {
+            tasteBadgeClass = 'spicy';
+            if (totalTaste === 2 && !p.isPassed && !p.isBusted) {
+                isDangerSpicy = true;
+                tasteBadgeClass = 'spicy danger';
+                tasteBadgeContent = `🔥+${totalTaste} <span class="taste-warning-pill spicy">⚠️危険</span>`;
+            } else if (totalTaste >= 3) {
+                tasteBadgeContent = `🔥+${totalTaste} 💥`;
+            } else {
+                tasteBadgeContent = `🔥+${totalTaste}`;
+            }
+        } else if (totalTaste < 0) {
+            tasteBadgeClass = 'sweet';
+            if (totalTaste === -2 && !p.isPassed && !p.isBusted) {
+                isDangerSweet = true;
+                tasteBadgeClass = 'sweet danger';
+                tasteBadgeContent = `🍬${totalTaste} <span class="taste-warning-pill sweet">⚠️危険</span>`;
+            } else if (totalTaste <= -3) {
+                tasteBadgeContent = `🍬${totalTaste} 💥`;
+            } else {
+                tasteBadgeContent = `🍬${totalTaste}`;
+            }
         }
+
+        const meterDangerClass = isDangerSpicy ? 'danger-spicy' : (isDangerSweet ? 'danger-sweet' : '');
+        const pointerDangerClass = isDangerSpicy ? 'danger-spicy' : (isDangerSweet ? 'danger-sweet' : '');
 
         card.innerHTML = `
             <div class="bowl-header">
@@ -428,20 +449,21 @@ export function renderPotUI() {
             <div class="bowl-items-slots">
                 ${slotsHtml}
             </div>
-            <div class="taste-meter-container">
+            <div class="taste-meter-container ${meterDangerClass}">
                 <div class="taste-meter-header">
-                    <span>味わい: <b>${tasteStatusText}</b></span>
-                    <span>確定: ${pBowl.length}/4</span>
+                    <div class="taste-badge ${tasteBadgeClass}">
+                        ${tasteBadgeContent}
+                    </div>
+                    <span class="taste-count">${pBowl.length}/4</span>
                 </div>
                 <div class="taste-meter-bar-track">
-                    <div class="taste-pointer" style="left: ${pointerPercent}%;"></div>
+                    <div class="taste-pointer ${pointerDangerClass}" style="left: ${pointerPercent}%;"></div>
                 </div>
-                <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-sub);">
-                    <span>🍬甘み-3</span>
-                    <span>⚖️0</span>
-                    <span>辛み+3🔥</span>
+                <div class="taste-scale-labels">
+                    <span>🍬-3</span>
+                    <span>0</span>
+                    <span>+3🔥</span>
                 </div>
-                ${warningHtml}
             </div>
         `;
         container.appendChild(card);
