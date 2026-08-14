@@ -1,4 +1,4 @@
-import { toggleSound } from './sound.js';
+import { toggleSound, toggleBGM, playBGM, stopBGM, pauseBGM, resumeBGM } from './sound.js';
 import { closeOnlineModal, createOnlineRoom, joinOnlineRoom, startOnlineGameHost, firebaseState } from './firebase.js';
 import { gameState, startGame, resetToStart, submitDraftChoice, reshuffleScoop, handlePassClick } from './gameLogic.js';
 import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory, openComboDetailModal, closeComboDetailModal, closePotRevealModal, toggleDraftComboRadar, openRelatedCombosModal, renderDraftComboRadar } from './ui.js';
@@ -7,6 +7,11 @@ import { initDevColorMatrix, updateDevInspector, toggleDevPanel, minimizeDevPane
 
 // HTMLから呼び出されるグローバル関数をwindowオブジェクトに登録
 window.toggleSound = toggleSound;
+window.toggleBGM = toggleBGM;
+window.playBGM = playBGM;
+window.stopBGM = stopBGM;
+window.pauseBGM = pauseBGM;
+window.resumeBGM = resumeBGM;
 window.closeOnlineModal = closeOnlineModal;
 window.createOnlineRoom = createOnlineRoom;
 window.joinOnlineRoom = joinOnlineRoom;

@@ -149,14 +149,20 @@
             letter-spacing: 0.04em;
         }
 
+        .sound-controls {
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 1.5vw, 8px);
+        }
+
         .sound-toggle {
             background: transparent;
             border: 1px solid var(--border-gold);
             color: var(--accent-gold);
-            padding: 8px 14px;
+            padding: clamp(5px, 1.5vw, 8px) clamp(8px, 2vw, 14px);
             border-radius: 20px;
             cursor: pointer;
-            font-size: clamp(0.75rem, 2.2vw, 0.88rem);
+            font-size: clamp(0.72rem, 2vw, 0.85rem);
             transition: all 0.3s;
             min-height: var(--min-touch-target);
             display: inline-flex;
@@ -167,6 +173,16 @@
         .sound-toggle:hover {
             background: var(--accent-gold);
             color: var(--bg-dark);
+        }
+        .sound-toggle.muted {
+            opacity: 0.6;
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-sub);
+        }
+        .sound-toggle.muted:hover {
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
         }
 
         /* メインコンテナ */

@@ -7,7 +7,7 @@ import {
     initPhase3Results,
     triggerPotRevealModal 
 } from './ui.js';
-import { playSound } from './sound.js';
+import { playSound, playBGM } from './sound.js';
 import { gameState, generatePhase1DraftPool } from './gameLogic.js';
 import { getRandomPotTemplate } from './ingredients.js';
 
@@ -247,6 +247,9 @@ export function setupOnlineGameClient(roomData) {
 export function syncOnlineStateToLocal(data) {
     const prevPhase = lastSyncedPhase;
     lastSyncedPhase = data.currentPhase;
+
+    // オンラインゲーム進行中はBGMを再生
+    playBGM('MAIN', { fadeIn: true });
 
     gameState.currentPhase = data.currentPhase;
     gameState.potTemplate = data.potTemplate || null;
