@@ -49,6 +49,22 @@ import { gameState } from './gameLogic.js';
                     gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
                     osc.start(now);
                     osc.stop(now + 0.4);
+                } else if (type === 'count') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(900, now + 0.05);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'combo') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.setValueAtTime(880.00, now + 0.08); // A5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
                 } else if (type === 'win') {
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(523.25, now);

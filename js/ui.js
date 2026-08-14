@@ -482,38 +482,261 @@ export function addGameLog(msg, isHighlight = false, isBust = false) {
     logBox.scrollTop = logBox.scrollHeight;
 }
 
-export function initPhase3Results() {
-    playSound('win');
-    calculateFinalScores();
+let isPhase3Animating = false;
+let cancelPhase3Animation = false;
+
+export function resetPhase3State() {
+    isPhase3Animating = false;
+    cancelPhase3Animation = true;
+}
+
+export function skipPhase3Animation() {
+    if (!isPhase3Animating) return;
+    cancelPhase3Animation = true;
+    renderPhase3FinalInstant();
+}
+
+function renderPhase3FinalInstant() {
+    isPhase3Animating = false;
+    const skipBtn = document.getElementById('skip-result-btn');
+    if (skipBtn) skipBtn.style.display = 'none';
 
     const sorted = [...gameState.players].sort((a, b) => b.finalScore - a.finalScore);
     const winner = sorted[0];
 
-    document.getElementById('winner-name-text').innerText = `${winner.name} の勝利！ (${winner.finalScore} pt)`;
+    const winnerNameEl = document.getElementById('winner-name-text');
+    const winnerSubtitleEl = document.getElementById('winner-subtitle-text');
+    if (winnerNameEl) winnerNameEl.innerText = `${winner.name} の勝利！ (${winner.finalScore} pt)`;
+    if (winnerSubtitleEl) winnerSubtitleEl.innerText = '見事に最高のお椀を作り上げました！';
 
     const rankingList = document.getElementById('ranking-list');
+    if (!rankingList) return;
     rankingList.innerHTML = '';
 
     sorted.forEach((p, rankIdx) => {
         const item = document.createElement('div');
-        item.className = `ranking-item rank-${rankIdx + 1}`;
+        item.className = `ranking-item rank-${rankIdx + 1} ${p.isBusted ? 'is-busted' : ''}`;
 
-        const bowlIcons = p.bowl.map(b => getIngredientIconHtml(b)).join(' ');
+        const bowlIcons = (p.bowl || []).map(b => getIngredientIconHtml(b)).join(' ');
+        const comboChips = (p.achievedCombos || []).map(c => `
+            <span class="rank-combo-chip">
+                ${c.icon} ${c.name} <span class="combo-score-tag">+${c.score}</span>
+            </span>
+        `).join('');
 
         item.innerHTML = `
-            <div class="rank-badge">${rankIdx + 1}</div>
+            <div class="rank-badge badge-pop">${rankIdx + 1}</div>
             <div class="rank-info">
-                <div>
-                    <div class="rank-pname">${p.name} ${p.isBusted ? '<span style="color:#ff7675;">[バースト]</span>' : ''}</div>
-                    <div class="score-detail-popover">${p.scoreBreakdown}</div>
+                <div class="rank-header-row">
+                    <div class="rank-pname">${p.name} ${p.isBusted ? '<span style="color:#ff7675; font-size:0.85rem;">[バースト]</span>' : ''}</div>
+                    <div class="rank-bowl-icons">${bowlIcons || '<span style="font-size:0.85rem; color:var(--text-sub);">具材なし</span>'}</div>
                 </div>
-                <div class="rank-bowl-icons">${bowlIcons || '具材なし'}</div>
+                <div class="rank-combos-container">${comboChips || (p.isBusted ? '<span style="font-size:0.75rem; color:#ff7675;">ペナルティ適用</span>' : '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>')}</div>
+                <div class="score-detail-popover">${p.scoreBreakdown}</div>
             </div>
-            <div class="rank-score">${p.finalScore} <span style="font-size:0.9rem;">pt</span></div>
+            <div class="rank-score-wrap">
+                <div class="rank-score ${p.isBusted ? 'score-busted' : ''}">${p.finalScore} <span style="font-size:0.9rem;">pt</span></div>
+            </div>
         `;
 
         rankingList.appendChild(item);
     });
+
+    playSound('win');
+}
+
+export async function initPhase3Results() {
+    calculateFinalScores();
+
+    isPhase3Animating = true;
+    cancelPhase3Animation = false;
+
+    const skipBtn = document.getElementById('skip-result-btn');
+    if (skipBtn) skipBtn.style.display = 'inline-block';
+
+    const winnerNameEl = document.getElementById('winner-name-text');
+    const winnerSubtitleEl = document.getElementById('winner-subtitle-text');
+    if (winnerNameEl) winnerNameEl.innerText = '結果を集計中…';
+    if (winnerSubtitleEl) winnerSubtitleEl.innerText = '具材の基本得点とコンボを計算しています';
+
+    const rankingList = document.getElementById('ranking-list');
+    if (!rankingList) return;
+    rankingList.innerHTML = '';
+
+    // 初期表示：各プレイヤーのカードを生成（基本点はまだ 0）
+    const playerElements = new Map();
+
+    gameState.players.forEach((p, idx) => {
+        const item = document.createElement('div');
+        item.className = `ranking-item ${p.isBusted ? 'is-busted' : ''}`;
+        item.id = `result-player-item-${idx}`;
+
+        const bowlIcons = (p.bowl || []).map(b => getIngredientIconHtml(b)).join(' ');
+
+        item.innerHTML = `
+            <div class="rank-badge badge-pending">?</div>
+            <div class="rank-info">
+                <div class="rank-header-row">
+                    <div class="rank-pname">${p.name} ${p.isBusted ? '<span style="color:#ff7675; font-size:0.85rem;">[バースト]</span>' : ''}</div>
+                    <div class="rank-bowl-icons">${bowlIcons || '<span style="font-size:0.85rem; color:var(--text-sub);">具材なし</span>'}</div>
+                </div>
+                <div class="rank-combos-container" id="combos-box-${idx}"></div>
+                <div class="score-detail-popover" id="score-detail-${idx}"></div>
+            </div>
+            <div class="rank-score-wrap">
+                <div class="rank-score ${p.isBusted ? 'score-busted' : ''}" id="score-text-${idx}">
+                    ${p.isBusted ? `${BURST_PENALTY_SCORE} <span style="font-size:0.9rem;">pt</span>` : '0 <span style="font-size:0.9rem;">pt</span>'}
+                </div>
+            </div>
+        `;
+
+        rankingList.appendChild(item);
+        playerElements.set(p, {
+            container: item,
+            combosBox: item.querySelector(`#combos-box-${idx}`),
+            scoreText: item.querySelector(`#score-text-${idx}`),
+            scoreWrap: item.querySelector('.rank-score-wrap'),
+            scoreDetail: item.querySelector(`#score-detail-${idx}`),
+            currentScore: p.isBusted ? BURST_PENALTY_SCORE : 0
+        });
+    });
+
+    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+
+    // わずかな開始ディレイ
+    await wait(350);
+    if (cancelPhase3Animation) return;
+
+    // === Step 1: 基本点のカウントアップ ===
+    const nonBustedPlayers = gameState.players.filter(p => !p.isBusted);
+    if (nonBustedPlayers.length > 0) {
+        const maxBase = Math.max(...nonBustedPlayers.map(p => p.baseScore), 1);
+        const steps = Math.min(12, maxBase);
+        const stepDuration = Math.max(25, Math.floor(650 / (steps || 1)));
+
+        for (let s = 1; s <= steps; s++) {
+            if (cancelPhase3Animation) return;
+            const progress = s / steps;
+
+            nonBustedPlayers.forEach(p => {
+                const elInfo = playerElements.get(p);
+                if (!elInfo) return;
+                const scoreNow = Math.round(p.baseScore * progress);
+                elInfo.currentScore = scoreNow;
+                elInfo.scoreText.innerHTML = `${scoreNow} <span style="font-size:0.9rem;">pt</span>`;
+            });
+
+            if (s % 2 === 1) {
+                playSound('count');
+            }
+            await wait(stepDuration);
+        }
+
+        // 基本点確定
+        nonBustedPlayers.forEach(p => {
+            const elInfo = playerElements.get(p);
+            if (!elInfo) return;
+            elInfo.currentScore = p.baseScore;
+            elInfo.scoreText.innerHTML = `${p.baseScore} <span style="font-size:0.9rem;">pt</span>`;
+            elInfo.scoreText.classList.add('score-bump');
+            setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
+        });
+    }
+
+    await wait(450);
+    if (cancelPhase3Animation) return;
+
+    // === Step 2: コンボボーナスの順次めくり ＆ 加算 ===
+    // 全プレイヤーの最大コンボ数を取得
+    const maxComboCount = Math.max(...gameState.players.map(p => (p.achievedCombos || []).length), 0);
+
+    for (let cIdx = 0; cIdx < maxComboCount; cIdx++) {
+        if (cancelPhase3Animation) return;
+        let anyComboAdded = false;
+
+        for (let p of gameState.players) {
+            if (p.isBusted) continue;
+            const combos = p.achievedCombos || [];
+            if (cIdx < combos.length) {
+                const combo = combos[cIdx];
+                const elInfo = playerElements.get(p);
+                if (!elInfo) continue;
+
+                // チップ要素作成
+                const chip = document.createElement('span');
+                chip.className = 'rank-combo-chip';
+                chip.innerHTML = `${combo.icon} ${combo.name} <span class="combo-score-tag">+${combo.score}</span>`;
+                elInfo.combosBox.appendChild(chip);
+
+                // +X pt フロート表示
+                const floatBonus = document.createElement('div');
+                floatBonus.className = 'score-float-bonus';
+                floatBonus.innerText = `+${combo.score}`;
+                elInfo.scoreWrap.appendChild(floatBonus);
+                setTimeout(() => floatBonus.remove(), 700);
+
+                // スコア加算
+                elInfo.currentScore += combo.score;
+                elInfo.scoreText.innerHTML = `${elInfo.currentScore} <span style="font-size:0.9rem;">pt</span>`;
+                elInfo.scoreText.classList.add('score-bump');
+                setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
+
+                anyComboAdded = true;
+            }
+        }
+
+        if (anyComboAdded) {
+            playSound('combo');
+            await wait(600);
+        }
+    }
+
+    if (cancelPhase3Animation) return;
+
+    // 役なしプレイヤーの表示補完
+    gameState.players.forEach(p => {
+        const elInfo = playerElements.get(p);
+        if (!elInfo) return;
+        if (!p.isBusted && (!p.achievedCombos || p.achievedCombos.length === 0)) {
+            elInfo.combosBox.innerHTML = '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>';
+        } else if (p.isBusted) {
+            elInfo.combosBox.innerHTML = '<span style="font-size:0.75rem; color:#ff7675;">ペナルティ適用</span>';
+        }
+        elInfo.scoreDetail.innerText = p.scoreBreakdown || '';
+    });
+
+    await wait(500);
+    if (cancelPhase3Animation) return;
+
+    // === Step 3: 最終ランキング確定 ＆ 勝者発表 ===
+    isPhase3Animating = false;
+    if (skipBtn) skipBtn.style.display = 'none';
+
+    // 最終スコア順に並び替え
+    const sorted = [...gameState.players].sort((a, b) => b.finalScore - a.finalScore);
+    const winner = sorted[0];
+
+    // 勝者バナー更新
+    if (winnerNameEl) winnerNameEl.innerText = `${winner.name} の勝利！ (${winner.finalScore} pt)`;
+    if (winnerSubtitleEl) winnerSubtitleEl.innerText = '見事に最高のお椀を作り上げました！';
+
+    // リストの順番をスコア順に再配置
+    rankingList.innerHTML = '';
+    sorted.forEach((p, rankIdx) => {
+        const elInfo = playerElements.get(p);
+        if (elInfo && elInfo.container) {
+            const item = elInfo.container;
+            item.className = `ranking-item rank-${rankIdx + 1} ${p.isBusted ? 'is-busted' : ''}`;
+            const badge = item.querySelector('.rank-badge');
+            if (badge) {
+                badge.className = 'rank-badge badge-pop';
+                badge.innerText = rankIdx + 1;
+            }
+            rankingList.appendChild(item);
+        }
+    });
+
+    playSound('win');
 }
 
 // Bind to window to allow DOM onclick event handlers to resolve
@@ -521,6 +744,7 @@ window.changeCardSize = changeCardSize;
 window.toggleCardSelection = toggleCardSelection;
 window.openOnlineModal = openOnlineModal;
 window.handlePassClick = handlePassClick;
+window.skipPhase3Animation = skipPhase3Animation;
 
 export let currentEncyclopediaTab = 'ingredients';
 export let currentEncyclopediaCategory = 'all';

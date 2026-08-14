@@ -232,19 +232,20 @@
 
         <!-- PHASE 3: リザルト / 結果発表 -->
         <div class="phase-container" id="phase-3-view">
-            <div class="result-card">
-                <div class="winner-banner">
-                    <div class="winner-crown">🏆</div>
-                    <div class="winner-name" id="winner-name-text">プレイヤー1 の勝利！</div>
-                    <p style="color: var(--text-sub); margin-top: 5px;">見事に最高のお椀を作り上げました！</p>
+            <div class="result-card" id="result-card">
+                <div class="winner-banner" id="winner-banner">
+                    <div class="winner-crown" id="winner-crown">🏆</div>
+                    <div class="winner-name" id="winner-name-text">結果を集計中…</div>
+                    <p id="winner-subtitle-text" style="color: var(--text-sub); margin-top: 5px;">具材の基本得点とコンボを計算しています</p>
                 </div>
 
                 <div class="ranking-list" id="ranking-list">
                     <!-- 動的生成 -->
                 </div>
 
-                <div class="action-bar">
-                    <button class="btn-primary" onclick="resetToStart()">🔄 もう一度遊ぶ</button>
+                <div class="action-bar" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn-secondary" id="skip-result-btn" onclick="skipPhase3Animation()" style="display: none; padding: 12px 24px; border-radius: 30px; font-weight: bold; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">⏩ スキップ</button>
+                    <button class="btn-primary" id="restart-game-btn" onclick="resetToStart()">🔄 もう一度遊ぶ</button>
                 </div>
             </div>
         </div>

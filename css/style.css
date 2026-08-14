@@ -751,7 +751,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
 
         .ranking-item {
@@ -762,58 +762,182 @@
             background: rgba(255, 255, 255, 0.04);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .ranking-item.rank-1 {
             border-color: var(--accent-gold);
-            background: rgba(253, 203, 110, 0.1);
+            background: rgba(253, 203, 110, 0.12);
+            box-shadow: 0 0 15px rgba(253, 203, 110, 0.2);
+        }
+
+        .ranking-item.is-busted {
+            opacity: 0.75;
+            background: rgba(255, 118, 117, 0.06);
+            border-color: rgba(255, 118, 117, 0.2);
         }
 
         .rank-badge {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             font-size: 1.1rem;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
         }
 
-        .rank-1 .rank-badge { background: var(--accent-gold); color: #000; }
-        .rank-2 .rank-badge { background: #b2bec3; color: #000; }
+        .rank-badge.badge-pending {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+
+        .rank-badge.badge-pop {
+            animation: badgePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .rank-1 .rank-badge { background: var(--accent-gold); color: #000; box-shadow: 0 0 10px rgba(253, 203, 110, 0.6); }
+        .rank-2 .rank-badge { background: #dfe6e9; color: #2d3436; }
         .rank-3 .rank-badge { background: #e17055; color: #fff; }
-        .rank-4 .rank-badge { background: rgba(255,255,255,0.1); color: #fff; }
+        .rank-4 .rank-badge { background: rgba(255,255,255,0.15); color: #fff; }
 
         .rank-info {
             display: flex;
-            align-items: center;
-            gap: 14px;
+            flex-direction: column;
+            gap: 6px;
             flex: 1;
             margin-left: 14px;
+            margin-right: 12px;
+        }
+
+        .rank-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .rank-pname {
             font-size: 1.1rem;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .rank-bowl-icons {
             display: flex;
+            flex-wrap: wrap;
             gap: 4px;
             font-size: 1.2rem;
+            align-items: center;
+        }
+
+        .rank-combos-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 24px;
+            align-items: center;
+        }
+
+        .rank-combo-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, rgba(253, 203, 110, 0.2), rgba(225, 112, 85, 0.2));
+            border: 1px solid rgba(253, 203, 110, 0.5);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #ffeaa7;
+            animation: comboPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .rank-combo-chip .combo-score-tag {
+            color: var(--accent-gold);
+            font-size: 0.72rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1px 4px;
+            border-radius: 6px;
+        }
+
+        .rank-score-wrap {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            min-width: 80px;
         }
 
         .rank-score {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--accent-gold);
+            transition: transform 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .rank-score.score-busted {
+            color: #ff7675;
+            font-size: 1.3rem;
+        }
+
+        .rank-score.score-bump {
+            animation: scoreBumpAnim 0.25s ease-out;
+        }
+
+        .score-float-bonus {
+            position: absolute;
+            top: -12px;
+            right: 0;
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: #ffeaa7;
+            text-shadow: 0 0 8px rgba(253, 203, 110, 0.8), 0 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            animation: floatUpBonus 0.7s ease-out forwards;
+            z-index: 10;
         }
 
         .score-detail-popover {
             font-size: 0.75rem;
             color: var(--text-sub);
             text-align: right;
+        }
+
+        @keyframes comboPop {
+            0% { transform: scale(0.4) translateY(6px); opacity: 0; }
+            70% { transform: scale(1.15) translateY(-2px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        @keyframes scoreBumpAnim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); color: #fff; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floatUpBonus {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            30% { transform: translateY(-8px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-24px) scale(1); opacity: 0; }
+        }
+
+        @keyframes badgePop {
+            0% { transform: scale(0) rotate(-45deg); }
+            70% { transform: scale(1.25) rotate(10deg); }
+            100% { transform: scale(1) rotate(0); }
         }
 
         .toast-notification {

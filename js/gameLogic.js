@@ -13,7 +13,8 @@ import {
     addGameLog, 
     initPhase3Results, 
     showToast,
-    getPotSoupColorDetails
+    getPotSoupColorDetails,
+    resetPhase3State
 } from './ui.js';
 import { executeOnlineReroll, executeOnlineScoopSelect, executeOnlinePass } from './firebase.js';
 
@@ -70,6 +71,7 @@ export function resetToStart() {
     // If resetToStart needs to modify isOnlineSetupDone, we can export a function resetOnlineSetup() in app.js
     // or just trigger it. Let's export resetOnlineSetup from app.js.
     resetOnlineSetup();
+    resetPhase3State();
     firebaseState.currentRoomId = null;
     document.getElementById('start-screen').style.display = 'block';
     document.getElementById('phase-stepper-bar').classList.remove('active');
@@ -537,7 +539,10 @@ export function handleCpuTurnOld(cpu) {
 export function calculateFinalScores() {
     gameState.players.forEach(p => {
         const bowl = p.bowl || [];
+        p.achievedCombos = [];
+
         if (p.isBusted) {
+            p.baseScore = 0;
             p.finalScore = BURST_PENALTY_SCORE;
             p.scoreBreakdown = `バーストペナルティにより ${BURST_PENALTY_SCORE} pt`;
             return;
@@ -551,10 +556,17 @@ export function calculateFinalScores() {
             if (combo.check && combo.check(bowl)) {
                 bonus += combo.score;
                 details.push(`${combo.name}(+${combo.score})`);
+                p.achievedCombos.push({
+                    id: combo.id,
+                    name: combo.name,
+                    score: combo.score,
+                    icon: combo.icon || '🍲'
+                });
             }
         });
 
         let finalScore = baseScore + bonus;
+        p.baseScore = baseScore;
         p.finalScore = finalScore;
         p.scoreBreakdown = `基本:${baseScore}pt ` + (details.length ? `(${details.join(', ')})` : '');
     });
