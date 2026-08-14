@@ -21,16 +21,16 @@ const CAMERA_THETA = Math.PI / 4;       // 水平角
 const CAMERA_PHI = Math.PI / 3.5;       // 垂直角
 const CAMERA_LOOK_AT_Y = 0.9;
 
-// デフォルトスープ色
-const DEFAULT_SOUP_COLOR = 0xd63031;
+// デフォルトスープ色（中央のベース出汁色）
+const DEFAULT_SOUP_COLOR = 0x927c68;
 
 // --- 5点キーカラー（ひし形 4極 ＋ 中央基本出汁色） ---
 export const DEFAULT_DIAMOND_COLORS = {
-    north:  '#FFD700',  // Top: 至高・美味の極 (Score: +Max, Taste: 0) - 黄金ゴールド
-    south:  '#22082E',  // Bottom: 混沌・闇鍋の極 (Score: -Max, Taste: 0) - 漆黒毒紫
-    east:   '#FF0A0A',  // Right: 灼熱・激辛の極 (Taste: +Max, Score: 0) - 灼熱鮮紅
-    west:   '#FC42FF',  // Left: 特濃・激甘の極 (Taste: -Max, Score: 0) - 甘美ピンク
-    center: '#D63031'   // Center: 王道・ベース出汁 (Score: 0, Taste: 0) - 定番赤褐色
+    north:  '#593718',  // Top: 至高・美味の極 (Score: +Max, Taste: 0)
+    south:  '#0E007A',  // Bottom: 混沌・闇鍋の極 (Score: -Max, Taste: 0)
+    east:   '#330000',  // Right: 灼熱・激辛の極 (Taste: +Max, Score: 0)
+    west:   '#8F00C2',  // Left: 特濃・激甘の極 (Taste: -Max, Score: 0)
+    center: '#927C68'   // Center: 王道・ベース出汁 (Score: 0, Taste: 0)
 };
 
 export let DIAMOND_COLORS = { ...DEFAULT_DIAMOND_COLORS };
