@@ -24,19 +24,40 @@ const CAMERA_LOOK_AT_Y = 0.9;
 // デフォルトスープ色
 const DEFAULT_SOUP_COLOR = 0xd63031;
 
-// --- 4頂点キーカラー（バイリニア補間用） ---
-export const VERTEX_COLORS = {
-    c01: '#FC42FF', // TL: 甘口 × 高スコア (U=0, V=1)
-    c11: '#FF0A0A', // TR: 辛口 × 高スコア (U=1, V=1)
-    c00: '#38113C', // BL: 甘口 × 低スコア (U=0, V=0)
-    c10: '#4A001F'  // BR: 辛口 × 低スコア (U=1, V=0)
+// --- 5点キーカラー（ひし形 4極 ＋ 中央基本出汁色） ---
+export const DEFAULT_DIAMOND_COLORS = {
+    north:  '#FFD700',  // Top: 至高・美味の極 (Score: +Max, Taste: 0) - 黄金ゴールド
+    south:  '#22082E',  // Bottom: 混沌・闇鍋の極 (Score: -Max, Taste: 0) - 漆黒毒紫
+    east:   '#FF0A0A',  // Right: 灼熱・激辛の極 (Taste: +Max, Score: 0) - 灼熱鮮紅
+    west:   '#FC42FF',  // Left: 特濃・激甘の極 (Taste: -Max, Score: 0) - 甘美ピンク
+    center: '#D63031'   // Center: 王道・ベース出汁 (Score: 0, Taste: 0) - 定番赤褐色
 };
 
-// 1枚あたりの平均値に基づく正規化パラメータ (アイディア案A)
-export const AVG_SCORE_MIN = -3.0;
+export let DIAMOND_COLORS = { ...DEFAULT_DIAMOND_COLORS };
+
+/**
+ * 5点キーカラーを個別に更新する
+ * @param {string} key - 'north', 'south', 'east', 'west', 'center'
+ * @param {string} hex - HEXカラー文字列 (例: '#FFD700')
+ */
+export function setDiamondColor(key, hex) {
+    if (DIAMOND_COLORS[key] !== undefined && typeof hex === 'string') {
+        DIAMOND_COLORS[key] = hex.toUpperCase();
+    }
+}
+
+/**
+ * 5点キーカラーをデフォルト初期値にリセットする
+ */
+export function resetDiamondColors() {
+    DIAMOND_COLORS = { ...DEFAULT_DIAMOND_COLORS };
+}
+
+// 1枚あたりの平均値に基づく正規化パラメータ (中心 0.0 からの最大振幅)
 export const AVG_SCORE_MAX = 3.0;
-export const AVG_TASTE_MIN = -1.5;
+export const AVG_SCORE_MIN = -3.0;
 export const AVG_TASTE_MAX = 1.5;
+export const AVG_TASTE_MIN = -1.5;
 
 /* =========================================================================
    OKLab 色空間変換（Hotpot Color Interpolator から移植）
@@ -109,25 +130,83 @@ function oklabToRgb(L, a, b) {
 }
 
 /**
- * OKLab 色空間でのバイリニア補間
- * @param {number} u - Taste 軸 [0..1] (0=甘口, 1=辛口)
- * @param {number} v - Score 軸 [0..1] (0=低スコア, 1=高スコア)
+ * OKLab 色空間でのひし形（5点: North, South, East, West, Center）重心座標補間
+ * @param {number} nx - Taste 軸 [-1.0 .. +1.0] (-1=西/甘口, 0=中央, +1=東/辛口)
+ * @param {number} ny - Score 軸 [-1.0 .. +1.0] (-1=南/闇鍋, 0=中央, +1=北/美味)
  * @returns {string} HEX カラー文字列
  */
-export function interpolateSoupColor(u, v) {
-    const rgb00 = hexToRgb(VERTEX_COLORS.c00); // BL
-    const rgb10 = hexToRgb(VERTEX_COLORS.c10); // BR
-    const rgb01 = hexToRgb(VERTEX_COLORS.c01); // TL
-    const rgb11 = hexToRgb(VERTEX_COLORS.c11); // TR
+export function interpolateSoupColor(nx, ny) {
+    // クランプ [-1, 1]
+    const x = Math.max(-1.0, Math.min(1.0, nx));
+    const y = Math.max(-1.0, Math.min(1.0, ny));
 
-    const lab00 = rgbToOklab(rgb00.r, rgb00.g, rgb00.b);
-    const lab10 = rgbToOklab(rgb10.r, rgb10.g, rgb10.b);
-    const lab01 = rgbToOklab(rgb01.r, rgb01.g, rgb01.b);
-    const lab11 = rgbToOklab(rgb11.r, rgb11.g, rgb11.b);
+    const rgbN = hexToRgb(DIAMOND_COLORS.north);
+    const rgbS = hexToRgb(DIAMOND_COLORS.south);
+    const rgbE = hexToRgb(DIAMOND_COLORS.east);
+    const rgbW = hexToRgb(DIAMOND_COLORS.west);
+    const rgbC = hexToRgb(DIAMOND_COLORS.center);
 
-    const L = (1 - u) * (1 - v) * lab00.L + u * (1 - v) * lab10.L + (1 - u) * v * lab01.L + u * v * lab11.L;
-    const a = (1 - u) * (1 - v) * lab00.a + u * (1 - v) * lab10.a + (1 - u) * v * lab01.a + u * v * lab11.a;
-    const b = (1 - u) * (1 - v) * lab00.b + u * (1 - v) * lab10.b + (1 - u) * v * lab01.b + u * v * lab11.b;
+    const labN = rgbToOklab(rgbN.r, rgbN.g, rgbN.b);
+    const labS = rgbToOklab(rgbS.r, rgbS.g, rgbS.b);
+    const labE = rgbToOklab(rgbE.r, rgbE.g, rgbE.b);
+    const labW = rgbToOklab(rgbW.r, rgbW.g, rgbW.b);
+    const labC = rgbToOklab(rgbC.r, rgbC.g, rgbC.b);
+
+    let W1 = 0, W2 = 0, Wc = 0;
+    let lab1 = labN, lab2 = labE;
+
+    const absX = Math.abs(x);
+    const absY = Math.abs(y);
+
+    if (x >= 0 && y >= 0) {
+        // 第1象限: East (+X), North (+Y), Center
+        lab1 = labE;
+        lab2 = labN;
+        const w1 = absX;
+        const w2 = absY;
+        const wc = Math.max(0, 1.0 - (absX + absY));
+        const total = w1 + w2 + wc;
+        W1 = total > 0 ? w1 / total : 0;
+        W2 = total > 0 ? w2 / total : 0;
+        Wc = total > 0 ? wc / total : 1;
+    } else if (x < 0 && y >= 0) {
+        // 第2象限: West (-X), North (+Y), Center
+        lab1 = labW;
+        lab2 = labN;
+        const w1 = absX;
+        const w2 = absY;
+        const wc = Math.max(0, 1.0 - (absX + absY));
+        const total = w1 + w2 + wc;
+        W1 = total > 0 ? w1 / total : 0;
+        W2 = total > 0 ? w2 / total : 0;
+        Wc = total > 0 ? wc / total : 1;
+    } else if (x < 0 && y < 0) {
+        // 第3象限: West (-X), South (-Y), Center
+        lab1 = labW;
+        lab2 = labS;
+        const w1 = absX;
+        const w2 = absY;
+        const wc = Math.max(0, 1.0 - (absX + absY));
+        const total = w1 + w2 + wc;
+        W1 = total > 0 ? w1 / total : 0;
+        W2 = total > 0 ? w2 / total : 0;
+        Wc = total > 0 ? wc / total : 1;
+    } else {
+        // 第4象限: East (+X), South (-Y), Center
+        lab1 = labE;
+        lab2 = labS;
+        const w1 = absX;
+        const w2 = absY;
+        const wc = Math.max(0, 1.0 - (absX + absY));
+        const total = w1 + w2 + wc;
+        W1 = total > 0 ? w1 / total : 0;
+        W2 = total > 0 ? w2 / total : 0;
+        Wc = total > 0 ? wc / total : 1;
+    }
+
+    const L = Wc * labC.L + W1 * lab1.L + W2 * lab2.L;
+    const a = Wc * labC.a + W1 * lab1.a + W2 * lab2.a;
+    const b = Wc * labC.b + W1 * lab1.b + W2 * lab2.b;
 
     const finalRgb = oklabToRgb(L, a, b);
     return rgbToHex(finalRgb.r, finalRgb.g, finalRgb.b);
@@ -291,9 +370,9 @@ export function updateSoupColorFromGameState(gameState) {
     const allPotCards = [...potCards, ...scoopCards];
     const totalCount = allPotCards.length;
 
-    // 鍋が完全に空の場合はニュートラル色（中央値）またはデフォルト色
+    // 鍋が完全に空の場合は中央色（ベース出汁色: nx=0, ny=0）
     if (totalCount === 0) {
-        const hex = interpolateSoupColor(0.5, 0.5);
+        const hex = interpolateSoupColor(0, 0);
         updateSoupColor(hex);
         return;
     }
@@ -305,16 +384,14 @@ export function updateSoupColorFromGameState(gameState) {
     const avgScore = totalScore / totalCount;
     const avgTaste = totalTaste / totalCount;
 
-    // 正規化: avgScore AVG_SCORE_MIN〜AVG_SCORE_MAX (-6.0〜+6.0) → 0.0〜1.0（クランプ）
-    const clampedScore = Math.max(AVG_SCORE_MIN, Math.min(AVG_SCORE_MAX, avgScore));
-    const v = (clampedScore - AVG_SCORE_MIN) / (AVG_SCORE_MAX - AVG_SCORE_MIN);
+    // 正規化: avgScore AVG_SCORE_MIN〜AVG_SCORE_MAX (-3.0〜+3.0) → ny: -1.0〜+1.0
+    const ny = Math.max(-1.0, Math.min(1.0, avgScore / AVG_SCORE_MAX));
 
-    // 正規化: avgTaste AVG_TASTE_MIN〜AVG_TASTE_MAX (-3.0〜+3.0) → 0.0〜1.0（クランプ）
-    const clampedTaste = Math.max(AVG_TASTE_MIN, Math.min(AVG_TASTE_MAX, avgTaste));
-    const u = (clampedTaste - AVG_TASTE_MIN) / (AVG_TASTE_MAX - AVG_TASTE_MIN);
+    // 正規化: avgTaste AVG_TASTE_MIN〜AVG_TASTE_MAX (-1.5〜+1.5) → nx: -1.0〜+1.0
+    const nx = Math.max(-1.0, Math.min(1.0, avgTaste / AVG_TASTE_MAX));
 
-    // OKLab バイリニア補間で色を算出して適用
-    const hex = interpolateSoupColor(u, v);
+    // OKLab ひし形重心座標補間で色を算出して適用
+    const hex = interpolateSoupColor(nx, ny);
     updateSoupColor(hex);
 }
 
