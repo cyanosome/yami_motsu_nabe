@@ -33,10 +33,10 @@ const VERTEX_COLORS = {
 };
 
 // 正規化パラメータ
-const SCORE_MIN = -20;
-const SCORE_MAX = 20;
-const TASTE_MIN = -10;
-const TASTE_MAX = 10;
+const SCORE_MIN = -10;
+const SCORE_MAX = 10;
+const TASTE_MIN = -5;
+const TASTE_MAX = 5;
 
 /* =========================================================================
    OKLab 色空間変換（Hotpot Color Interpolator から移植）

@@ -6,9 +6,9 @@ import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE, getRec
 export function getIngredientIconHtml(item, extraClass = '') {
     if (!item) return '';
     if (item.iconUrl) {
-        return `<img src="${item.iconUrl}" alt="${item.name || ''}" class="ingredient-img ${extraClass}" />`;
+        return `<img src="${item.iconUrl}" alt="${item.name || ''}" class="ingredient-img ${extraClass}" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';" /><span style="display:none;">${item.icon || '🍲'}</span>`;
     }
-    return item.icon || '';
+    return item.icon || '🍲';
 }
 
 
@@ -115,9 +115,9 @@ export function renderDraftGrid(options) {
 
         let badgeClass = 'badge-motsu';
         let badgeText = 'もつ';
-        if (item.category === 'vege') { badgeClass = 'badge-vege'; badgeText = '野菜'; }
-        if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '薬味/出汁'; }
-        if (item.category === 'sweets') { badgeClass = 'badge-sweets'; badgeText = 'お菓子'; }
+        if (item.category === 'classic' || item.category === 'vege') { badgeClass = 'badge-classic'; badgeText = '定番'; }
+        if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '辛味'; }
+        if (item.category === 'sweets') { badgeClass = 'badge-sweets'; badgeText = '甘味'; }
         if (item.category === 'yami') { badgeClass = 'badge-yami'; badgeText = '闇具材'; }
 
         const base = INGREDIENTS_DATABASE.find(b => b.id === (item.baseId || item.id.split('_')[0])) || item;
@@ -524,6 +524,14 @@ function renderPhase3FinalInstant() {
             </span>
         `).join('');
 
+        let combosHtml = comboChips;
+        if (!combosHtml) {
+            combosHtml = '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>';
+        }
+        if (p.isBusted) {
+            combosHtml += ` <span class="rank-combo-chip" style="background:rgba(255,118,117,0.2); border-color:#ff7675; color:#ff7675;">💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE}</span></span>`;
+        }
+
         item.innerHTML = `
             <div class="rank-badge badge-pop">${rankIdx + 1}</div>
             <div class="rank-info">
@@ -531,7 +539,7 @@ function renderPhase3FinalInstant() {
                     <div class="rank-pname">${p.name} ${p.isBusted ? '<span style="color:#ff7675; font-size:0.85rem;">[バースト]</span>' : ''}</div>
                     <div class="rank-bowl-icons">${bowlIcons || '<span style="font-size:0.85rem; color:var(--text-sub);">具材なし</span>'}</div>
                 </div>
-                <div class="rank-combos-container">${comboChips || (p.isBusted ? '<span style="font-size:0.75rem; color:#ff7675;">ペナルティ適用</span>' : '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>')}</div>
+                <div class="rank-combos-container">${combosHtml}</div>
                 <div class="score-detail-popover">${p.scoreBreakdown}</div>
             </div>
             <div class="rank-score-wrap">
@@ -584,8 +592,8 @@ export async function initPhase3Results() {
                 <div class="score-detail-popover" id="score-detail-${idx}"></div>
             </div>
             <div class="rank-score-wrap">
-                <div class="rank-score ${p.isBusted ? 'score-busted' : ''}" id="score-text-${idx}">
-                    ${p.isBusted ? `${BURST_PENALTY_SCORE} <span style="font-size:0.9rem;">pt</span>` : '0 <span style="font-size:0.9rem;">pt</span>'}
+                <div class="rank-score" id="score-text-${idx}">
+                    0 <span style="font-size:0.9rem;">pt</span>
                 </div>
             </div>
         `;
@@ -597,7 +605,7 @@ export async function initPhase3Results() {
             scoreText: item.querySelector(`#score-text-${idx}`),
             scoreWrap: item.querySelector('.rank-score-wrap'),
             scoreDetail: item.querySelector(`#score-detail-${idx}`),
-            currentScore: p.isBusted ? BURST_PENALTY_SCORE : 0
+            currentScore: 0
         });
     });
 
@@ -608,46 +616,42 @@ export async function initPhase3Results() {
     if (cancelPhase3Animation) return;
 
     // === Step 1: 基本点のカウントアップ ===
-    const nonBustedPlayers = gameState.players.filter(p => !p.isBusted);
-    if (nonBustedPlayers.length > 0) {
-        const maxBase = Math.max(...nonBustedPlayers.map(p => p.baseScore), 1);
-        const steps = Math.min(12, maxBase);
-        const stepDuration = Math.max(25, Math.floor(650 / (steps || 1)));
+    const maxBase = Math.max(...gameState.players.map(p => Math.abs(p.baseScore || 0)), 1);
+    const steps = Math.min(12, maxBase);
+    const stepDuration = Math.max(25, Math.floor(650 / (steps || 1)));
 
-        for (let s = 1; s <= steps; s++) {
-            if (cancelPhase3Animation) return;
-            const progress = s / steps;
+    for (let s = 1; s <= steps; s++) {
+        if (cancelPhase3Animation) return;
+        const progress = s / steps;
 
-            nonBustedPlayers.forEach(p => {
-                const elInfo = playerElements.get(p);
-                if (!elInfo) return;
-                const scoreNow = Math.round(p.baseScore * progress);
-                elInfo.currentScore = scoreNow;
-                elInfo.scoreText.innerHTML = `${scoreNow} <span style="font-size:0.9rem;">pt</span>`;
-            });
-
-            if (s % 2 === 1) {
-                playSound('count');
-            }
-            await wait(stepDuration);
-        }
-
-        // 基本点確定
-        nonBustedPlayers.forEach(p => {
+        gameState.players.forEach(p => {
             const elInfo = playerElements.get(p);
             if (!elInfo) return;
-            elInfo.currentScore = p.baseScore;
-            elInfo.scoreText.innerHTML = `${p.baseScore} <span style="font-size:0.9rem;">pt</span>`;
-            elInfo.scoreText.classList.add('score-bump');
-            setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
+            const scoreNow = Math.round((p.baseScore || 0) * progress);
+            elInfo.currentScore = scoreNow;
+            elInfo.scoreText.innerHTML = `${scoreNow} <span style="font-size:0.9rem;">pt</span>`;
         });
+
+        if (s % 2 === 1) {
+            playSound('count');
+        }
+        await wait(stepDuration);
     }
+
+    // 基本点確定
+    gameState.players.forEach(p => {
+        const elInfo = playerElements.get(p);
+        if (!elInfo) return;
+        elInfo.currentScore = p.baseScore || 0;
+        elInfo.scoreText.innerHTML = `${elInfo.currentScore} <span style="font-size:0.9rem;">pt</span>`;
+        elInfo.scoreText.classList.add('score-bump');
+        setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
+    });
 
     await wait(450);
     if (cancelPhase3Animation) return;
 
     // === Step 2: コンボボーナスの順次めくり ＆ 加算 ===
-    // 全プレイヤーの最大コンボ数を取得
     const maxComboCount = Math.max(...gameState.players.map(p => (p.achievedCombos || []).length), 0);
 
     for (let cIdx = 0; cIdx < maxComboCount; cIdx++) {
@@ -655,7 +659,6 @@ export async function initPhase3Results() {
         let anyComboAdded = false;
 
         for (let p of gameState.players) {
-            if (p.isBusted) continue;
             const combos = p.achievedCombos || [];
             if (cIdx < combos.length) {
                 const combo = combos[cIdx];
@@ -693,14 +696,51 @@ export async function initPhase3Results() {
 
     if (cancelPhase3Animation) return;
 
+    // === Step 2.5: バーストペナルティ適用 ===
+    const bustedPlayers = gameState.players.filter(p => p.isBusted);
+    if (bustedPlayers.length > 0) {
+        await wait(300);
+        if (cancelPhase3Animation) return;
+
+        bustedPlayers.forEach(p => {
+            const elInfo = playerElements.get(p);
+            if (!elInfo) return;
+
+            // ペナルティチップ作成
+            const chip = document.createElement('span');
+            chip.className = 'rank-combo-chip';
+            chip.style.cssText = 'background:rgba(255,118,117,0.2); border-color:#ff7675; color:#ff7675;';
+            chip.innerHTML = `💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE}</span>`;
+            elInfo.combosBox.appendChild(chip);
+
+            // -5 pt フロート表示 (赤色)
+            const floatPenalty = document.createElement('div');
+            floatPenalty.className = 'score-float-penalty';
+            floatPenalty.innerText = `${BURST_PENALTY_SCORE}`;
+            elInfo.scoreWrap.appendChild(floatPenalty);
+            setTimeout(() => floatPenalty.remove(), 700);
+
+            // スコア減算
+            elInfo.currentScore += BURST_PENALTY_SCORE;
+            elInfo.scoreText.innerHTML = `${elInfo.currentScore} <span style="font-size:0.9rem;">pt</span>`;
+            elInfo.scoreText.classList.add('score-busted', 'score-bump');
+            setTimeout(() => elInfo.scoreText.classList.remove('score-bump'), 300);
+        });
+
+        playSound('bust');
+        await wait(600);
+    }
+
+    if (cancelPhase3Animation) return;
+
     // 役なしプレイヤーの表示補完
     gameState.players.forEach(p => {
         const elInfo = playerElements.get(p);
         if (!elInfo) return;
-        if (!p.isBusted && (!p.achievedCombos || p.achievedCombos.length === 0)) {
-            elInfo.combosBox.innerHTML = '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>';
-        } else if (p.isBusted) {
-            elInfo.combosBox.innerHTML = '<span style="font-size:0.75rem; color:#ff7675;">ペナルティ適用</span>';
+        if (!p.achievedCombos || p.achievedCombos.length === 0) {
+            if (!p.isBusted) {
+                elInfo.combosBox.innerHTML = '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>';
+            }
         }
         elInfo.scoreDetail.innerText = p.scoreBreakdown || '';
     });
@@ -825,9 +865,9 @@ export function renderEncyclopediaIngredients() {
     items.forEach(item => {
         let badgeClass = 'badge-motsu';
         let badgeText = 'もつ';
-        if (item.category === 'vege') { badgeClass = 'badge-vege'; badgeText = '野菜'; }
-        if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '薬味/出汁'; }
-        if (item.category === 'sweets') { badgeClass = 'badge-sweets'; badgeText = 'お菓子'; }
+        if (item.category === 'classic' || item.category === 'vege') { badgeClass = 'badge-classic'; badgeText = '定番'; }
+        if (item.category === 'spice') { badgeClass = 'badge-spice'; badgeText = '辛味'; }
+        if (item.category === 'sweets') { badgeClass = 'badge-sweets'; badgeText = '甘味'; }
         if (item.category === 'yami') { badgeClass = 'badge-yami'; badgeText = '闇具材'; }
 
         const allowed = item.allowedSizes || ['mid'];

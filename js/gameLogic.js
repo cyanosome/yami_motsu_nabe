@@ -153,7 +153,7 @@ export function submitDraftChoice() {
             });
         } else {
             // 全員のドラフト完了：基本具材を追加してPhase 2へ
-            const baseItemIds = ['motsu_normal', 'motsu_premium', 'vege_cabbage', 'vege_nira', 'vege_tofu', 'spice_chili', 'spice_dashi', 'yami_pepper'];
+            const baseItemIds = ['motsu_normal', 'classic_nira', 'classic_hakusai', 'classic_men', 'spice_chili', 'sweets_castella', 'yami_compass', 'u_classic_dashi'];
             baseItemIds.forEach(id => {
                 const base = INGREDIENTS_DATABASE.find(x => x.id === id);
                 if (base) updatedPotStack.push(createIngredientInstance(base));
@@ -225,7 +225,7 @@ export function handleCpuDraft(cpuPlayer) {
 }
 
 export function addDefaultPotBase() {
-    const baseItemIds = ['motsu_normal', 'motsu_premium', 'vege_cabbage', 'vege_nira', 'vege_tofu', 'spice_chili', 'spice_dashi', 'yami_pepper'];
+    const baseItemIds = ['motsu_normal', 'classic_nira', 'classic_hakusai', 'classic_men', 'spice_chili', 'sweets_castella', 'yami_compass', 'u_classic_dashi'];
     baseItemIds.forEach(id => {
         const base = INGREDIENTS_DATABASE.find(x => x.id === id);
         if (base) gameState.potStack.push(createIngredientInstance(base));
@@ -379,11 +379,11 @@ export function selectScoopedItem(scoopIndex) {
     if (currentTaste >= 3) {
         curPlayer.isBusted = true;
         playSound('bust');
-        addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！${BURST_PENALTY_SCORE}点確定！`, false, true);
+        addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
     } else if (currentTaste <= -3) {
         curPlayer.isBusted = true;
         playSound('bust');
-        addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！${BURST_PENALTY_SCORE}点確定！`, false, true);
+        addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
     } else if (curPlayer.bowl.length >= 4) {
         curPlayer.isPassed = true;
         addGameLog(`🥣 ${curPlayer.name} は上限の4枚の具材を確保し、お椀が完成しました！`);
@@ -500,7 +500,7 @@ export function executeDraw(player) {
     if (currentSpice >= 4) {
         player.isBusted = true;
         playSound('bust');
-        addGameLog(`💥💥 ${player.name} のお椀が激辛度 (🔥${currentSpice}) に達し【激辛バースト】しました！${BURST_PENALTY_SCORE}点確定！`, false, true);
+        addGameLog(`💥💥 ${player.name} のお椀が激辛度 (🔥${currentSpice}) に達し【激辛バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
     } else if (player.bowl.length >= 4) {
         player.isPassed = true;
         addGameLog(`🥣 ${player.name} は上限の4枚の具材を確保し、お椀が完成しました！`);
@@ -541,13 +541,6 @@ export function calculateFinalScores() {
         const bowl = p.bowl || [];
         p.achievedCombos = [];
 
-        if (p.isBusted) {
-            p.baseScore = 0;
-            p.finalScore = BURST_PENALTY_SCORE;
-            p.scoreBreakdown = `バーストペナルティにより ${BURST_PENALTY_SCORE} pt`;
-            return;
-        }
-
         let baseScore = bowl.reduce((acc, cur) => acc + cur.score, 0);
         let bonus = 0;
         let details = [];
@@ -566,9 +559,22 @@ export function calculateFinalScores() {
         });
 
         let finalScore = baseScore + bonus;
+        if (p.isBusted) {
+            finalScore += BURST_PENALTY_SCORE;
+        }
+
         p.baseScore = baseScore;
+        p.comboBonus = bonus;
         p.finalScore = finalScore;
-        p.scoreBreakdown = `基本:${baseScore}pt ` + (details.length ? `(${details.join(', ')})` : '');
+
+        let breakdownParts = [`基本:${baseScore}pt`];
+        if (details.length) {
+            breakdownParts.push(`(${details.join(', ')})`);
+        }
+        if (p.isBusted) {
+            breakdownParts.push(`バーストペナルティ(${BURST_PENALTY_SCORE}pt)`);
+        }
+        p.scoreBreakdown = breakdownParts.join(' ');
     });
 }
 

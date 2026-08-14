@@ -1,100 +1,523 @@
 export const INGREDIENTS_DATABASE = [
-            // もつ系
-            { id: 'motsu_premium', name: '極上牛もつ', category: 'motsu', score: 6, taste: 0, icon: '🥩', iconUrl: 'assets/icon/Motsu.png', allowedSizes: ['large'], desc: 'ぷりぷりの脂がのった高級もつ。高得点！', unique: true },
-            { id: 'motsu_normal', name: '国産牛もつ', category: 'motsu', score: 4, taste: 0, icon: '🥓', iconUrl: 'assets/icon/Motsu.png', allowedSizes: ['small', 'mid', 'large'], desc: '定番のうまみ豊かな牛もつ。', unique: false },
-            { id: 'motsu_mince', name: 'もつダンゴ', category: 'motsu', score: 3, taste: 0, icon: '🧆', allowedSizes: ['small', 'mid'], desc: '出汁がよく染み込む絶品つくね。', unique: false },
-            { id: 'motsu_suburi', name: '特選ハツ・センマイ', category: 'motsu', score: 4, taste: 0, icon: '🍖', allowedSizes: ['mid', 'large'], desc: 'コリコリ食感がたまらない部位。', unique: false },
-            
-            // 野菜系
-            { id: 'vege_cabbage', name: 'シャキシャキキャベツ', category: 'vege', score: 2, taste: 0, icon: '🥬', iconUrl: 'assets/icon/NapaCabbage.png', allowedSizes: ['small'], desc: '甘みがあってスープとよく合う。', unique: false },
-            { id: 'vege_nira', name: 'シャキッとニラ', category: 'vege', score: 2, taste: 0, icon: '🌱', iconUrl: 'assets/icon/GarlicChives.png', allowedSizes: ['small', 'mid'], desc: 'もつ鍋には欠かせないスタミナ野菜。', unique: false },
-            { id: 'vege_tofu', name: '絹ごし豆腐', category: 'vege', score: 3, taste: 0, icon: '🧊', allowedSizes: ['mid', 'large'], desc: 'アツアツの味が染みた豆腐。', unique: false },
-            { id: 'vege_garlic', name: 'にんにくスライス', category: 'vege', score: 2, taste: 0, icon: '🧄', allowedSizes: ['small', 'mid'], desc: 'もつの旨味を爆発させる！', unique: false },
-            { id: 'vege_gobou', name: 'ささがきゴボウ', category: 'vege', score: 3, taste: 0, icon: '🪵', allowedSizes: ['small', 'mid'], desc: '香りと食感のアクセント。', unique: false },
+    // ----------------------------------------------------
+    // ■ 汎用シルエット具材 (unique: false)
+    // ----------------------------------------------------
+    // もつ
+    {
+        id: 'motsu_normal',
+        name: '国産ぷりぷり牛もつ',
+        category: 'motsu',
+        score: 4,
+        taste: 0,
+        icon: '🥩',
+        iconUrl: 'assets/icon/Motsu.png',
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'もつ鍋の主役！脂が乗った定番の牛もつ。',
+        unique: false
+    },
 
-            // スパイス / 特殊
-            { id: 'spice_chili', name: '鷹の爪唐辛子', category: 'spice', score: 1, taste: 1, icon: '🌶️', allowedSizes: ['small', 'mid', 'large'], desc: 'ピリッと引き締める。辛さ+1。', unique: false },
-            { id: 'spice_dashi', name: '秘伝の特製出汁', category: 'spice', score: 4, taste: 0, icon: '🍶', allowedSizes: ['mid', 'large'], desc: '全体の旨味を大幅アップ。', unique: false },
-            { id: 'spice_ramen', name: '〆のちゃんぽん麺', category: 'spice', score: 5, taste: 0, icon: '🍜', allowedSizes: ['mid', 'large'], desc: '最後の満足度を加速させる麺。', unique: false },
-            { id: 'spice_yuzu', name: '爽やか柚子胡椒', category: 'spice', score: 3, taste: 1, icon: '🍋', allowedSizes: ['small', 'mid'], desc: '風味豊かな高級薬味。辛さ+1。', unique: false },
+    // 定番（野菜・薬味・麺などを統合）
+    {
+        id: 'classic_nira',
+        name: '鮮緑スタミナニラ',
+        category: 'classic',
+        score: 3,
+        taste: 0,
+        icon: '🌱',
+        iconUrl: 'assets/icon/GarlicChives.png',
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'もつ鍋に欠かせない、香りと栄養満点の定番野菜。',
+        unique: false
+    },
+    {
+        id: 'classic_hakusai',
+        name: 'みずみずしい甘白菜',
+        category: 'classic',
+        score: 3,
+        taste: 0,
+        icon: '🥬',
+        iconUrl: 'assets/icon/NapaCabbage.png',
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: '出汁をたっぷり吸い込んで甘みが増す定番具材。',
+        unique: false
+    },
+    {
+        id: 'classic_men',
+        name: '〆の特製ちゃんぽん麺',
+        category: 'classic',
+        score: 4,
+        taste: 0,
+        icon: '🍜',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: '鍋の旨味を一滴残らず吸い上げる至高の〆。',
+        unique: false
+    },
 
-            // お菓子系 (辛さを相殺する甘み属性)
-            { id: 'sweets_candy', name: 'カラフルキャンディ', category: 'sweets', score: 2, taste: -1, icon: '🍬', allowedSizes: ['small', 'mid'], desc: '甘くて可愛いお菓子。辛さを和らげる！(甘さ-1)', unique: false },
-            { id: 'sweets_dogcookie', name: '子犬のクッキー', category: 'sweets', score: 4, taste: -1, icon: '🍪', iconUrl: 'assets/icon/DogCookie.png', allowedSizes: ['small', 'mid', 'large'], desc: '犬の形をしたクッキー。甘くて香ばしい！(甘さ-1)', unique: true },
-            { id: 'sweets_donut', name: '濃厚ドーナツ', category: 'sweets', score: 3, taste: -2, icon: '🍩', iconUrl: 'assets/icon/Donut.png', allowedSizes: ['mid', 'large'], desc: '甘さたっぷり！味覚を一気に甘くする。(甘さ-2)', unique: false },
+    // 辛味
+    {
+        id: 'spice_chili',
+        name: '深紅の一本唐辛子',
+        category: 'spice',
+        score: 2,
+        taste: 2,
+        icon: '🌶️',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'ピリッとスープを引き締める定番の辛味。(小:+1/中:+2/大:+3)',
+        unique: false
+    },
+    {
+        id: 'spice_pepper',
+        name: '粗挽き黒胡椒ミル',
+        category: 'spice',
+        score: 2,
+        taste: 2,
+        icon: '🧂',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'スパイシーな香りで食欲をそそる本格薬味。(小:+1/中:+2/大:+3)',
+        unique: false
+    },
+    {
+        id: 'spice_mentai',
+        name: '博多熟成明太子',
+        category: 'spice',
+        score: 3,
+        taste: 2,
+        icon: '🔴',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'ピリ辛の粒々がスープに溶け込む贅沢具材。(小:+1/中:+2/大:+3)',
+        unique: false
+    },
 
-            // 闇具材（トラップ / バースト要素）
-            { id: 'yami_pepper', name: 'デスソースペッパー', category: 'yami', score: -2, taste: 2, icon: '🔥', allowedSizes: ['small', 'mid', 'large'], desc: '超危険！一気に辛さ+2。', unique: false },
-            { id: 'yami_tyre', name: 'ゴムタイヤ ', category: 'yami', score: -6, taste: 0, icon: '🛞', iconUrl: 'assets/icon/Tire.png', allowedSizes: ['large'], desc: '固くて噛み切れないタイヤ！食べられない！大幅マイナス点。', unique: true },
-            { id: 'yami_slime', name: '紫色物体X', category: 'yami', score: -4, taste: 1, icon: '👾', allowedSizes: ['mid', 'large'], desc: '闇鍋の象徴。怪しいエキスが溢れ出る。', unique: true },
-            { id: 'yami_wasabi', name: '大量の生ワサビ', category: 'yami', score: -1, taste: 2, icon: '🟢', allowedSizes: ['small', 'mid'], desc: '鼻に抜ける痛烈なツーン！辛さ+2。', unique: false },
-            { id: 'yami_hellsauce', name: '地獄の激辛ソース', category: 'yami', score: -3, taste: 3, icon: '🍾', iconUrl: 'assets/icon/HellSauce.png', allowedSizes: ['mid', 'large'], desc: '一発即死レベルの極悪激辛ソース！(辛さ+3)', unique: true },
-            { id: 'yami_syrup', name: '大量の角砂糖シロップ', category: 'yami', score: -3, taste: -3, icon: '🍯', allowedSizes: ['mid', 'large'], desc: '超危険！一発即死レベルの激甘トラップ！(甘さ-3)', unique: false }
-        ];
+    // 甘味
+    {
+        id: 'sweets_castella',
+        name: '黄金の長崎カステラ',
+        category: 'sweets',
+        score: 2,
+        taste: -2,
+        icon: '🥮',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'しっとり甘いカステラ。辛さを和らげる！(小:-1/中:-2/大:-3)',
+        unique: false
+    },
+    {
+        id: 'sweets_choco',
+        name: 'とろけるビターチョコ',
+        category: 'sweets',
+        score: 2,
+        taste: -2,
+        icon: '🍫',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: '濃厚な甘みとコクが広がるお菓子具材。(小:-1/中:-2/大:-3)',
+        unique: false
+    },
+    {
+        id: 'sweets_lollipop',
+        name: '虹色ぐるぐるキャンディ',
+        category: 'sweets',
+        score: 2,
+        taste: -2,
+        icon: '🍭',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'ポップで甘いキャンディ。辛味を中和する！(小:-1/中:-2/大:-3)',
+        unique: false
+    },
+
+    // 闇
+    {
+        id: 'yami_compass',
+        name: '狂った真鍮の羅針盤',
+        category: 'yami',
+        score: -3,
+        taste: 0,
+        icon: '🧭',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: 'ぐるぐる針が回る謎の羅針盤。食べられない！',
+        unique: false
+    },
+    {
+        id: 'yami_pencil',
+        name: '芯の尖った黒鉛筆',
+        category: 'yami',
+        score: -2,
+        taste: 0,
+        icon: '✏️',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: '鍋の底に沈む筆記用具。出汁が黒ずんでしまう。',
+        unique: false
+    },
+    {
+        id: 'yami_gear',
+        name: '錆びついた古歯車',
+        category: 'yami',
+        score: -3,
+        taste: 0,
+        icon: '⚙️',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: '噛んだら歯が折れる重厚な鉄の歯車。',
+        unique: false
+    },
+    {
+        id: 'yami_capsule',
+        name: '怪光を放つカプセル錠剤',
+        category: 'yami',
+        score: -3,
+        taste: 0,
+        icon: '💊',
+        iconUrl: null,
+        allowedSizes: ['small', 'mid', 'large'],
+        desc: '何が入っているか分からない怪しい薬品。',
+        unique: false
+    },
+
+    // ----------------------------------------------------
+    // ■ ユニークシルエット具材 (unique: true)
+    // ----------------------------------------------------
+    // 【至高のモツ型】(最高峰・極大スコア)
+    {
+        id: 'u_motsu_supreme',
+        name: '至高の一本マルチョウ',
+        category: 'motsu',
+        silhouetteType: 'motsu_supreme',
+        score: 10,
+        taste: 0,
+        icon: '🥩',
+        iconUrl: null,
+        allowedSizes: ['large'],
+        desc: '切らずに一本丸ごとの超極上マルチョウ！圧倒的高得点！',
+        unique: true
+    },
+    {
+        id: 'u_sweets_churros',
+        name: '黄金の渦巻きチュロス',
+        category: 'sweets',
+        silhouetteType: 'motsu_supreme',
+        score: 8,
+        taste: -4,
+        icon: '🥨',
+        iconUrl: null,
+        allowedSizes: ['large'],
+        desc: 'マルチョウそっくりに巻かれた巨大チュロス！強烈な甘さ！',
+        unique: true
+    },
+    {
+        id: 'u_spice_tteokbokki',
+        name: '旨辛もっちりトッポギ',
+        category: 'spice',
+        silhouetteType: 'motsu_supreme',
+        score: 8,
+        taste: 4,
+        icon: '🥢',
+        iconUrl: null,
+        allowedSizes: ['large'],
+        desc: '極太マルチョウに見紛う激辛ロングトッポギ！',
+        unique: true
+    },
+    {
+        id: 'u_yami_magnet',
+        name: '超強力U字マグネット',
+        category: 'yami',
+        silhouetteType: 'motsu_supreme',
+        score: -9,
+        taste: 0,
+        icon: '🧲',
+        iconUrl: null,
+        allowedSizes: ['large'],
+        desc: 'マルチョウ型に湾曲した巨大磁石！鍋のすべてを狂わせる。',
+        unique: true
+    },
+
+    // 【ソース型】(特大スコア & 味激変)
+    {
+        id: 'u_classic_dashi',
+        name: '秘伝・黄金の極み出汁',
+        category: 'classic',
+        silhouetteType: 'sauce',
+        score: 9,
+        taste: 0,
+        icon: '🍶',
+        iconUrl: null,
+        allowedSizes: ['large'],
+        desc: '創業以来継ぎ足された伝説の出汁ボトル。鍋全体が至福の味に。',
+        unique: true
+    },
+    {
+        id: 'u_sweets_condensed',
+        name: '特濃とろける練乳クリーム',
+        category: 'sweets',
+        silhouetteType: 'sauce',
+        score: 7,
+        taste: -5,
+        icon: '🥛',
+        iconUrl: null,
+        allowedSizes: ['large'],
+        desc: 'チューブから溢れ出る超濃厚練乳！一気に激甘バースト寸前！',
+        unique: true
+    },
+    {
+        id: 'u_spice_hellsauce',
+        name: '地獄の激辛ソース',
+        category: 'spice',
+        silhouetteType: 'sauce',
+        score: 7,
+        taste: 5,
+        icon: '🍾',
+        iconUrl: 'assets/icon/HellSauce.png',
+        allowedSizes: ['large'],
+        desc: '一滴で鍋が灼熱地獄と化す極悪辛味ソース！',
+        unique: true
+    },
+    {
+        id: 'u_yami_detergent',
+        name: '危険な泡立つ青色洗剤',
+        category: 'yami',
+        silhouetteType: 'sauce',
+        score: -8,
+        taste: 0,
+        icon: '🧴',
+        iconUrl: null,
+        allowedSizes: ['large'],
+        desc: '出汁ボトルと間違えて投入された洗剤！絶対口にしてはならない。',
+        unique: true
+    },
+
+    // 【ドーナツ型】(中〜大スコア)
+    {
+        id: 'u_sweets_donut',
+        name: '贅沢ショコラドーナツ',
+        category: 'sweets',
+        silhouetteType: 'donut',
+        score: 6,
+        taste: -3,
+        icon: '🍩',
+        iconUrl: 'assets/icon/Donut.png',
+        allowedSizes: ['mid', 'large'],
+        desc: '甘みたっぷりの揚げドーナツ。味覚を一気に甘く染める。',
+        unique: true
+    },
+    {
+        id: 'u_yami_tire',
+        name: '極厚重機ゴムタイヤ',
+        category: 'yami',
+        silhouetteType: 'donut',
+        score: -6,
+        taste: 0,
+        icon: '🛞',
+        iconUrl: 'assets/icon/Tire.png',
+        allowedSizes: ['large'],
+        desc: 'ドーナツそっくりの黒いタイヤ！噛み切れるはずもない。',
+        unique: true
+    },
+    {
+        id: 'u_motsu_hatsumoto',
+        name: '幻のコリコリハツモト',
+        category: 'motsu',
+        silhouetteType: 'donut',
+        score: 6,
+        taste: 0,
+        icon: '🥩',
+        iconUrl: null,
+        allowedSizes: ['mid', 'large'],
+        desc: 'ドーナツ状の希少部位ハツモト。抜群の歯ごたえと旨味！',
+        unique: true
+    },
+
+    // 【長靴型】(中〜大スコア)
+    {
+        id: 'u_sweets_dogcookie',
+        name: '愛らしき仔犬のクッキー',
+        category: 'sweets',
+        silhouetteType: 'boots',
+        score: 6,
+        taste: -3,
+        icon: '🍪',
+        iconUrl: 'assets/icon/DogCookie.png',
+        allowedSizes: ['mid', 'large'],
+        desc: '愛らしい犬の形をした香ばしいクッキー。甘みしっかり。',
+        unique: true
+    },
+    {
+        id: 'u_yami_boots',
+        name: '泥まみれの作業用長靴',
+        category: 'yami',
+        silhouetteType: 'boots',
+        score: -6,
+        taste: 0,
+        icon: '👢',
+        iconUrl: 'assets/icon/Shoes.png',
+        allowedSizes: ['large'],
+        desc: '鍋に放り込まれたゴム長靴。泥とゴムの臭いが充満する。',
+        unique: true
+    },
+    {
+        id: 'u_classic_matsutake',
+        name: '薫り高き極上松茸',
+        category: 'classic',
+        silhouetteType: 'boots',
+        score: 6,
+        taste: 0,
+        icon: '🍄',
+        iconUrl: null,
+        allowedSizes: ['mid', 'large'],
+        desc: '長靴のような曲がった形をした高級松茸。芳醇な香り！',
+        unique: true
+    },
+
+    // 【立方体型】(中スコア)
+    {
+        id: 'u_classic_tofu',
+        name: '極上なめらか絹ごし豆腐',
+        category: 'classic',
+        silhouetteType: 'cube',
+        score: 4,
+        taste: 0,
+        icon: '🧊',
+        iconUrl: null,
+        allowedSizes: ['mid', 'large'],
+        desc: '四角くカットされた純白の豆腐。出汁の旨味を吸収する。',
+        unique: true
+    },
+    {
+        id: 'u_spice_curry',
+        name: '熟成スパイシーカレールー',
+        category: 'spice',
+        silhouetteType: 'cube',
+        score: 4,
+        taste: 3,
+        icon: '🍛',
+        iconUrl: null,
+        allowedSizes: ['mid', 'large'],
+        desc: '四角いカレールー。鍋が一瞬で本格スパイスカレー鍋に！',
+        unique: true
+    },
+    {
+        id: 'u_sweets_sugar',
+        name: '高純度クリスタル角砂糖',
+        category: 'sweets',
+        silhouetteType: 'cube',
+        score: 4,
+        taste: -3,
+        icon: '🧊',
+        iconUrl: null,
+        allowedSizes: ['mid', 'large'],
+        desc: '豆腐と見紛う四角い角砂糖。一気に甘みが跳ね上がる！',
+        unique: true
+    },
+    {
+        id: 'u_yami_eraser',
+        name: '四角い新品プラスチック消しゴム',
+        category: 'yami',
+        silhouetteType: 'cube',
+        score: -4,
+        taste: 0,
+        icon: '🧼',
+        iconUrl: null,
+        allowedSizes: ['mid', 'large'],
+        desc: '豆腐そっくりの消しゴム。文字は消せても点数は削られる。',
+        unique: true
+    }
+];
         
 export function createIngredientInstance(baseItem, forceSize = null) {
-            const allowed = baseItem.allowedSizes || ['mid'];
-            const chosenSize = forceSize || allowed[Math.floor(Math.random() * allowed.length)];
-            
-            let score = baseItem.score;
-            let taste = baseItem.taste || 0;
-            let sizeLabel = '';
-            let sizeBadgeText = '中';
-            let sizeBadgeClass = 'size-mid';
+    const allowed = baseItem.allowedSizes || ['mid'];
+    const chosenSize = forceSize || allowed[Math.floor(Math.random() * allowed.length)];
+    
+    let score = baseItem.score;
+    let taste = baseItem.taste || 0;
+    let sizeLabel = '';
+    let sizeBadgeText = '中';
+    let sizeBadgeClass = 'size-mid';
 
-            if (chosenSize === 'small') {
-                score = (baseItem.score >= 0) 
-                    ? Math.max(1, Math.floor(baseItem.score * 0.6))
-                    : Math.min(-1, Math.ceil(baseItem.score * 0.6));
-                sizeLabel = ' (小)';
-                sizeBadgeText = '小';
-                sizeBadgeClass = 'size-small';
-            } else if (chosenSize === 'large') {
-                score = (baseItem.score >= 0)
-                    ? Math.ceil(baseItem.score * 1.5)
-                    : Math.floor(baseItem.score * 1.5);
-                if (taste > 0) taste += 1; // 大盛は辛さ増加
-                if (taste < 0) taste -= 1; // 大盛は甘さ増加
-                sizeLabel = ' (大盛)';
-                sizeBadgeText = '大';
-                sizeBadgeClass = 'size-large';
-            }
-
-            const uniqueId = `${baseItem.id}_${chosenSize}_${Math.random().toString(36).substring(2, 7)}`;
-
-            return {
-                ...baseItem,
-                id: uniqueId,
-                baseId: baseItem.id,
-                size: chosenSize,
-                sizeBadgeText: sizeBadgeText,
-                sizeBadgeClass: sizeBadgeClass,
-                name: baseItem.name + sizeLabel,
-                rawName: baseItem.name,
-                score: score,
-                taste: taste,
-                spice: taste // 後方互換維持
-            };
+    if (baseItem.unique) {
+        // ユニーク具材は大振りなベース値をそのまま適用（サイズ表示のみ付与）
+        if (chosenSize === 'small') {
+            sizeLabel = ' (小)';
+            sizeBadgeText = '小';
+            sizeBadgeClass = 'size-small';
+        } else if (chosenSize === 'large') {
+            sizeLabel = ' (大盛)';
+            sizeBadgeText = '大';
+            sizeBadgeClass = 'size-large';
         }
+    } else {
+        // 汎用具材のサイズ連動計算
+        if (chosenSize === 'small') {
+            score = (baseItem.score >= 0) 
+                ? Math.max(1, Math.floor(baseItem.score * 0.6))
+                : Math.min(-1, Math.ceil(baseItem.score * 0.6));
+            // taste: 小は ±1
+            if (baseItem.taste > 0) taste = 1;
+            else if (baseItem.taste < 0) taste = -1;
+            else taste = 0;
+
+            sizeLabel = ' (小)';
+            sizeBadgeText = '小';
+            sizeBadgeClass = 'size-small';
+        } else if (chosenSize === 'large') {
+            score = (baseItem.score >= 0)
+                ? Math.ceil(baseItem.score * 1.5)
+                : Math.floor(baseItem.score * 1.5);
+            // taste: 大は ±3
+            if (baseItem.taste > 0) taste = 3;
+            else if (baseItem.taste < 0) taste = -3;
+            else taste = 0;
+
+            sizeLabel = ' (大盛)';
+            sizeBadgeText = '大';
+            sizeBadgeClass = 'size-large';
+        } else {
+            // mid: 中は ±2 (ベース値)
+            if (baseItem.taste > 0) taste = 2;
+            else if (baseItem.taste < 0) taste = -2;
+            else taste = 0;
+        }
+    }
+
+    const uniqueId = `${baseItem.id}_${chosenSize}_${Math.random().toString(36).substring(2, 7)}`;
+
+    return {
+        ...baseItem,
+        id: uniqueId,
+        baseId: baseItem.id,
+        size: chosenSize,
+        sizeBadgeText: sizeBadgeText,
+        sizeBadgeClass: sizeBadgeClass,
+        name: baseItem.name + sizeLabel,
+        rawName: baseItem.name,
+        score: score,
+        taste: taste,
+        spice: taste // 後方互換維持
+    };
+}
 
 export const COMBOS_DATABASE = [
     {
         id: 'combo_classic',
-        name: '王道組み合わせ',
+        name: '王道もつ鍋',
         score: 3,
         icon: '🍲',
-        conditionText: 'もつ系 × 1以上 + 野菜系 × 1以上',
-        desc: 'もつの旨味とシャキシャキ野菜の甘みがベストマッチした王道もつ鍋！',
-        check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'vege')
+        conditionText: 'もつ系 × 1以上 + 定番具材 × 1以上',
+        desc: 'もつの旨味と定番具材（ニラ・白菜・麺・出汁等）がベストマッチした王道鍋！',
+        check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'classic')
     },
     {
         id: 'combo_dashi',
-        name: '出汁マリアージュ',
+        name: '絶品アクセント',
         score: 2,
         icon: '🍶',
-        conditionText: 'もつ系 × 1以上 + 薬味/出汁系 × 1以上',
-        desc: '特製出汁や薬味がもつの脂を引き立てる絶品マリアージュ！',
-        check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'spice')
+        conditionText: 'もつ系 × 1以上 + 辛味/甘味系 × 1以上',
+        desc: 'もつの脂にスパイスや甘味アクセントが効いた刺激的なマリアージュ！',
+        check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'spice' || b.category === 'sweets')
     },
     {
         id: 'combo_mega_motsu',
@@ -109,8 +532,8 @@ export const COMBOS_DATABASE = [
 
 export function getRecommendedCombos(bowl = []) {
     const hasMotsu = bowl.some(b => b.category === 'motsu');
-    const hasVege = bowl.some(b => b.category === 'vege');
-    const hasSpice = bowl.some(b => b.category === 'spice');
+    const hasClassic = bowl.some(b => b.category === 'classic');
+    const hasSpiceOrSweet = bowl.some(b => b.category === 'spice' || b.category === 'sweets');
     const motsuCount = bowl.filter(b => b.category === 'motsu').length;
 
     if (!bowl || bowl.length === 0) {
@@ -123,7 +546,7 @@ export function getRecommendedCombos(bowl = []) {
             },
             {
                 ...COMBOS_DATABASE.find(c => c.id === 'combo_dashi'),
-                statusText: '💡 スープの狙い目',
+                statusText: '💡 スパイスの狙い目',
                 statusType: 'default',
                 priority: 2
             }
@@ -141,11 +564,11 @@ export function getRecommendedCombos(bowl = []) {
                 statusText = '🎉 達成中！';
                 statusType = 'achieved';
                 priority = 80;
-            } else if (hasMotsu && !hasVege) {
-                statusText = '🎯 あと「野菜」で完成！';
+            } else if (hasMotsu && !hasClassic) {
+                statusText = '🎯 あと「定番具材」で完成！';
                 statusType = 'close';
                 priority = 100;
-            } else if (!hasMotsu && hasVege) {
+            } else if (!hasMotsu && hasClassic) {
                 statusText = '🎯 あと「もつ」で完成！';
                 statusType = 'close';
                 priority = 95;
@@ -159,11 +582,11 @@ export function getRecommendedCombos(bowl = []) {
                 statusText = '🎉 達成中！';
                 statusType = 'achieved';
                 priority = 75;
-            } else if (hasMotsu && !hasSpice) {
-                statusText = '🎯 あと「薬味/出汁」で完成！';
+            } else if (hasMotsu && !hasSpiceOrSweet) {
+                statusText = '🎯 あと「辛味/甘味」で完成！';
                 statusType = 'close';
                 priority = 90;
-            } else if (!hasMotsu && hasSpice) {
+            } else if (!hasMotsu && hasSpiceOrSweet) {
                 statusText = '🎯 あと「もつ」で完成！';
                 statusType = 'close';
                 priority = 85;
