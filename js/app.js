@@ -1,7 +1,7 @@
 import { toggleSound } from './sound.js';
 import { closeOnlineModal, createOnlineRoom, joinOnlineRoom, startOnlineGameHost, firebaseState } from './firebase.js';
 import { gameState, startGame, resetToStart, submitDraftChoice, reshuffleScoop, handlePassClick } from './gameLogic.js';
-import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory, openComboDetailModal, closeComboDetailModal, closePotRevealModal } from './ui.js';
+import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory, openComboDetailModal, closeComboDetailModal, closePotRevealModal, toggleDraftComboRadar, openRelatedCombosModal, renderDraftComboRadar } from './ui.js';
 import { initPot3D, disposePot3D, updateSoupColor, updateSoupColorFromGameState } from './pot3d.js';
 import { initDevColorMatrix, updateDevInspector, toggleDevPanel, minimizeDevPanel } from './devColorMatrix.js';
 
@@ -24,6 +24,9 @@ window.filterEncyclopediaCategory = filterEncyclopediaCategory;
 window.openComboDetailModal = openComboDetailModal;
 window.closeComboDetailModal = closeComboDetailModal;
 window.closePotRevealModal = closePotRevealModal;
+window.toggleDraftComboRadar = toggleDraftComboRadar;
+window.openRelatedCombosModal = openRelatedCombosModal;
+window.renderDraftComboRadar = renderDraftComboRadar;
 
 // 3D 鍋レンダリング関数のグローバル登録
 window.initPot3D = initPot3D;

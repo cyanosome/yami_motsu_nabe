@@ -147,8 +147,32 @@ export function renderOnlinePotPhase(data) {
     if (btnPass) btnPass.disabled = !canAct;
 }
 
+export function getRelatedCombosForIngredient(item) {
+    if (!item) return [];
+    const baseId = item.baseId || item.id.split('_')[0];
+    const cat = item.category;
+
+    return COMBOS_DATABASE.filter(combo => {
+        // 1. 個別食材IDの一致
+        if (combo.id === 'combo_metaphysical' && (baseId === 'u_sweets_donut' || baseId === 'u_yami_tire')) return true;
+        if (combo.id === 'combo_puss_in_boots' && (baseId === 'u_yami_boots' || baseId === 'u_sweets_dogcookie')) return true;
+        if (combo.id === 'combo_civilization' && (baseId === 'yami_pencil' || baseId === 'yami_gear')) return true;
+        if (combo.id === 'combo_recycle' && ['yami_gear', 'u_yami_tire', 'u_yami_boots', 'u_yami_eraser', 'u_yami_magnet'].includes(baseId)) return true;
+
+        // 2. カテゴリの一致
+        if (cat === 'motsu' && ['combo_classic', 'combo_dashi', 'combo_mega_motsu', 'combo_king', 'combo_balanced_diet', 'combo_kids', 'combo_abandoned_motsu'].includes(combo.id)) return true;
+        if (cat === 'classic' && ['combo_classic', 'combo_gentle_life', 'combo_balanced_diet', 'combo_minimum_life', 'combo_shojin', 'combo_king'].includes(combo.id)) return true;
+        if (cat === 'spice' && ['combo_dashi', 'combo_sweet_spicy', 'combo_balanced_diet', 'combo_hot_pot', 'combo_abandoned_motsu', 'combo_shojin', 'combo_king'].includes(combo.id)) return true;
+        if (cat === 'sweets' && ['combo_dashi', 'combo_sweet_spicy', 'combo_halloween'].includes(combo.id)) return true;
+        if (cat === 'yami' && ['combo_dark_lord', 'combo_minimum_life'].includes(combo.id)) return true;
+
+        return false;
+    });
+}
+
 export function renderDraftGrid(options) {
     const grid = document.getElementById('draft-grid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     options.forEach(item => {
@@ -173,9 +197,17 @@ export function renderDraftGrid(options) {
 
         const tasteText = (item.taste > 0) ? `🔥+${item.taste}` : ((item.taste < 0) ? `🍬${item.taste}` : '');
 
+        const relatedCombos = getRelatedCombosForIngredient(item);
+        const comboHintBtn = relatedCombos.length > 0
+            ? `<button class="card-combo-hint-btn" onclick="event.stopPropagation(); openRelatedCombosModal('${item.id}')" title="関連する役・コンボを表示">💡役${relatedCombos.length}</button>`
+            : '';
+
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div class="card-badge ${badgeClass}">${badgeText}</div>
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <div class="card-badge ${badgeClass}">${badgeText}</div>
+                    ${comboHintBtn}
+                </div>
                 <div class="size-selector-group" onclick="event.stopPropagation();">
                     <button class="size-btn ${curSize === 'small' ? 'active' : ''}" ${canSmall ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'small')">S</button>
                     <button class="size-btn ${curSize === 'mid' ? 'active' : ''}" ${canMid ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'mid')">M</button>
@@ -197,6 +229,9 @@ export function renderDraftGrid(options) {
         card.onclick = () => toggleCardSelection(item.id);
         grid.appendChild(card);
     });
+
+    // 提示具材から狙えるコンボ一覧（レーダー）を自動集計・描画
+    renderDraftComboRadar(options);
 }
 
 export function changeCardSize(e, itemId, newSize) {
@@ -1078,8 +1113,222 @@ export function closeComboDetailModal() {
     }
 }
 
+export function openRelatedCombosModal(itemId) {
+    playSound('select');
+    const item = draftState.options ? draftState.options.find(x => x.id === itemId) : null;
+    if (!item) return;
+
+    const relatedCombos = getRelatedCombosForIngredient(item);
+    if (!relatedCombos || relatedCombos.length === 0) return;
+
+    if (relatedCombos.length === 1) {
+        openComboDetailModal(relatedCombos[0].id);
+        return;
+    }
+
+    const modal = document.getElementById('combo-detail-modal');
+    const container = document.getElementById('combo-detail-content');
+    if (!modal || !container) return;
+
+    let html = `
+        <div class="combo-detail-header" style="margin-bottom: 12px;">
+            <div class="combo-detail-icon">${getIngredientIconHtml(item)}</div>
+            <div class="combo-detail-title">${item.name} に関する役 (${relatedCombos.length}件)</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; max-height:60dvh; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:4px;">
+    `;
+
+    relatedCombos.forEach(combo => {
+        const sign = combo.score >= 0 ? '+' : '';
+        const isNegative = combo.score < 0;
+        html += `
+            <div class="enc-combo-card" style="padding:10px 12px; margin:0;" onclick="openComboDetailModal('${combo.id}')">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.4rem;">${combo.icon || '✨'}</span>
+                    <div>
+                        <div style="font-weight:bold; font-size:0.9rem; color:#fff;">${combo.name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-sub);">${combo.conditionText}</div>
+                    </div>
+                </div>
+                <div class="combo-score-tag ${isNegative ? 'negative' : ''}" style="font-size:0.82rem; padding:2px 8px; border-radius:6px; font-weight:bold; ${isNegative ? 'background:rgba(214,48,49,0.3); color:#ff7675;' : 'background:rgba(253,203,110,0.2); color:#ffeaa7;'}">${sign}${combo.score}pt</div>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+    modal.classList.add('active');
+}
+
+export function toggleDraftComboRadar() {
+    playSound('select');
+    const body = document.getElementById('draft-combo-body');
+    const arrow = document.getElementById('draft-combo-arrow');
+    if (!body || !arrow) return;
+
+    if (body.style.display === 'none' || body.style.display === '') {
+        body.style.display = 'flex';
+        arrow.innerHTML = '▲ 閉じる';
+    } else {
+        body.style.display = 'none';
+        arrow.innerHTML = '▼ 開く';
+    }
+}
+
+export function renderDraftComboRadar(options) {
+    const radarBody = document.getElementById('draft-combo-body');
+    const countEl = document.getElementById('draft-combo-count');
+    if (!radarBody || !countEl || !options || options.length === 0) return;
+
+    const draftBaseIds = new Set(options.map(o => o.baseId || o.id.split('_')[0]));
+    const draftCats = new Set(options.map(o => o.category));
+    const hasMotsu = draftCats.has('motsu');
+    const hasClassic = draftCats.has('classic');
+    const hasSpice = draftCats.has('spice');
+    const hasSweets = draftCats.has('sweets');
+    const hasYami = draftCats.has('yami');
+    const motsuCount = options.filter(o => o.category === 'motsu').length;
+    const classicCount = options.filter(o => o.category === 'classic').length;
+    const spiceCount = options.filter(o => o.category === 'spice').length;
+    const sweetsCount = options.filter(o => o.category === 'sweets').length;
+    const yamiCount = options.filter(o => o.category === 'yami').length;
+
+    const matchingCombos = [];
+
+    COMBOS_DATABASE.forEach(combo => {
+        let isPoolComplete = false;
+        let isRelevant = false;
+        let matchHint = '';
+
+        if (combo.id === 'combo_metaphysical') {
+            const hasDonut = draftBaseIds.has('u_sweets_donut');
+            const hasTire = draftBaseIds.has('u_yami_tire');
+            if (hasDonut || hasTire) {
+                isRelevant = true;
+                isPoolComplete = hasDonut && hasTire;
+                matchHint = isPoolComplete ? '🎯 ドーナツ＆タイヤが両方出現中！' : (hasDonut ? '💡 ドーナツ出現中' : '💡 タイヤ出現中');
+            }
+        } else if (combo.id === 'combo_puss_in_boots') {
+            const hasBoots = draftBaseIds.has('u_yami_boots');
+            const hasDog = draftBaseIds.has('u_sweets_dogcookie');
+            if (hasBoots || hasDog) {
+                isRelevant = true;
+                isPoolComplete = hasBoots && hasDog;
+                matchHint = isPoolComplete ? '🎯 長靴＆クッキーが両方出現中！' : (hasBoots ? '💡 長靴出現中' : '💡 クッキー出現中');
+            }
+        } else if (combo.id === 'combo_civilization') {
+            const hasPencil = draftBaseIds.has('yami_pencil');
+            const hasGear = draftBaseIds.has('yami_gear');
+            if (hasPencil || hasGear) {
+                isRelevant = true;
+                isPoolComplete = hasPencil && hasGear;
+                matchHint = isPoolComplete ? '🎯 鉛筆＆歯車が両方出現中！' : (hasPencil ? '💡 鉛筆出現中' : '💡 歯車出現中');
+            }
+        } else if (combo.id === 'combo_recycle') {
+            const recycleItems = ['yami_gear', 'u_yami_tire', 'u_yami_boots', 'u_yami_eraser', 'u_yami_magnet'];
+            const presentCount = recycleItems.filter(id => draftBaseIds.has(id)).length;
+            if (presentCount >= 1) {
+                isRelevant = true;
+                isPoolComplete = presentCount >= 2;
+                matchHint = isPoolComplete ? `🎯 産廃具材が ${presentCount} 種出現中！` : '💡 産廃具材が 1 種出現中';
+            }
+        } else if (combo.id === 'combo_classic') {
+            if (hasMotsu && hasClassic) {
+                isRelevant = true;
+                isPoolComplete = true;
+                matchHint = '🎯 もつ＋定番の王道ペアが揃っています！';
+            } else if (hasMotsu || hasClassic) {
+                isRelevant = true;
+                matchHint = hasMotsu ? '💡 もつ出現中（定番と組み合わせ）' : '💡 定番出現中（もつと組み合わせ）';
+            }
+        } else if (combo.id === 'combo_balanced_diet') {
+            const count = (hasMotsu ? 1 : 0) + (hasClassic ? 1 : 0) + (hasSpice ? 1 : 0);
+            if (count >= 2) {
+                isRelevant = true;
+                isPoolComplete = count === 3;
+                matchHint = isPoolComplete ? '🎯 もつ・定番・辛味の3種が揃っています！' : '💡 2系統が出現中！';
+            }
+        } else if (combo.id === 'combo_sweet_spicy') {
+            if (hasSpice && hasSweets) {
+                isRelevant = true;
+                isPoolComplete = true;
+                matchHint = '🎯 辛味＆甘味の両方が出現中！';
+            }
+        } else if (combo.id === 'combo_mega_motsu') {
+            if (motsuCount >= 2) {
+                isRelevant = true;
+                isPoolComplete = motsuCount >= 3;
+                matchHint = isPoolComplete ? `🎯 もつが ${motsuCount} 枚出現中！独占可能` : '💡 もつが 2 枚出現中';
+            }
+        } else if (combo.id === 'combo_gentle_life') {
+            if (classicCount >= 2) {
+                isRelevant = true;
+                isPoolComplete = classicCount >= 3;
+                matchHint = `💡 定番具材が ${classicCount} 枚出現中`;
+            }
+        } else if (combo.id === 'combo_hot_pot') {
+            if (spiceCount >= 2) {
+                isRelevant = true;
+                isPoolComplete = spiceCount >= 3;
+                matchHint = `💡 辛味具材が ${spiceCount} 枚出現中`;
+            }
+        } else if (combo.id === 'combo_halloween') {
+            if (sweetsCount >= 2) {
+                isRelevant = true;
+                isPoolComplete = sweetsCount >= 3;
+                matchHint = `💡 甘味具材が ${sweetsCount} 枚出現中`;
+            }
+        } else if (combo.id === 'combo_dark_lord') {
+            if (yamiCount >= 2) {
+                isRelevant = true;
+                isPoolComplete = yamiCount >= 3;
+                matchHint = `⚠️ 闇具材が ${yamiCount} 枚出現中！`;
+            }
+        }
+
+        if (isRelevant) {
+            matchingCombos.push({
+                ...combo,
+                isPoolComplete,
+                matchHint
+            });
+        }
+    });
+
+    matchingCombos.sort((a, b) => {
+        if (a.isPoolComplete !== b.isPoolComplete) return b.isPoolComplete ? 1 : -1;
+        return b.score - a.score;
+    });
+
+    countEl.innerText = matchingCombos.length;
+
+    if (matchingCombos.length === 0) {
+        radarBody.innerHTML = '<div style="font-size:0.75rem; color:var(--text-sub); text-align:center; padding: 6px;">特筆すべき役の組み合わせはありません</div>';
+        return;
+    }
+
+    radarBody.innerHTML = matchingCombos.map(c => {
+        const sign = c.score >= 0 ? '+' : '';
+        const isNegative = c.score < 0;
+        return `
+            <div class="draft-combo-item ${c.isPoolComplete ? 'complete-in-pool' : ''}" onclick="openComboDetailModal('${c.id}')">
+                <div class="draft-combo-icon">${c.icon || '✨'}</div>
+                <div class="draft-combo-text">
+                    <div class="draft-combo-name">${c.name} ${c.isPoolComplete ? '<span class="draft-combo-ready-badge">✨揃う！</span>' : ''}</div>
+                    <div class="draft-combo-hint">${c.matchHint || c.conditionText}</div>
+                </div>
+                <div class="draft-combo-pts ${isNegative ? 'negative' : ''}">${sign}${c.score}pt</div>
+            </div>
+        `;
+    }).join('');
+}
+
 window.renderRecommendedCombos = renderRecommendedCombos;
 window.openComboDetailModal = openComboDetailModal;
 window.closeComboDetailModal = closeComboDetailModal;
+window.openRelatedCombosModal = openRelatedCombosModal;
+window.toggleDraftComboRadar = toggleDraftComboRadar;
+window.renderDraftComboRadar = renderDraftComboRadar;
+
 
 

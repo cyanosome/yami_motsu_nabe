@@ -395,6 +395,178 @@
         .badge-sweets { background: #e84393; color: white; }
         .badge-yami { background: #6c5ce7; color: white; }
 
+        /* ドラフトカード内のコンボヒントボタン */
+        .card-combo-hint-btn {
+            background: rgba(253, 203, 110, 0.15);
+            border: 1px solid rgba(253, 203, 110, 0.45);
+            color: #ffeaa7;
+            font-size: clamp(0.58rem, 1.6vw, 0.68rem);
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.2s ease;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .card-combo-hint-btn:hover {
+            background: rgba(253, 203, 110, 0.35);
+            border-color: var(--accent-gold);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .card-combo-hint-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ドラフト候補から狙えるコンボ一覧 (アコーディオン) */
+        .draft-combo-radar {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto clamp(14px, 2.5vh, 20px) auto;
+            background: rgba(15, 10, 12, 0.75);
+            border: 1px solid rgba(253, 203, 110, 0.35);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            box-sizing: border-box;
+            backdrop-filter: blur(8px);
+            transition: border-color 0.2s ease;
+        }
+
+        .draft-combo-radar:hover {
+            border-color: rgba(253, 203, 110, 0.6);
+        }
+
+        .draft-combo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(8px, 1.8vw, 12px) clamp(12px, 2.5vw, 16px);
+            font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+            font-weight: 800;
+            color: var(--accent-gold);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            background: rgba(253, 203, 110, 0.08);
+            transition: background 0.2s ease;
+            min-height: 40px;
+            box-sizing: border-box;
+        }
+
+        .draft-combo-header:hover {
+            background: rgba(253, 203, 110, 0.14);
+        }
+
+        .draft-combo-body {
+            padding: clamp(8px, 2vw, 12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: clamp(160px, 25vh, 220px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
+        }
+
+        .draft-combo-body::-webkit-scrollbar {
+            width: 5px;
+        }
+        .draft-combo-body::-webkit-scrollbar-thumb {
+            background: rgba(253, 203, 110, 0.3);
+            border-radius: 3px;
+        }
+
+        .draft-combo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(0.75rem, 2vw, 0.84rem);
+            gap: 8px;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            box-sizing: border-box;
+        }
+
+        .draft-combo-item:hover {
+            background: rgba(253, 203, 110, 0.1);
+            border-color: rgba(253, 203, 110, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .draft-combo-item:active {
+            transform: scale(0.98);
+        }
+
+        .draft-combo-item.complete-in-pool {
+            border-color: rgba(85, 239, 196, 0.5);
+            background: rgba(85, 239, 196, 0.08);
+            box-shadow: 0 0 10px rgba(85, 239, 196, 0.15);
+        }
+
+        .draft-combo-icon {
+            font-size: clamp(1.2rem, 3.2vw, 1.5rem);
+            flex-shrink: 0;
+        }
+
+        .draft-combo-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .draft-combo-name {
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: clamp(0.78rem, 2.1vw, 0.88rem);
+        }
+
+        .draft-combo-ready-badge {
+            font-size: 0.65rem;
+            color: #55efc4;
+            background: rgba(85, 239, 196, 0.2);
+            border: 1px solid rgba(85, 239, 196, 0.4);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 800;
+        }
+
+        .draft-combo-hint {
+            font-size: clamp(0.66rem, 1.7vw, 0.74rem);
+            color: var(--text-sub);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .draft-combo-pts {
+            font-weight: 800;
+            font-size: clamp(0.78rem, 2.1vw, 0.88rem);
+            color: var(--accent-gold);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .draft-combo-pts.negative {
+            color: #ff7675;
+        }
+
         /* 味覚バランスメーター (甘さ & 辛さ表現) */
         .taste-meter-container {
             margin-top: 4px;

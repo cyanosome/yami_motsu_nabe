@@ -167,17 +167,32 @@
                 <!-- 動的生成 -->
             </div>
 
-            <div class="phase-title-box">
-                <h2 class="phase-title" id="p1-player-title">プレイヤー1 の手番：具材を選ぼう</h2>
-                <p class="phase-desc">鍋に放り込みたい具材を <b>3枚</b> 選んでください（自分のお得な具材か、邪魔な闇具材か？）</p>
+            <div class="phase-title-box" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 class="phase-title" id="p1-player-title" style="margin:0 0 4px 0;">プレイヤー1 の手番：具材を選ぼう</h2>
+                    <p class="phase-desc">鍋に放り込みたい具材を <b>3枚</b> 選んでください（自分のお得な具材か、邪魔な闇具材か？）</p>
+                </div>
+                <button class="btn-encyclopedia" onclick="openEncyclopediaModal()">📖 食材・コンボ図鑑</button>
             </div>
 
             <div class="ingredient-draft-grid" id="draft-grid">
                 <!-- 動的生成 -->
             </div>
 
+            <!-- ドラフト候補から狙えるコンボ一覧（折りたたみ式アコーディオン） -->
+            <div class="draft-combo-radar" id="draft-combo-radar">
+                <div class="draft-combo-header" onclick="toggleDraftComboRadar()">
+                    <span>💡 提示具材から狙えるコンボ (<span id="draft-combo-count">0</span>件)</span>
+                    <span id="draft-combo-arrow">▼ 開く</span>
+                </div>
+                <div class="draft-combo-body" id="draft-combo-body" style="display:none;">
+                    <!-- 動的生成 -->
+                </div>
+            </div>
+
             <div class="action-bar">
                 <button class="btn-primary" id="btn-add-pot" onclick="submitDraftChoice()" disabled>鍋に投入する (選んだ数: 0/3)</button>
+                <button class="btn-secondary" onclick="openEncyclopediaModal()">📖 全図鑑を見る</button>
             </div>
         </div>
 
