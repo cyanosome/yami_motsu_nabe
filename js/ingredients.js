@@ -835,8 +835,8 @@ export const POT_TEMPLATES = [
         icon: '🌀',
         hint: '鍋の底から不気味な気配と金属音が聞こえる...！？',
         reveal: '【混沌の闇鍋】が出現！',
-        desc: 'ベースのもつ・野菜の隙間に危険物やゴミが大量沈没！引いたら最後の大減点トラップ鍋。',
-        itemIds: ['motsu_normal', 'motsu_normal', 'classic_nira', 'classic_hakusai', 'yami_compass', 'yami_gear', 'u_yami_tire', 'u_yami_detergent']
+        desc: '危険物とゴミだけで満たされた伝説の禁忌鍋。闇のマイナスに沈むか、大明神で大逆転か！？',
+        itemIds: ['u_yami_magnet', 'u_yami_detergent', 'u_yami_tire', 'u_yami_boots', 'u_yami_eraser', 'yami_compass', 'yami_gear', 'yami_capsule']
     },
     {
         id: 'spicy',
@@ -844,8 +844,8 @@ export const POT_TEMPLATES = [
         icon: '🌶️',
         hint: '立ち上る湯気からツンと刺激的なスパイスの香りがする...！',
         reveal: '【灼熱激辛鍋】が出現！',
-        desc: 'もつと野菜に唐辛子・明太子・カレールー・地獄ソースが溶け込んだ灼熱のスパイス鍋。',
-        itemIds: ['motsu_normal', 'motsu_normal', 'classic_nira', 'classic_hakusai', 'spice_chili', 'spice_mentai', 'u_spice_curry', 'u_spice_hellsauce']
+        desc: '地獄ソース・カレールー・唐辛子等の強烈な辛味と危険物が混在する灼熱の東極スパイス鍋。',
+        itemIds: ['motsu_normal', 'u_spice_hellsauce', 'u_spice_curry', 'spice_mentai', 'spice_chili', 'u_yami_detergent', 'u_yami_tire', 'u_yami_boots']
     },
     {
         id: 'sweets',
@@ -853,8 +853,8 @@ export const POT_TEMPLATES = [
         icon: '🍬',
         hint: 'なんだか甘〜いお菓子の匂いが充満している...？',
         reveal: '【特濃激甘スイーツ鍋】が出現！',
-        desc: 'もつと野菜にカステラ・チョコ・ドーナツ・練乳などが侵食！味覚が激甘に変化するスイーツ鍋。',
-        itemIds: ['motsu_normal', 'motsu_normal', 'classic_nira', 'classic_hakusai', 'sweets_castella', 'sweets_choco', 'u_sweets_donut', 'u_sweets_condensed']
+        desc: '練乳・ドーナツ・カステラ等の強烈な甘味と危険物が混在する特濃の西極スイーツ鍋。',
+        itemIds: ['motsu_normal', 'u_sweets_condensed', 'u_sweets_donut', 'sweets_castella', 'sweets_choco', 'u_yami_magnet', 'u_yami_tire', 'u_yami_boots']
     },
     {
         id: 'unique',
