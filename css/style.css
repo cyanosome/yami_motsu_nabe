@@ -411,33 +411,6 @@
         .badge-sweets { background: #e84393; color: white; }
         .badge-yami { background: #6c5ce7; color: white; }
 
-        /* ドラフトカード内のコンボヒントボタン */
-        .card-combo-hint-btn {
-            background: rgba(253, 203, 110, 0.15);
-            border: 1px solid rgba(253, 203, 110, 0.45);
-            color: #ffeaa7;
-            font-size: clamp(0.58rem, 1.6vw, 0.68rem);
-            font-weight: 700;
-            padding: 1px 5px;
-            border-radius: 6px;
-            cursor: pointer;
-            touch-action: manipulation;
-            transition: all 0.2s ease;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-
-        .card-combo-hint-btn:hover {
-            background: rgba(253, 203, 110, 0.35);
-            border-color: var(--accent-gold);
-            color: #fff;
-            transform: scale(1.05);
-        }
-
-        .card-combo-hint-btn:active {
-            transform: scale(0.95);
-        }
-
         /* ドラフト候補から狙えるコンボ一覧 (アコーディオン) */
         .draft-combo-radar {
             width: 100%;
@@ -1605,6 +1578,21 @@
         .card-size-badge.size-mid   { background: #6c5ce7; color: #fff; }
         .card-size-badge.size-large { background: #d63031; color: #fff; border: 1px solid #ff7675; }
 
+        .card-unique-badge {
+            font-size: clamp(0.7rem, 2vw, 0.78rem);
+            font-weight: bold;
+            color: #ffd700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.25));
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.2);
+            flex-shrink: 0;
+        }
+
         .size-selector-group {
             display: flex;
             gap: 2px;
@@ -2059,6 +2047,13 @@
             padding: 2px 8px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .enc-sizes-badge.unique {
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.15);
+            border-color: rgba(255, 215, 0, 0.4);
+            font-weight: bold;
         }
 
         .enc-combo-list {

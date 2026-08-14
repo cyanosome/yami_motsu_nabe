@@ -193,7 +193,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🥩',
         iconUrl: null,
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: '切らずに一本丸ごとの超極上マルチョウ！圧倒的高得点！',
         unique: true
     },
@@ -206,7 +206,7 @@ export const INGREDIENTS_DATABASE = [
         taste: -400,
         icon: '🥨',
         iconUrl: null,
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: 'マルチョウそっくりに巻かれた巨大チュロス！強烈な甘さ！',
         unique: true
     },
@@ -219,7 +219,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 400,
         icon: '🥢',
         iconUrl: null,
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: '極太マルチョウに見紛う激辛ロングトッポギ！',
         unique: true
     },
@@ -232,7 +232,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🧲',
         iconUrl: null,
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: 'マルチョウ型に湾曲した巨大磁石！鍋のすべてを狂わせる。',
         unique: true
     },
@@ -247,7 +247,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🍶',
         iconUrl: null,
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: '創業以来継ぎ足された伝説の出汁ボトル。鍋全体が至福の味に。',
         unique: true
     },
@@ -260,7 +260,7 @@ export const INGREDIENTS_DATABASE = [
         taste: -500,
         icon: '🥛',
         iconUrl: null,
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: 'チューブから溢れ出る超濃厚練乳！一気に激甘バースト寸前！',
         unique: true
     },
@@ -273,7 +273,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 500,
         icon: '🍾',
         iconUrl: 'assets/icon/HellSauce.png',
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: '一滴で鍋が灼熱地獄と化す極悪辛味ソース！',
         unique: true
     },
@@ -286,7 +286,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🧴',
         iconUrl: null,
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: '出汁ボトルと間違えて投入された洗剤！絶対口にしてはならない。',
         unique: true
     },
@@ -301,7 +301,7 @@ export const INGREDIENTS_DATABASE = [
         taste: -300,
         icon: '🍩',
         iconUrl: 'assets/icon/Donut.png',
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: '甘みたっぷりの揚げドーナツ。味覚を一気に甘く染める。',
         unique: true
     },
@@ -314,7 +314,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🛞',
         iconUrl: 'assets/icon/Tire.png',
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: 'ドーナツそっくりの黒いタイヤ！噛み切れるはずもない。',
         unique: true
     },
@@ -327,7 +327,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🥩',
         iconUrl: null,
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: 'ドーナツ状の希少部位ハツモト。抜群の歯ごたえと旨味！',
         unique: true
     },
@@ -342,7 +342,7 @@ export const INGREDIENTS_DATABASE = [
         taste: -300,
         icon: '🍪',
         iconUrl: 'assets/icon/DogCookie.png',
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: '愛らしい犬の形をした香ばしいクッキー。甘みしっかり。',
         unique: true
     },
@@ -355,7 +355,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '👢',
         iconUrl: 'assets/icon/Shoes.png',
-        allowedSizes: ['large'],
+        allowedSizes: ['mid'],
         desc: '鍋に放り込まれたゴム長靴。泥とゴムの臭いが充満する。',
         unique: true
     },
@@ -368,7 +368,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🍄',
         iconUrl: null,
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: '長靴のような曲がった形をした高級松茸。芳醇な香り！',
         unique: true
     },
@@ -383,7 +383,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🧊',
         iconUrl: null,
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: '四角くカットされた純白の豆腐。出汁の旨味を吸収する。',
         unique: true
     },
@@ -396,7 +396,7 @@ export const INGREDIENTS_DATABASE = [
         taste: 300,
         icon: '🍛',
         iconUrl: null,
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: '四角いカレールー。鍋が一瞬で本格スパイスカレー鍋に！',
         unique: true
     },
@@ -409,7 +409,7 @@ export const INGREDIENTS_DATABASE = [
         taste: -300,
         icon: '🧊',
         iconUrl: null,
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: '豆腐と見紛う四角い角砂糖。一気に甘みが跳ね上がる！',
         unique: true
     },
@@ -422,15 +422,17 @@ export const INGREDIENTS_DATABASE = [
         taste: 0,
         icon: '🧼',
         iconUrl: null,
-        allowedSizes: ['mid', 'large'],
+        allowedSizes: ['mid'],
         desc: '豆腐そっくりの消しゴム。文字は消せても点数は削られる。',
         unique: true
     }
 ];
         
 export function createIngredientInstance(baseItem, forceSize = null) {
+    const isUnique = !!baseItem.unique;
     const allowed = baseItem.allowedSizes || ['mid'];
-    const chosenSize = forceSize || allowed[Math.floor(Math.random() * allowed.length)];
+    // ユニーク具材は強制的に 'mid' 固定
+    const chosenSize = isUnique ? 'mid' : (forceSize || allowed[Math.floor(Math.random() * allowed.length)]);
     
     let score = baseItem.score;
     let taste = baseItem.taste || 0;
@@ -438,17 +440,11 @@ export function createIngredientInstance(baseItem, forceSize = null) {
     let sizeBadgeText = '中';
     let sizeBadgeClass = 'size-mid';
 
-    if (baseItem.unique) {
-        // ユニーク具材は大振りなベース値をそのまま適用（サイズ表示のみ付与）
-        if (chosenSize === 'small') {
-            sizeLabel = ' (小)';
-            sizeBadgeText = '小';
-            sizeBadgeClass = 'size-small';
-        } else if (chosenSize === 'large') {
-            sizeLabel = ' (大盛)';
-            sizeBadgeText = '大';
-            sizeBadgeClass = 'size-large';
-        }
+    if (isUnique) {
+        // ユニーク具材はサイズ固定のため名前修飾なし、ベース値をそのまま適用
+        sizeLabel = '';
+        sizeBadgeText = '中';
+        sizeBadgeClass = 'size-mid';
     } else {
         // 汎用具材のサイズ連動計算 (万点スケール)
         if (chosenSize === 'small') {

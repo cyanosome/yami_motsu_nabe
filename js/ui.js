@@ -188,6 +188,7 @@ export function renderDraftGrid(options) {
         if (item.category === 'yami') { badgeClass = 'badge-yami'; badgeText = '闇具材'; }
 
         const base = INGREDIENTS_DATABASE.find(b => b.id === (item.baseId || item.id.split('_')[0])) || item;
+        const isUnique = !!(item.unique || base.unique);
         const allowed = base.allowedSizes || ['mid'];
 
         const canSmall = allowed.includes('small');
@@ -197,22 +198,20 @@ export function renderDraftGrid(options) {
 
         const tasteText = (item.taste > 0) ? `🔥+${item.taste}` : ((item.taste < 0) ? `🍬${item.taste}` : '');
 
-        const relatedCombos = getRelatedCombosForIngredient(item);
-        const comboHintBtn = relatedCombos.length > 0
-            ? `<button class="card-combo-hint-btn" onclick="event.stopPropagation(); openRelatedCombosModal('${item.id}')" title="関連する役・コンボを表示">💡役${relatedCombos.length}</button>`
-            : '';
-
-        card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:4px;">
-                    <div class="card-badge ${badgeClass}">${badgeText}</div>
-                    ${comboHintBtn}
-                </div>
+        const sizeControlHtml = isUnique
+            ? `<div class="card-unique-badge">⭐ユニーク</div>`
+            : `
                 <div class="size-selector-group" onclick="event.stopPropagation();">
                     <button class="size-btn ${curSize === 'small' ? 'active' : ''}" ${canSmall ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'small')">S</button>
                     <button class="size-btn ${curSize === 'mid' ? 'active' : ''}" ${canMid ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'mid')">M</button>
                     <button class="size-btn ${curSize === 'large' ? 'active' : ''}" ${canLarge ? '' : 'disabled'} onclick="changeCardSize(event, '${item.id}', 'large')">L</button>
                 </div>
+            `;
+
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="card-badge ${badgeClass}">${badgeText}</div>
+                ${sizeControlHtml}
             </div>
             <div class="card-icon size-${curSize}">${getIngredientIconHtml(item)}</div>
             <div class="card-name">${item.name}</div>
@@ -244,6 +243,9 @@ export function changeCardSize(e, itemId, newSize) {
     const item = draftState.options[itemIdx];
     const base = INGREDIENTS_DATABASE.find(b => b.id === (item.baseId || item.id.split('_')[0]));
     if (!base) return;
+
+    // ユニーク具材はサイズ変更不可
+    if (base.unique) return;
 
     // 許可されたサイズでなければ何もしない
     if (base.allowedSizes && !base.allowedSizes.includes(newSize)) return;
@@ -983,12 +985,15 @@ export function renderEncyclopediaIngredients(categoryFilter = 'all') {
         const badgeClass = badgeClassMap[item.category] || 'badge-motsu';
         const allowed = item.allowedSizes || ['mid'];
         const sizesText = allowed.map(s => s === 'small' ? '小' : (s === 'mid' ? '中' : '大')).join('/');
+        const sizeBadgeHtml = item.unique
+            ? `<div class="enc-sizes-badge unique">⭐ユニーク</div>`
+            : `<div class="enc-sizes-badge">サイズ: ${sizesText}</div>`;
 
         html += `
             <div class="enc-card">
                 <div class="enc-card-header">
                     <div class="card-badge ${badgeClass}">${badgeText}</div>
-                    <div class="enc-sizes-badge">サイズ: ${sizesText}</div>
+                    ${sizeBadgeHtml}
                 </div>
                 <div class="card-icon size-mid">${getIngredientIconHtml(item)}</div>
                 <div class="card-name">${item.name}</div>
