@@ -572,11 +572,14 @@ function renderPhase3FinalInstant() {
         item.className = `ranking-item rank-${rankIdx + 1} ${p.isBusted ? 'is-busted' : ''}`;
 
         const bowlIcons = (p.bowl || []).map(b => getIngredientIconHtml(b)).join(' ');
-        const comboChips = (p.achievedCombos || []).map(c => `
-            <span class="rank-combo-chip">
-                ${c.icon} ${c.name} <span class="combo-score-tag">+${c.score}</span>
-            </span>
-        `).join('');
+        const comboChips = (p.achievedCombos || []).map(c => {
+            const sign = c.score >= 0 ? '+' : '';
+            return `
+                <span class="rank-combo-chip clickable" title="クリックしてコンボ詳細を表示" onclick="openComboDetailModal('${c.id}')">
+                    ${c.icon} ${c.name} <span class="combo-score-tag ${c.score < 0 ? 'negative' : ''}">${sign}${c.score}</span>
+                </span>
+            `;
+        }).join('');
 
         let combosHtml = comboChips;
         if (!combosHtml) {
@@ -721,14 +724,17 @@ export async function initPhase3Results() {
 
                 // チップ要素作成
                 const chip = document.createElement('span');
-                chip.className = 'rank-combo-chip';
-                chip.innerHTML = `${combo.icon} ${combo.name} <span class="combo-score-tag">+${combo.score}</span>`;
+                chip.className = 'rank-combo-chip clickable';
+                chip.title = 'クリックしてコンボ詳細を表示';
+                const sign = combo.score >= 0 ? '+' : '';
+                chip.innerHTML = `${combo.icon} ${combo.name} <span class="combo-score-tag ${combo.score < 0 ? 'negative' : ''}">${sign}${combo.score}</span>`;
+                chip.onclick = () => openComboDetailModal(combo.id);
                 elInfo.combosBox.appendChild(chip);
 
                 // +X pt フロート表示
                 const floatBonus = document.createElement('div');
-                floatBonus.className = 'score-float-bonus';
-                floatBonus.innerText = `+${combo.score}`;
+                floatBonus.className = combo.score < 0 ? 'score-float-penalty' : 'score-float-bonus';
+                floatBonus.innerText = `${sign}${combo.score}`;
                 elInfo.scoreWrap.appendChild(floatBonus);
                 setTimeout(() => floatBonus.remove(), 700);
 
@@ -954,15 +960,17 @@ export function renderEncyclopediaCombos() {
 
     let html = `<div class="enc-combo-list">`;
     COMBOS_DATABASE.forEach(combo => {
+        const sign = combo.score >= 0 ? '+' : '';
+        const isNegative = combo.score < 0;
         html += `
-            <div class="enc-combo-card">
+            <div class="enc-combo-card clickable" onclick="openComboDetailModal('${combo.id}')" title="クリックしてコンボ詳細を表示">
                 <div class="enc-combo-icon">${combo.icon || '✨'}</div>
                 <div class="enc-combo-info">
                     <div class="enc-combo-title">${combo.name}</div>
                     <div class="enc-combo-condition">条件: ${combo.conditionText}</div>
                     <div class="enc-combo-desc">${combo.desc}</div>
                 </div>
-                <div class="enc-combo-badge">+${combo.score} pt</div>
+                <div class="enc-combo-badge ${isNegative ? 'negative' : ''}">${sign}${combo.score} pt</div>
             </div>
         `;
     });
@@ -987,10 +995,13 @@ export function renderRecommendedCombos() {
 
     recommendedList.forEach(combo => {
         const card = document.createElement('div');
-        card.className = 'rec-combo-card';
+        card.className = 'rec-combo-card clickable';
+        card.title = 'タップしてコンボ詳細を表示';
         card.onclick = () => openComboDetailModal(combo.id);
 
         const statusClass = combo.statusType || 'default';
+        const sign = combo.score >= 0 ? '+' : '';
+        const isNegative = combo.score < 0;
 
         card.innerHTML = `
             <div class="rec-combo-icon">${combo.icon || '✨'}</div>
@@ -998,7 +1009,7 @@ export function renderRecommendedCombos() {
                 <div class="rec-combo-title">${combo.name}</div>
                 <div class="rec-combo-status ${statusClass}">${combo.statusText || '💡 狙い目'}</div>
             </div>
-            <div class="rec-combo-pts">+${combo.score}pt</div>
+            <div class="rec-combo-pts ${isNegative ? 'negative' : ''}">${sign}${combo.score}pt</div>
         `;
 
         container.appendChild(card);
@@ -1014,16 +1025,15 @@ export function openComboDetailModal(comboId) {
     const container = document.getElementById('combo-detail-content');
     if (!modal || !container) return;
 
-    const curPlayer = gameState.players[gameState.currentTurnPlayerIndex];
-    const bowl = curPlayer ? (curPlayer.bowl || []) : [];
-    const isAchieved = combo.check(bowl);
+    const sign = combo.score >= 0 ? '+' : '';
+    const isNegative = combo.score < 0;
 
     container.innerHTML = `
         <div class="combo-detail-header">
             <div class="combo-detail-icon">${combo.icon || '✨'}</div>
             <div class="combo-detail-title">${combo.name}</div>
         </div>
-        <div class="combo-detail-badge">+${combo.score} pt ボーナス</div>
+        <div class="combo-detail-badge ${isNegative ? 'negative' : ''}">${sign}${combo.score} pt ${isNegative ? 'ペナルティ' : 'ボーナス'}</div>
         <div class="combo-detail-section">
             <div class="combo-detail-label">📋 発動条件</div>
             <div class="combo-detail-val">${combo.conditionText}</div>
@@ -1031,12 +1041,6 @@ export function openComboDetailModal(comboId) {
         <div class="combo-detail-section">
             <div class="combo-detail-label">💡 解説・特徴</div>
             <div class="combo-detail-val">${combo.desc}</div>
-        </div>
-        <div class="combo-detail-section" style="background: rgba(253, 203, 110, 0.08); border-color: var(--border-gold);">
-            <div class="combo-detail-label">📊 ${curPlayer ? curPlayer.name : 'プレイヤー'}の達成状況</div>
-            <div class="combo-detail-val" style="color: ${isAchieved ? '#55efc4' : '#fdcb6e'}; font-weight:bold;">
-                ${isAchieved ? '🎉 現在条件を達成中！(+'+combo.score+'pt確定)' : '⌛ 未達成（手札の具材を増やして狙おう！）'}
-            </div>
         </div>
     `;
 

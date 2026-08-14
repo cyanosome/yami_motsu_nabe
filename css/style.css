@@ -861,6 +861,22 @@
             color: #ffeaa7;
             animation: comboPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .rank-combo-chip.clickable {
+            cursor: pointer;
+        }
+
+        .rank-combo-chip.clickable:hover {
+            transform: translateY(-2px) scale(1.06);
+            background: linear-gradient(135deg, rgba(253, 203, 110, 0.35), rgba(225, 112, 85, 0.35));
+            border-color: var(--accent-gold);
+            box-shadow: 0 4px 12px rgba(253, 203, 110, 0.4);
+        }
+
+        .rank-combo-chip.clickable:active {
+            transform: scale(0.98);
         }
 
         .rank-combo-chip .combo-score-tag {
@@ -869,6 +885,11 @@
             background: rgba(0, 0, 0, 0.3);
             padding: 1px 4px;
             border-radius: 6px;
+        }
+
+        .rank-combo-chip .combo-score-tag.negative {
+            color: #ff7675;
+            background: rgba(214, 48, 49, 0.3);
         }
 
         .rank-score-wrap {
@@ -1375,11 +1396,13 @@
             align-items: center;
             justify-content: space-between;
             gap: 16px;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .enc-combo-card:hover {
-            background: rgba(253, 203, 110, 0.06);
+            background: rgba(253, 203, 110, 0.08);
+            border-color: var(--accent-gold);
             transform: translateX(4px);
         }
 
@@ -1436,20 +1459,21 @@
         .recommended-combos-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .rec-combo-card {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 10px 12px;
+            border-radius: 8px;
+            padding: 7px 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 8px;
             cursor: pointer;
+            user-select: none;
             transition: all 0.2s ease;
         }
 
@@ -1458,6 +1482,10 @@
             border-color: var(--accent-gold);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(253, 203, 110, 0.2);
+        }
+
+        .rec-combo-card:active {
+            transform: scale(0.98);
         }
 
         .rec-combo-icon {
@@ -1500,6 +1528,12 @@
             border: 1px solid rgba(253, 203, 110, 0.4);
         }
 
+        .rec-combo-status.warning {
+            background: rgba(255, 118, 117, 0.2);
+            color: #ff7675;
+            border: 1px solid rgba(255, 118, 117, 0.5);
+        }
+
         .rec-combo-status.default, .rec-combo-status.normal {
             background: rgba(116, 185, 255, 0.15);
             color: #74b9ff;
@@ -1514,6 +1548,16 @@
             padding: 3px 8px;
             border-radius: 12px;
             white-space: nowrap;
+        }
+
+        .rec-combo-pts.negative {
+            color: #ff7675;
+            border: 1px solid rgba(255, 118, 117, 0.4);
+        }
+
+        .enc-combo-badge.negative {
+            background: linear-gradient(135deg, #d63031, #e17055);
+            color: #ffffff;
         }
 
         /* コンボ詳細ポップアップモーダル */
@@ -1551,6 +1595,11 @@
             font-size: 1.1rem;
             display: inline-block;
             margin-bottom: 14px;
+        }
+
+        .combo-detail-badge.negative {
+            background: linear-gradient(135deg, #d63031, #e17055);
+            color: #ffffff;
         }
 
         .combo-detail-section {

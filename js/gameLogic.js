@@ -127,10 +127,36 @@ export function initPhase1Draft() {
     if (player.isCpu) {
         handleCpuDraft(player);
     } else {
-        draftState.options = getRandomIngredients(6);
+        draftState.options = generatePhase1DraftPool();
         renderDraftGrid(draftState.options);
         updateDraftButtonState();
     }
+}
+
+export function generatePhase1DraftPool() {
+    const pool = [];
+
+    // 1. もつ系から2枚選出
+    const motsuList = INGREDIENTS_DATABASE.filter(x => x.category === 'motsu');
+    const shuffledMotsu = [...motsuList].sort(() => 0.5 - Math.random());
+    for (let i = 0; i < 2; i++) {
+        const item = shuffledMotsu[i % shuffledMotsu.length];
+        pool.push(createIngredientInstance(item));
+    }
+
+    // 2. 定番系から1枚選出
+    const classicList = INGREDIENTS_DATABASE.filter(x => x.category === 'classic');
+    const shuffledClassic = [...classicList].sort(() => 0.5 - Math.random());
+    pool.push(createIngredientInstance(shuffledClassic[0]));
+
+    // 3. 全具材からランダムに3枚選出
+    const shuffledAll = [...INGREDIENTS_DATABASE].sort(() => 0.5 - Math.random());
+    for (let i = 0; i < 3; i++) {
+        pool.push(createIngredientInstance(shuffledAll[i]));
+    }
+
+    // 6枚の並び順をランダムにシャッフル
+    return pool.sort(() => 0.5 - Math.random());
 }
 
 export function getRandomIngredients(count) {
@@ -206,7 +232,7 @@ export function submitDraftChoice() {
 export function handleCpuDraft(cpuPlayer) {
     showToast(`${cpuPlayer.name} (CPU) が思考中...`);
     setTimeout(() => {
-        const pool = getRandomIngredients(6);
+        const pool = generatePhase1DraftPool();
         // CPUはランダムに3つ選ぶ
         const selected = [];
         const indices = [0, 1, 2, 3, 4, 5].sort(() => 0.5 - Math.random()).slice(0, 3);
@@ -553,7 +579,8 @@ export function calculateFinalScores() {
         COMBOS_DATABASE.forEach(combo => {
             if (combo.check && combo.check(bowl)) {
                 bonus += combo.score;
-                details.push(`${combo.name}(+${combo.score})`);
+                const sign = combo.score >= 0 ? '+' : '';
+                details.push(`${combo.name}(${sign}${combo.score})`);
                 p.achievedCombos.push({
                     id: combo.id,
                     name: combo.name,

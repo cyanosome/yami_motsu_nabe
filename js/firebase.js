@@ -8,7 +8,7 @@ import {
     triggerPotRevealModal 
 } from './ui.js';
 import { playSound } from './sound.js';
-import { gameState, getRandomIngredients } from './gameLogic.js';
+import { gameState, generatePhase1DraftPool } from './gameLogic.js';
 import { getRandomPotTemplate } from './ingredients.js';
 
 /* --- Firebase Realtime Database 初期化 --- */
@@ -202,7 +202,7 @@ export function startOnlineGameHost() {
         // Phase 1 ドラフト用オプションの事前生成 (全プレイヤー分、インスタンス化済みカード配列)
         const draftOptionsPerPlayer = {};
         initialPlayers.forEach(p => {
-            draftOptionsPerPlayer[p.uid] = getRandomIngredients(6);
+            draftOptionsPerPlayer[p.uid] = generatePhase1DraftPool();
         });
 
         const selectedTemplate = getRandomPotTemplate();
