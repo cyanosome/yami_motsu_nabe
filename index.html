@@ -20,7 +20,10 @@
         <div class="title-logo">
             🍲 闇もつ鍋 <span>ONLINE</span>
         </div>
-        <button class="sound-toggle" id="sound-btn" onclick="toggleSound()">🔊 効果音: ON</button>
+        <div class="sound-controls">
+            <button class="sound-toggle" id="bgm-btn" onclick="toggleBGM()" title="BGMのON/OFF">🎵 BGM: ON</button>
+            <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="効果音のON/OFF">🔊 効果音: ON</button>
+        </div>
     </header>
 
     <div id="toast" class="toast-notification">メッセージ</div>

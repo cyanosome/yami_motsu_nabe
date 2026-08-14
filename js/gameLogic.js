@@ -1,5 +1,5 @@
 import { firebaseState, myPlayerId } from './firebase.js';
-import { playSound } from './sound.js';
+import { playSound, playBGM, stopBGM } from './sound.js';
 import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE, POT_TEMPLATES, getRandomPotTemplate, generatePotTemplateIngredients } from './ingredients.js';
 import { 
     updatePhaseStepper, 
@@ -24,6 +24,7 @@ import { executeOnlineReroll, executeOnlineScoopSelect, executeOnlinePass } from
 export let gameState = {
     mode: 'vs-cpu', // 'vs-cpu' | 'hotseat' | 'online'
     soundEnabled: true,
+    bgmEnabled: true,
     currentPhase: 1,
     potTemplate: null, // 決定された鍋テンプレート
     players: [],
@@ -63,6 +64,10 @@ export function startGame(mode) {
     // ゲーム開始時にステップバーを表示
     document.getElementById('phase-stepper-bar').classList.add('active');
     renderPotHintBanner(gameState.potTemplate);
+
+    // BGM再生開始（和風ロックBGM）
+    playBGM('MAIN', { fadeIn: true });
+
     switchPhase(1);
 }
 
@@ -71,6 +76,8 @@ export function resetToStart() {
         firebaseState.roomRef.off();
         firebaseState.roomRef = null;
     }
+    // BGM停止（フェードアウト）
+    stopBGM({ fadeOut: true });
     // We modify app.js's local isOnlineSetupDone by setting it inside app.js if needed,
     // but resetToStart can just assign it if imported. Wait! isOnlineSetupDone is in app.js.
     // If resetToStart needs to modify isOnlineSetupDone, we can export a function resetOnlineSetup() in app.js
