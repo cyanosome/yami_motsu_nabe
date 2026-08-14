@@ -101,6 +101,18 @@
         </div>
     </div>
 
+    <!-- 鍋正体判明カットインモーダル -->
+    <div class="modal-overlay pot-reveal-overlay" id="pot-reveal-modal">
+        <div class="pot-reveal-card" id="pot-reveal-card">
+            <div class="pot-reveal-glow"></div>
+            <div class="pot-reveal-sub">POT REVEAL</div>
+            <div class="pot-reveal-icon" id="pot-reveal-icon">🍲</div>
+            <h2 class="pot-reveal-title" id="pot-reveal-title">王道定番もつ鍋</h2>
+            <p class="pot-reveal-desc" id="pot-reveal-desc">もつと新鮮野菜が揃った王道鍋！</p>
+            <button class="btn-primary pot-reveal-btn" onclick="closePotRevealModal()">鍋漁りを始める！🥄</button>
+        </div>
+    </div>
+
     <main>
         <!-- フェーズプログレスバー (ゲーム開始後に表示) -->
         <div class="phase-stepper" id="phase-stepper-bar">
@@ -149,6 +161,11 @@
 
         <!-- PHASE 1: 具材投入 -->
         <div class="phase-container" id="phase-1-view">
+            <!-- 鍋の気配ヒントバナー -->
+            <div class="pot-hint-banner" id="pot-hint-banner">
+                <!-- 動的生成 -->
+            </div>
+
             <div class="phase-title-box">
                 <h2 class="phase-title" id="p1-player-title">プレイヤー1 の手番：具材を選ぼう</h2>
                 <p class="phase-desc">鍋に放り込みたい具材を <b>3枚</b> 選んでください（自分のお得な具材か、邪魔な闇具材か？）</p>
@@ -167,7 +184,10 @@
         <div class="phase-container" id="phase-2-view">
             <div class="phase-title-box" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div>
-                    <h2 class="phase-title">鍋漁りフェーズ（チキンレース）</h2>
+                    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <h2 class="phase-title" style="margin:0;">鍋漁りフェーズ（チキンレース）</h2>
+                        <div class="pot-type-badge" id="pot-type-badge">🍲 王道定番もつ鍋</div>
+                    </div>
                     <p class="phase-desc">掬い上げた3枚の影絵カードから1枚を選択してください（最大4枚までお椀に確保可能）</p>
                 </div>
                 <button class="btn-encyclopedia" onclick="openEncyclopediaModal()">📖 食材・コンボ図鑑</button>

@@ -1,6 +1,6 @@
 import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
-import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE } from './ingredients.js';
+import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE, POT_TEMPLATES, getRandomPotTemplate, generatePotTemplateIngredients } from './ingredients.js';
 import { 
     updatePhaseStepper, 
     renderOnlineDraftPhase, 
@@ -14,7 +14,9 @@ import {
     initPhase3Results, 
     showToast,
     getPotSoupColorDetails,
-    resetPhase3State
+    resetPhase3State,
+    renderPotHintBanner,
+    triggerPotRevealModal
 } from './ui.js';
 import { executeOnlineReroll, executeOnlineScoopSelect, executeOnlinePass } from './firebase.js';
 
@@ -23,6 +25,7 @@ export let gameState = {
     mode: 'vs-cpu', // 'vs-cpu' | 'hotseat' | 'online'
     soundEnabled: true,
     currentPhase: 1,
+    potTemplate: null, // 決定された鍋テンプレート
     players: [],
     currentDraftPlayerIndex: 0,
     currentTurnPlayerIndex: 0,
@@ -40,6 +43,7 @@ export function startGame(mode) {
     gameState.potStack = [];
     gameState.currentDraftPlayerIndex = 0;
     gameState.currentTurnPlayerIndex = 0;
+    gameState.potTemplate = getRandomPotTemplate();
 
     if (mode === 'vs-cpu') {
         gameState.players = [
@@ -58,6 +62,7 @@ export function startGame(mode) {
     document.getElementById('start-screen').style.display = 'none';
     // ゲーム開始時にステップバーを表示
     document.getElementById('phase-stepper-bar').classList.add('active');
+    renderPotHintBanner(gameState.potTemplate);
     switchPhase(1);
 }
 
@@ -107,6 +112,7 @@ export function switchPhase(phaseNum) {
     } else if (phaseNum === 2) {
         document.getElementById('phase-2-view').classList.add('active');
         initPhase2Pot();
+        triggerPotRevealModal(gameState.potTemplate);
     } else if (phaseNum === 3) {
         document.getElementById('phase-3-view').classList.add('active');
         initPhase3Results();
@@ -116,6 +122,7 @@ export function switchPhase(phaseNum) {
 export function initPhase1Draft() {
     const player = gameState.players[gameState.currentDraftPlayerIndex];
     document.getElementById('p1-player-title').innerText = `${player.name} の手番：具材選択`;
+    renderPotHintBanner(gameState.potTemplate);
 
     if (player.isCpu) {
         handleCpuDraft(player);
@@ -152,11 +159,10 @@ export function submitDraftChoice() {
                 currentDraftPlayerIndex: nextDraftIndex
             });
         } else {
-            // 全員のドラフト完了：基本具材を追加してPhase 2へ
-            const baseItemIds = ['motsu_normal', 'classic_nira', 'classic_hakusai', 'classic_men', 'spice_chili', 'sweets_castella', 'yami_compass', 'u_classic_dashi'];
-            baseItemIds.forEach(id => {
-                const base = INGREDIENTS_DATABASE.find(x => x.id === id);
-                if (base) updatedPotStack.push(createIngredientInstance(base));
+            // 全員のドラフト完了：テンプレート具材を追加してPhase 2へ
+            const baseItems = generatePotTemplateIngredients(gameState.potTemplate);
+            baseItems.forEach(item => {
+                updatedPotStack.push(item);
             });
             updatedPotStack.sort(() => 0.5 - Math.random());
 
@@ -225,10 +231,9 @@ export function handleCpuDraft(cpuPlayer) {
 }
 
 export function addDefaultPotBase() {
-    const baseItemIds = ['motsu_normal', 'classic_nira', 'classic_hakusai', 'classic_men', 'spice_chili', 'sweets_castella', 'yami_compass', 'u_classic_dashi'];
-    baseItemIds.forEach(id => {
-        const base = INGREDIENTS_DATABASE.find(x => x.id === id);
-        if (base) gameState.potStack.push(createIngredientInstance(base));
+    const baseItems = generatePotTemplateIngredients(gameState.potTemplate);
+    baseItems.forEach(item => {
+        gameState.potStack.push(item);
     });
     // シャッフル
     gameState.potStack.sort(() => 0.5 - Math.random());

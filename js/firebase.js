@@ -4,10 +4,12 @@ import {
     updatePhaseStepper, 
     renderOnlineDraftPhase, 
     renderOnlinePotPhase, 
-    initPhase3Results 
+    initPhase3Results,
+    triggerPotRevealModal 
 } from './ui.js';
 import { playSound } from './sound.js';
 import { gameState, getRandomIngredients } from './gameLogic.js';
+import { getRandomPotTemplate } from './ingredients.js';
 
 /* --- Firebase Realtime Database 初期化 --- */
 const firebaseConfig = {
@@ -203,10 +205,13 @@ export function startOnlineGameHost() {
             draftOptionsPerPlayer[p.uid] = getRandomIngredients(6);
         });
 
+        const selectedTemplate = getRandomPotTemplate();
+
         const gameInitData = {
             status: 'playing',
             mode: 'online',
             currentPhase: 1,
+            potTemplate: selectedTemplate,
             players: initialPlayers,
             currentDraftPlayerIndex: 0,
             currentTurnPlayerIndex: 0,
@@ -219,9 +224,12 @@ export function startOnlineGameHost() {
     });
 }
 
+let lastSyncedPhase = 0;
+
 /* --- オンラインゲームリアルタイム同期 --- */
 export function setupOnlineGameClient(roomData) {
     gameState.mode = 'online';
+    lastSyncedPhase = 0;
     document.getElementById('start-screen').style.display = 'none';
     document.getElementById('phase-stepper-bar').classList.add('active');
 
@@ -237,7 +245,11 @@ export function setupOnlineGameClient(roomData) {
 }
 
 export function syncOnlineStateToLocal(data) {
+    const prevPhase = lastSyncedPhase;
+    lastSyncedPhase = data.currentPhase;
+
     gameState.currentPhase = data.currentPhase;
+    gameState.potTemplate = data.potTemplate || null;
     gameState.players = data.players || [];
     gameState.currentDraftPlayerIndex = data.currentDraftPlayerIndex || 0;
     gameState.currentTurnPlayerIndex = data.currentTurnPlayerIndex || 0;
@@ -257,6 +269,12 @@ export function syncOnlineStateToLocal(data) {
         document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
         document.getElementById('phase-2-view').classList.add('active');
         renderOnlinePotPhase(data);
+        
+        // 初めてPhase 2に入った時にカットインを表示
+        if (prevPhase === 1 && data.potTemplate) {
+            triggerPotRevealModal(data.potTemplate);
+        }
+
         // 3D鍋を初期化
         if (typeof window.initPot3D === 'function') {
             requestAnimationFrame(() => window.initPot3D());

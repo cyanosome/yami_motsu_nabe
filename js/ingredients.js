@@ -627,3 +627,84 @@ export function getRecommendedCombos(bowl = []) {
     evaluated.sort((a, b) => b.priority - a.priority);
     return evaluated.slice(0, 2);
 }
+
+// ----------------------------------------------------
+// ■ 鍋テンプレート定義 (POT_TEMPLATES)
+// ----------------------------------------------------
+export const POT_TEMPLATES = [
+    {
+        id: 'classic',
+        name: '王道定番もつ鍋',
+        icon: '🍲',
+        hint: '出汁の良い香りが漂っている...王道もつ鍋の予感！',
+        reveal: '【王道定番もつ鍋】が出現！',
+        desc: 'もつと新鮮野菜、〆の麺と極み出汁が揃った平和で高得点な王道鍋。',
+        itemIds: ['motsu_normal', 'motsu_normal', 'classic_nira', 'classic_nira', 'classic_hakusai', 'classic_men', 'u_classic_tofu', 'u_classic_dashi']
+    },
+    {
+        id: 'yami',
+        name: '混沌の闇鍋',
+        icon: '🌀',
+        hint: '鍋の底から不気味な気配と金属音が聞こえる...！？',
+        reveal: '【混沌の闇鍋】が出現！',
+        desc: '食べられない危険物やゴミが大量沈没！引いたら最後の大減点トラップ鍋。',
+        itemIds: ['yami_compass', 'yami_pencil', 'yami_gear', 'yami_capsule', 'u_yami_eraser', 'u_yami_tire', 'u_yami_boots', 'u_yami_detergent']
+    },
+    {
+        id: 'spicy',
+        name: '灼熱激辛鍋',
+        icon: '🌶️',
+        hint: '立ち上る湯気からツンと刺激的なスパイスの香りがする...！',
+        reveal: '【灼熱激辛鍋】が出現！',
+        desc: '唐辛子・明太子・カレールー・地獄ソースが溶け込んだ灼熱のスパイス鍋。',
+        itemIds: ['spice_chili', 'spice_chili', 'spice_pepper', 'spice_mentai', 'spice_mentai', 'u_spice_curry', 'u_spice_tteokbokki', 'u_spice_hellsauce']
+    },
+    {
+        id: 'sweets',
+        name: '特濃激甘スイーツ鍋',
+        icon: '🍬',
+        hint: 'なんだか甘〜いお菓子の匂いが充満している...？',
+        reveal: '【特濃激甘スイーツ鍋】が出現！',
+        desc: 'カステラ・チョコ・ドーナツ・練乳などがたっぷり！味覚が極甘に激変するスイーツ鍋。',
+        itemIds: ['sweets_castella', 'sweets_choco', 'sweets_lollipop', 'u_sweets_sugar', 'u_sweets_dogcookie', 'u_sweets_donut', 'u_sweets_churros', 'u_sweets_condensed']
+    },
+    {
+        id: 'unique',
+        name: '幻の至高ギャンブル鍋',
+        icon: '✨',
+        hint: '普通ではありえない巨大で異様な具材の影が見え隠れしている...！',
+        reveal: '【幻の至高ギャンブル鍋】が出現！',
+        desc: '超大物マルチョウから極悪洗剤・磁石まで！ハイリスク・ハイリターンの究極ギャンブル鍋。',
+        itemIds: ['u_motsu_supreme', 'u_classic_dashi', 'u_motsu_hatsumoto', 'u_classic_matsutake', 'u_spice_tteokbokki', 'u_sweets_churros', 'u_yami_magnet', 'u_yami_detergent']
+    },
+    {
+        id: 'random',
+        name: '気まぐれカオス鍋',
+        icon: '🎲',
+        hint: '何が飛び出すか全く予測がつかない混沌とした気配...！',
+        reveal: '【気まぐれカオス鍋】が出現！',
+        desc: '全具材からランダムに選ばれた予測不能のミステリー鍋。',
+        itemIds: 'random'
+    }
+];
+
+export function getRandomPotTemplate() {
+    const idx = Math.floor(Math.random() * POT_TEMPLATES.length);
+    return POT_TEMPLATES[idx];
+}
+
+export function generatePotTemplateIngredients(template) {
+    if (!template || template.itemIds === 'random') {
+        const shuffled = [...INGREDIENTS_DATABASE].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 8).map(item => createIngredientInstance(item));
+    }
+    
+    const items = [];
+    template.itemIds.forEach(id => {
+        const base = INGREDIENTS_DATABASE.find(x => x.id === id);
+        if (base) {
+            items.push(createIngredientInstance(base));
+        }
+    });
+    return items;
+}

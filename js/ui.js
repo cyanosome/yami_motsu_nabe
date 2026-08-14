@@ -51,7 +51,50 @@ export function updatePhaseStepper(currentStep) {
     }
 }
 
+export function renderPotHintBanner(template) {
+    const bannerEl = document.getElementById('pot-hint-banner');
+    if (!bannerEl) return;
+    if (!template) {
+        bannerEl.style.display = 'none';
+        return;
+    }
+    bannerEl.style.display = 'flex';
+    bannerEl.innerHTML = `
+        <div class="pot-hint-icon">${template.icon || '🍲'}</div>
+        <div class="pot-hint-text-box">
+            <div class="pot-hint-label">🍲 鍋の気配（ベース具材の予兆）</div>
+            <div class="pot-hint-msg">${template.hint}</div>
+        </div>
+    `;
+}
+
+export function triggerPotRevealModal(template) {
+    if (!template) return;
+    const modal = document.getElementById('pot-reveal-modal');
+    const iconEl = document.getElementById('pot-reveal-icon');
+    const titleEl = document.getElementById('pot-reveal-title');
+    const descEl = document.getElementById('pot-reveal-desc');
+    
+    if (iconEl) iconEl.innerText = template.icon || '🍲';
+    if (titleEl) titleEl.innerText = template.name || '王道定番もつ鍋';
+    if (descEl) descEl.innerText = template.desc || '美味しいもつ鍋の完成！';
+    
+    if (modal) {
+        modal.classList.add('active');
+        playSound('phase');
+    }
+}
+
+export function closePotRevealModal() {
+    const modal = document.getElementById('pot-reveal-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+window.closePotRevealModal = closePotRevealModal;
+
 export function renderOnlineDraftPhase(data) {
+    renderPotHintBanner(data.potTemplate || gameState.potTemplate);
     const curPlayer = data.players[data.currentDraftPlayerIndex];
     if (!curPlayer) return;
 
@@ -300,6 +343,12 @@ export function calculatePotSoupGradient(potStack) {
 
 export function renderPotUI() {
     document.getElementById('pot-count').innerText = (gameState.potStack ? gameState.potStack.length : 0);
+
+    const badgeEl = document.getElementById('pot-type-badge');
+    if (badgeEl && gameState.potTemplate) {
+        badgeEl.innerHTML = `${gameState.potTemplate.icon || '🍲'} ${gameState.potTemplate.name || 'もつ鍋'}`;
+        badgeEl.style.display = 'inline-flex';
+    }
 
     const potSoupEl = document.querySelector('.pot-soup');
     if (potSoupEl) {
