@@ -531,10 +531,10 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_dark_lord',
         name: '♰暗黒素材大明神♰',
-        score: 1500,
+        score: 4500,
         icon: '💀',
         conditionText: 'お椀が3枚以上かつ全て闇具材',
-        desc: '危険物とゴミだけで満たされた伝説の禁忌鍋。奇跡的に生還できれば莫大な加点！',
+        desc: '危険物とゴミだけで満たされた伝説の禁忌鍋。闇のマイナスを全て打ち消し、一撃必殺の大逆転勝利を掴み取る！',
         check: (bowl) => bowl.length >= 3 && bowl.every(b => b.category === 'yami')
     },
     {
