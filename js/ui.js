@@ -306,6 +306,11 @@ export function renderPotUI() {
         potSoupEl.style.background = calculatePotSoupGradient(gameState.potStack);
     }
 
+    // 3D スープ色をゲーム状態（山札＋取札）から更新
+    if (typeof window.updateSoupColorFromGameState === 'function') {
+        window.updateSoupColorFromGameState(gameState);
+    }
+
     const helpScoreTextEl = document.getElementById('burst-penalty-score-text');
     if (helpScoreTextEl) {
         helpScoreTextEl.textContent = `${BURST_PENALTY_SCORE}点`;
