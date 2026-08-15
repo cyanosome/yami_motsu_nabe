@@ -157,22 +157,53 @@ export function getRelatedCombosForIngredient(item) {
     const baseId = item.baseId || item.id.split('_')[0];
     const cat = item.category;
 
-    return COMBOS_DATABASE.filter(combo => {
-        // 1. 個別食材IDの一致
-        if (combo.id === 'combo_metaphysical' && (baseId === 'u_sweets_donut' || baseId === 'u_yami_tire')) return true;
-        if (combo.id === 'combo_puss_in_boots' && (baseId === 'u_yami_boots' || baseId === 'u_sweets_dogcookie')) return true;
-        if (combo.id === 'combo_civilization' && (baseId === 'yami_pencil' || baseId === 'yami_gear')) return true;
-        if (combo.id === 'combo_recycle' && ['yami_gear', 'u_yami_tire', 'u_yami_boots', 'u_yami_eraser', 'u_yami_magnet'].includes(baseId)) return true;
+    // 食材ごとの関連コンボIDリストマッピング
+    const specificMap = {
+        // もつ系
+        'motsu_normal': ['combo_motsu_pot', 'combo_classic_motsu', 'combo_all_the_same', 'combo_thin_meat', 'combo_mentai_motsu', 'combo_choco_fondue', 'combo_kids_pot'],
+        'u_motsu_supreme': ['combo_motsu_pot', 'combo_classic_motsu', 'combo_all_the_same', 'combo_supreme_realm', 'combo_choco_fondue', 'combo_kids_pot'],
+        'u_motsu_hatsumoto': ['combo_motsu_pot', 'combo_classic_motsu', 'combo_all_the_same', 'combo_choco_fondue', 'combo_kids_pot'],
+        // 定番系
+        'classic_nira': ['combo_classic_motsu', 'combo_gentle_life', 'combo_shojin', 'combo_minimum_life'],
+        'classic_hakusai': ['combo_classic_motsu', 'combo_gentle_life', 'combo_shojin', 'combo_minimum_life'],
+        'classic_men': ['combo_classic_motsu', 'combo_mentai_motsu', 'combo_carbs', 'combo_minimum_life'],
+        'u_classic_dashi': ['combo_classic_motsu', 'combo_supreme_realm', 'combo_minimum_life'],
+        'u_classic_matsutake': ['combo_classic_motsu', 'combo_shojin', 'combo_supreme_realm', 'combo_minimum_life'],
+        'u_classic_tofu': ['combo_classic_motsu', 'combo_white_box', 'combo_shojin', 'combo_supreme_realm', 'combo_minimum_life'],
+        // 辛味系
+        'spice_chili': ['combo_hot_pot'],
+        'spice_pepper': ['combo_hot_pot', 'combo_nanban_trade', 'combo_dr_pepper'],
+        'spice_mentai': ['combo_hot_pot', 'combo_mentai_motsu'],
+        'u_spice_tteokbokki': ['combo_hot_pot', 'combo_carbs'],
+        'u_spice_hellsauce': ['combo_hot_pot', 'combo_hell'],
+        'u_spice_curry': ['combo_hot_pot', 'combo_curry_pot', 'combo_stubborn_stain'],
+        // 甘味系
+        'sweets_castella': ['combo_dos_pink', 'combo_nanban_trade', 'combo_trick_or_treat'],
+        'sweets_choco': ['combo_dos_pink', 'combo_choco_fondue', 'combo_bright_reply', 'combo_trick_or_treat'],
+        'sweets_lollipop': ['combo_dos_pink', 'combo_bright_reply', 'combo_trick_or_treat'],
+        'u_sweets_churros': ['combo_dos_pink', 'combo_choco_fondue', 'combo_amusement_park', 'combo_trick_or_treat'],
+        'u_sweets_condensed': ['combo_dos_pink', 'combo_hell', 'combo_trick_or_treat'],
+        'u_sweets_donut': ['combo_dos_pink', 'combo_metaphysical', 'combo_trick_or_treat'],
+        'u_sweets_dogcookie': ['combo_dos_pink', 'combo_puss_in_boots', 'combo_amusement_park', 'combo_trick_or_treat'],
+        'u_sweets_sugar': ['combo_dos_pink', 'combo_white_box', 'combo_trick_or_treat'],
+        // 闇系
+        'yami_compass': ['combo_dark_lord', 'combo_nanban_trade', 'combo_natural_enemy', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'yami_pencil': ['combo_dark_lord', 'combo_civilization', 'combo_tool_box', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'yami_gear': ['combo_dark_lord', 'combo_civilization', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'yami_capsule': ['combo_dark_lord', 'combo_dr_pepper', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'u_yami_magnet': ['combo_dark_lord', 'combo_natural_enemy', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'u_yami_detergent': ['combo_dark_lord', 'combo_stubborn_stain', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'u_yami_tire': ['combo_dark_lord', 'combo_metaphysical', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'u_yami_boots': ['combo_dark_lord', 'combo_puss_in_boots', 'combo_minimum_life', 'combo_trick_or_treat'],
+        'u_yami_eraser': ['combo_dark_lord', 'combo_white_box', 'combo_tool_box', 'combo_minimum_life', 'combo_trick_or_treat']
+    };
 
-        // 2. カテゴリの一致
-        if (cat === 'motsu' && ['combo_classic', 'combo_dashi', 'combo_mega_motsu', 'combo_king', 'combo_balanced_diet', 'combo_kids', 'combo_abandoned_motsu'].includes(combo.id)) return true;
-        if (cat === 'classic' && ['combo_classic', 'combo_gentle_life', 'combo_balanced_diet', 'combo_minimum_life', 'combo_shojin', 'combo_king'].includes(combo.id)) return true;
-        if (cat === 'spice' && ['combo_dashi', 'combo_sweet_spicy', 'combo_balanced_diet', 'combo_hot_pot', 'combo_abandoned_motsu', 'combo_shojin', 'combo_king'].includes(combo.id)) return true;
-        if (cat === 'sweets' && ['combo_dashi', 'combo_sweet_spicy', 'combo_halloween'].includes(combo.id)) return true;
-        if (cat === 'yami' && ['combo_dark_lord', 'combo_minimum_life'].includes(combo.id)) return true;
+    const targetComboIds = new Set(specificMap[baseId] || []);
+    // 全体役
+    targetComboIds.add('combo_balanced_diet');
+    targetComboIds.add('combo_two_card');
 
-        return false;
-    });
+    return COMBOS_DATABASE.filter(combo => targetComboIds.has(combo.id));
 }
 
 export function renderDraftGrid(options) {
@@ -1265,7 +1296,7 @@ export function renderDraftComboRadar(options) {
             if (hasBoots || hasDog) {
                 isRelevant = true;
                 isPoolComplete = hasBoots && hasDog;
-                matchHint = isPoolComplete ? '🎯 長靴＆クッキーが両方出現中！' : (hasBoots ? '💡 長靴出現中' : '💡 クッキー出現中');
+                matchHint = isPoolComplete ? '🎯 長靴＆犬型のマラサダが両方出現中！' : (hasBoots ? '💡 長靴出現中' : '💡 犬型のマラサダ出現中');
             }
         } else if (combo.id === 'combo_civilization') {
             const hasPencil = draftBaseIds.has('yami_pencil');
@@ -1273,61 +1304,61 @@ export function renderDraftComboRadar(options) {
             if (hasPencil || hasGear) {
                 isRelevant = true;
                 isPoolComplete = hasPencil && hasGear;
-                matchHint = isPoolComplete ? '🎯 鉛筆＆歯車が両方出現中！' : (hasPencil ? '💡 鉛筆出現中' : '💡 歯車出現中');
+                matchHint = isPoolComplete ? '🎯 えんぴつ＆歯車が両方出現中！' : (hasPencil ? '💡 えんぴつ出現中' : '💡 歯車出現中');
             }
-        } else if (combo.id === 'combo_recycle') {
-            const recycleItems = ['yami_gear', 'u_yami_tire', 'u_yami_boots', 'u_yami_eraser', 'u_yami_magnet'];
-            const presentCount = recycleItems.filter(id => draftBaseIds.has(id)).length;
-            if (presentCount >= 1) {
+        } else if (combo.id === 'combo_natural_enemy') {
+            const hasMagnet = draftBaseIds.has('u_yami_magnet');
+            const hasCompass = draftBaseIds.has('yami_compass');
+            if (hasMagnet || hasCompass) {
                 isRelevant = true;
-                isPoolComplete = presentCount >= 2;
-                matchHint = isPoolComplete ? `🎯 産廃具材が ${presentCount} 種出現中！` : '💡 産廃具材が 1 種出現中';
+                isPoolComplete = hasMagnet && hasCompass;
+                matchHint = isPoolComplete ? '🎯 磁石＆羅針盤が両方出現中！' : (hasMagnet ? '💡 磁石出現中' : '💡 羅針盤出現中');
             }
-        } else if (combo.id === 'combo_classic') {
+        } else if (combo.id === 'combo_hell') {
+            const hasHell = draftBaseIds.has('u_spice_hellsauce');
+            const hasCondensed = draftBaseIds.has('u_sweets_condensed');
+            if (hasHell || hasCondensed) {
+                isRelevant = true;
+                isPoolComplete = hasHell && hasCondensed;
+                matchHint = isPoolComplete ? '🎯 ヘルソース＆ラグドゥネームが両方出現中！' : (hasHell ? '💡 ヘルソース出現中' : '💡 ラグドゥネーム出現中');
+            }
+        } else if (combo.id === 'combo_stubborn_stain') {
+            const hasCurry = draftBaseIds.has('u_spice_curry');
+            const hasDetergent = draftBaseIds.has('u_yami_detergent');
+            if (hasCurry || hasDetergent) {
+                isRelevant = true;
+                isPoolComplete = hasCurry && hasDetergent;
+                matchHint = isPoolComplete ? '🎯 カレールー＆洗剤が両方出現中！' : (hasCurry ? '💡 カレールー出現中' : '💡 洗剤出現中');
+            }
+        } else if (combo.id === 'combo_classic_motsu') {
             if (hasMotsu && hasClassic) {
                 isRelevant = true;
                 isPoolComplete = true;
-                matchHint = '🎯 もつ＋定番の王道ペアが揃っています！';
+                matchHint = '🎯 もつ＋定番のペアが揃っています！';
             } else if (hasMotsu || hasClassic) {
                 isRelevant = true;
                 matchHint = hasMotsu ? '💡 もつ出現中（定番と組み合わせ）' : '💡 定番出現中（もつと組み合わせ）';
             }
         } else if (combo.id === 'combo_balanced_diet') {
-            const count = (hasMotsu ? 1 : 0) + (hasClassic ? 1 : 0) + (hasSpice ? 1 : 0);
-            if (count >= 2) {
+            const count = (hasMotsu ? 1 : 0) + (hasClassic ? 1 : 0) + (hasSpice ? 1 : 0) + (hasSweets ? 1 : 0) + (hasYami ? 1 : 0);
+            if (count >= 3) {
                 isRelevant = true;
-                isPoolComplete = count === 3;
-                matchHint = isPoolComplete ? '🎯 もつ・定番・辛味の3種が揃っています！' : '💡 2系統が出現中！';
+                isPoolComplete = count === 5;
+                matchHint = isPoolComplete ? '🎯 全5ジャンルが揃っています！' : `💡 ${count}系統が出現中！`;
             }
-        } else if (combo.id === 'combo_sweet_spicy') {
-            if (hasSpice && hasSweets) {
+        } else if (combo.id === 'combo_kids_pot') {
+            if (motsuCount >= 3) {
                 isRelevant = true;
-                isPoolComplete = true;
-                matchHint = '🎯 辛味＆甘味の両方が出現中！';
-            }
-        } else if (combo.id === 'combo_mega_motsu') {
-            if (motsuCount >= 2) {
-                isRelevant = true;
-                isPoolComplete = motsuCount >= 3;
-                matchHint = isPoolComplete ? `🎯 もつが ${motsuCount} 枚出現中！独占可能` : '💡 もつが 2 枚出現中';
+                isPoolComplete = motsuCount >= 4;
+                matchHint = isPoolComplete ? `🎯 もつが ${motsuCount} 枚出現中！` : '💡 もつが 3 枚出現中';
             }
         } else if (combo.id === 'combo_gentle_life') {
-            if (classicCount >= 2) {
+            const hasNira = draftBaseIds.has('classic_nira');
+            const hasHakusai = draftBaseIds.has('classic_hakusai');
+            if (hasNira || hasHakusai) {
                 isRelevant = true;
-                isPoolComplete = classicCount >= 3;
-                matchHint = `💡 定番具材が ${classicCount} 枚出現中`;
-            }
-        } else if (combo.id === 'combo_hot_pot') {
-            if (spiceCount >= 2) {
-                isRelevant = true;
-                isPoolComplete = spiceCount >= 3;
-                matchHint = `💡 辛味具材が ${spiceCount} 枚出現中`;
-            }
-        } else if (combo.id === 'combo_halloween') {
-            if (sweetsCount >= 2) {
-                isRelevant = true;
-                isPoolComplete = sweetsCount >= 3;
-                matchHint = `💡 甘味具材が ${sweetsCount} 枚出現中`;
+                isPoolComplete = hasNira && hasHakusai;
+                matchHint = isPoolComplete ? '🎯 にら＆白菜が両方出現中！' : (hasNira ? '💡 にら出現中' : '💡 白菜出現中');
             }
         } else if (combo.id === 'combo_dark_lord') {
             if (yamiCount >= 2) {

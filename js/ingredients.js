@@ -497,70 +497,26 @@ export function createIngredientInstance(baseItem, forceSize = null) {
 }
 
 export const COMBOS_DATABASE = [
+    // ----------------------------------------------------
+    // ■ 基本・もつ系
+    // ----------------------------------------------------
     {
-        id: 'combo_classic',
-        name: '王道もつ鍋',
+        id: 'combo_motsu_pot',
+        name: 'もつ鍋',
+        score: 20000,
+        icon: '🍲',
+        conditionText: 'お椀にもつが1枚以上含まれている',
+        desc: '基本にして至高。もつが入ってこそのもつ鍋！',
+        check: (bowl) => bowl.some(b => b.category === 'motsu')
+    },
+    {
+        id: 'combo_classic_motsu',
+        name: '定番のもつ鍋',
         score: 30000,
         icon: '🍲',
-        conditionText: 'もつ系 × 1以上 + 定番具材 × 1以上',
-        desc: 'もつの旨味と定番具材（ニラ・白菜・麺・出汁等）がベストマッチした王道鍋！',
+        conditionText: '「もつ」系1枚以上 ＋「定番具材」1枚以上',
+        desc: 'もつの旨味と定番具材（にら・白菜・麺・出汁等）が調和した安定の味。',
         check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'classic')
-    },
-    {
-        id: 'combo_dashi',
-        name: '絶品アクセント',
-        score: 20000,
-        icon: '🍶',
-        conditionText: 'もつ系 × 1以上 + 辛味/甘味系 × 1以上',
-        desc: 'もつの脂にスパイスや甘味アクセントが効いた刺激的なマリアージュ！',
-        check: (bowl) => bowl.some(b => b.category === 'motsu') && bowl.some(b => b.category === 'spice' || b.category === 'sweets')
-    },
-    {
-        id: 'combo_mega_motsu',
-        name: 'メガ盛りもつコンボ',
-        score: 40000,
-        icon: '🥩',
-        conditionText: 'もつ系 × 3以上',
-        desc: 'とにかくもつを喰らい尽くす！もつ好きにはたまらない圧倒的満足感。',
-        check: (bowl) => bowl.filter(b => b.category === 'motsu').length >= 3
-    },
-    {
-        id: 'combo_dark_lord',
-        name: '♰暗黒素材大明神♰',
-        score: 450000,
-        icon: '💀',
-        conditionText: 'お椀が3枚以上かつ全て闇具材',
-        desc: '危険物とゴミだけで満たされた伝説の禁忌鍋。闇のマイナスを全て打ち消し、一撃必殺の大逆転勝利を掴み取る！',
-        check: (bowl) => bowl.length >= 3 && bowl.every(b => b.category === 'yami')
-    },
-    {
-        id: 'combo_king',
-        name: '王様のもつ鍋',
-        score: 200000,
-        icon: '👑',
-        conditionText: '大盛(large)の「もつ」「定番」「辛味」を揃える',
-        desc: 'すべてが特大！極限まで贅を尽くした至高のプレミアムもつ鍋。',
-        check: (bowl) => bowl.some(b => b.category === 'motsu' && b.size === 'large') &&
-                         bowl.some(b => b.category === 'classic' && b.size === 'large') &&
-                         bowl.some(b => b.category === 'spice' && b.size === 'large')
-    },
-    {
-        id: 'combo_sweet_spicy',
-        name: '甘辛マリアージュ',
-        score: 40000,
-        icon: '🍯',
-        conditionText: '甘味(taste < 0) と 辛味(taste > 0) が両方ある',
-        desc: '辛さを甘さで中和する究極の味覚バランス。クセになる旨さ！',
-        check: (bowl) => bowl.some(b => (b.taste || 0) < 0) && bowl.some(b => (b.taste || 0) > 0)
-    },
-    {
-        id: 'combo_common',
-        name: '庶民のもつ鍋',
-        score: 50000,
-        icon: '🥣',
-        conditionText: 'お椀が3枚以上かつ全て小サイズ(small)',
-        desc: '小ぶりな具材でちまちま味わう、慎ましくも温かい一杯。',
-        check: (bowl) => bowl.length >= 3 && bowl.every(b => b.size === 'small')
     },
     {
         id: 'combo_have_not',
@@ -572,135 +528,416 @@ export const COMBOS_DATABASE = [
         check: (bowl) => bowl.length > 0 && !bowl.some(b => b.category === 'motsu')
     },
     {
-        id: 'combo_quad_card',
-        name: 'フォーカード',
+        id: 'combo_kids_pot',
+        name: 'お子様もつ鍋',
+        score: 80000,
+        icon: '👶',
+        conditionText: '「もつ」系具材が4枚以上',
+        desc: '野菜は嫌い！肉だけをもりもり食べたいわんぱくな鍋。',
+        check: (bowl) => bowl.filter(b => b.category === 'motsu').length >= 4
+    },
+    {
+        id: 'combo_hermit_motsu',
+        name: '世捨てもつ',
+        score: 50000,
+        icon: '🧘',
+        conditionText: 'お椀の具材が「もつ」1枚のみ',
+        desc: '余計な飾りは一切不要。ただ一粒のもつと向き合う求道者の境地。',
+        check: (bowl) => bowl.length === 1 && bowl[0].category === 'motsu'
+    },
+    {
+        id: 'combo_all_the_same',
+        name: '全部同じじゃないですか',
+        score: 90000,
+        icon: '🥩',
+        conditionText: '「もつ」＋「至高のモツ」＋「はつもと」',
+        desc: '「これ全部同じもつでは…？」「ちがいます！部位と格が違います！」',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('motsu_normal') && ids.includes('u_motsu_supreme') && ids.includes('u_motsu_hatsumoto');
+        }
+    },
+    {
+        id: 'combo_thin_meat',
+        name: '肉はペラペラですか',
+        score: 40000,
+        icon: '🥓',
+        conditionText: 'お椀の「もつ」具材が全て小サイズ(small)のみ',
+        desc: '「これ肉入ってます…？」薄切り小粒もつでかさ増しした鍋。',
+        check: (bowl) => {
+            const motsuItems = bowl.filter(b => b.category === 'motsu');
+            return motsuItems.length >= 1 && motsuItems.every(b => b.size === 'small');
+        }
+    },
+
+    // ----------------------------------------------------
+    // ■ ポーカー・サイズ系
+    // ----------------------------------------------------
+    {
+        id: 'combo_two_card',
+        name: '２カード',
+        score: 10000,
+        icon: '✌️',
+        conditionText: '同じ具材が2枚（サイズ不問）',
+        desc: '同じ具材を2枚揃えたお手軽ペア役！',
+        check: (bowl) => {
+            const counts = {};
+            bowl.forEach(b => {
+                const id = b.baseId || b.id.split('_')[0];
+                counts[id] = (counts[id] || 0) + 1;
+            });
+            const max = Math.max(0, ...Object.values(counts));
+            return max === 2;
+        }
+    },
+    {
+        id: 'combo_three_card',
+        name: '３カード',
+        score: 30000,
+        icon: '☘️',
+        conditionText: '同じ具材が3枚（サイズ不問）',
+        desc: '同じ具材が3枚集結！トリプルコンボ！',
+        check: (bowl) => {
+            const counts = {};
+            bowl.forEach(b => {
+                const id = b.baseId || b.id.split('_')[0];
+                counts[id] = (counts[id] || 0) + 1;
+            });
+            const max = Math.max(0, ...Object.values(counts));
+            return max === 3;
+        }
+    },
+    {
+        id: 'combo_four_card',
+        name: '４カード',
         score: 60000,
         icon: '🃏',
-        conditionText: '同一ジャンル(カテゴリ)の具材が4枚以上',
-        desc: '同じ系統の具材を極限まで重ねたポーカーライクな役！',
-        check: (bowl) => ['motsu', 'classic', 'spice', 'sweets', 'yami'].some(cat => bowl.filter(b => b.category === cat).length >= 4)
+        conditionText: '同じ具材が4枚以上（サイズ不問）',
+        desc: '同じ具材が4枚！奇跡のカルテット！',
+        check: (bowl) => {
+            const counts = {};
+            bowl.forEach(b => {
+                const id = b.baseId || b.id.split('_')[0];
+                counts[id] = (counts[id] || 0) + 1;
+            });
+            const max = Math.max(0, ...Object.values(counts));
+            return max >= 4;
+        }
+    },
+    {
+        id: 'combo_frugal',
+        name: '質素倹約',
+        score: 50000,
+        icon: '🥣',
+        conditionText: 'お椀が3枚以上かつ全て小サイズ(small)',
+        desc: '小ぶりな具材でちまちま味わう、慎ましくも温かい一杯。',
+        check: (bowl) => bowl.length >= 3 && bowl.every(b => b.size === 'small')
+    },
+    {
+        id: 'combo_all_or_nothing',
+        name: '一か八か',
+        score: 80000,
+        icon: '💥',
+        conditionText: 'お椀が3枚以上かつ全て大盛サイズ(large)',
+        desc: '溢れんばかりの大盛具材で攻める、豪快なハイリスク鍋！',
+        check: (bowl) => bowl.length >= 3 && bowl.every(b => b.size === 'large')
+    },
+
+    // ----------------------------------------------------
+    // ■ カテゴリ・味覚バランス系
+    // ----------------------------------------------------
+    {
+        id: 'combo_balanced_diet',
+        name: 'バランスの取れた食事',
+        score: 100000,
+        icon: '🍱',
+        conditionText: '全5ジャンル（もつ・定番・辛味・甘味・闇）が各1枚以上',
+        desc: '全ジャンルが揃った、カオスでありながら完璧な黄金バランス。',
+        check: (bowl) => ['motsu', 'classic', 'spice', 'sweets', 'yami'].every(cat => bowl.some(b => b.category === cat))
     },
     {
         id: 'combo_gentle_life',
         name: 'やさしいせいかつ',
-        score: 60000,
+        score: 40000,
         icon: '🥗',
-        conditionText: 'お椀が3枚以上かつ全て「定番具材」',
-        desc: 'もつすら入れず、野菜・出汁・麺だけで満たされた極めて健康的な鍋。',
-        check: (bowl) => bowl.length >= 3 && bowl.every(b => b.category === 'classic')
+        conditionText: '「にら」＋「白菜」を含む',
+        desc: '新鮮野菜たっぷり。身体に染み渡るヘルシーな味わい。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('classic_nira') && ids.includes('classic_hakusai');
+        }
     },
     {
-        id: 'combo_thin_meat',
-        name: '肉はペラペラですか？',
-        score: 30000,
-        icon: '🥓',
-        conditionText: '小サイズ(small)のもつを2個以上含む',
-        desc: '「これ肉入ってます…？」薄切り小粒もつでかさ増しした鍋。',
-        check: (bowl) => bowl.filter(b => b.category === 'motsu' && b.size === 'small').length >= 2
-    },
-    {
-        id: 'combo_balanced_diet',
-        name: 'バランスの取れた食事',
-        score: 50000,
-        icon: '🍱',
-        conditionText: '「もつ」「定番」「辛味」が各1枚以上ある',
-        desc: 'お肉、野菜、スパイスが黄金比で調和した栄養満点なもつ鍋。',
-        check: (bowl) => bowl.some(b => b.category === 'motsu') &&
-                         bowl.some(b => b.category === 'classic') &&
-                         bowl.some(b => b.category === 'spice')
-    },
-    {
-        id: 'combo_metaphysical',
-        name: '形而上学的もつ鍋',
-        score: 80000,
-        icon: '🍩',
-        conditionText: '「贅沢ショコラドーナツ」と「極厚重機ゴムタイヤ」',
-        desc: '同じドーナツ型でありながら、甘美と硬質という対立概念を内包した哲学的一杯。',
-        check: (bowl) => bowl.some(b => b.baseId === 'u_sweets_donut') && bowl.some(b => b.baseId === 'u_yami_tire')
-    },
-    {
-        id: 'combo_puss_in_boots',
-        name: '長靴をはいた犬',
-        score: 80000,
-        icon: '👢',
-        conditionText: '「泥まみれの作業用長靴」と「愛らしき仔犬のクッキー」',
-        desc: '長靴の影に寄り添う仔犬のクッキー。童話の世界が闇鍋に顕現する。',
-        check: (bowl) => bowl.some(b => b.baseId === 'u_yami_boots') && bowl.some(b => b.baseId === 'u_sweets_dogcookie')
-    },
-    {
-        id: 'combo_kids',
-        name: 'お子様もつ鍋',
-        score: 50000,
-        icon: '👶',
-        conditionText: 'お椀が2枚以上かつ全て「もつ」',
-        desc: '野菜は嫌い！肉だけをもりもり食べたいわんぱくな鍋。',
-        check: (bowl) => bowl.length >= 2 && bowl.every(b => b.category === 'motsu')
-    },
-    {
-        id: 'combo_halloween',
-        name: 'HAPPY HALLOWEEN',
+        id: 'combo_shojin',
+        name: '精進料理',
         score: 70000,
-        icon: '🎃',
-        conditionText: '甘味具材(sweets)を3枚以上集めて完食',
-        desc: 'トリック・オア・トリート！甘いお菓子で満たされたスイーツパラダイス鍋。',
-        check: (bowl) => bowl.filter(b => b.category === 'sweets').length >= 3
+        icon: '🎋',
+        conditionText: 'お椀が2枚以上かつ「にら」「白菜」「松茸」「とうふ」のみで構成',
+        desc: '殺生を断ち、清らかな野菜とキノコ・豆腐だけで仕立てた仏の御膳。',
+        check: (bowl) => {
+            if (bowl.length < 2) return false;
+            const valid = ['classic_nira', 'classic_hakusai', 'u_classic_matsutake', 'u_classic_tofu'];
+            return bowl.every(b => valid.includes(b.baseId || b.id.split('_')[0]));
+        }
     },
     {
         id: 'combo_hot_pot',
-        name: '灼熱火鍋',
-        score: 70000,
-        icon: '🔥',
-        conditionText: '辛味具材(spice)を3枚以上集めて完食',
-        desc: '真っ赤に燃え盛る激辛スパイス尽くし！汗だくで平らげる本格火鍋。',
-        check: (bowl) => bowl.filter(b => b.category === 'spice').length >= 3
-    },
-    {
-        id: 'combo_civilization',
-        name: '文明開化',
+        name: '火鍋',
         score: 60000,
-        icon: '⚙️',
-        conditionText: '「芯の尖った黒鉛筆」と「錆びついた古歯車」',
-        desc: '近代科学と筆記用具の融合。産業革命の風が鍋に吹き荒れる。',
-        check: (bowl) => bowl.some(b => b.baseId === 'yami_pencil') && bowl.some(b => b.baseId === 'yami_gear')
+        icon: '🔥',
+        conditionText: '辛味の合計値が +300以上',
+        desc: '真っ赤に燃え盛る激辛スパイス尽くし！汗だくで平らげる本格火鍋。',
+        check: (bowl) => bowl.reduce((acc, cur) => acc + (cur.taste || 0), 0) >= 300
     },
     {
-        id: 'combo_recycle',
-        name: 'リサイクルSDGs',
+        id: 'combo_dos_pink',
+        name: 'どすピンクですわ！',
+        score: 60000,
+        icon: '💖',
+        conditionText: '甘味の合計値が -300以下',
+        desc: '視界が甘いピンク色に染まるほどの猛烈な糖分ラッシュ！',
+        check: (bowl) => bowl.reduce((acc, cur) => acc + (cur.taste || 0), 0) <= -300
+    },
+    {
+        id: 'combo_curry_pot',
+        name: 'カレー鍋',
         score: 50000,
-        icon: '♻️',
-        conditionText: '歯車・タイヤ・長靴・消しゴム・磁石から2枚以上',
-        desc: '資源は大切に！鍋に沈んだ産業廃棄物を有効活用したエコフレンドリーな鍋。',
-        check: (bowl) => bowl.filter(b => ['yami_gear', 'u_yami_tire', 'u_yami_boots', 'u_yami_eraser', 'u_yami_magnet'].includes(b.baseId)).length >= 2
+        icon: '🍛',
+        conditionText: '「カレールー」を含み、それ以外の辛味・甘味具材を含まない',
+        desc: '純粋なカレースパイスの芳醇な香りを楽しむ王道カレー鍋。',
+        check: (bowl) => {
+            const hasCurry = bowl.some(b => (b.baseId || b.id.split('_')[0]) === 'u_spice_curry');
+            if (!hasCurry) return false;
+            const hasOtherSpiceOrSweet = bowl.some(b => {
+                const id = b.baseId || b.id.split('_')[0];
+                if (id === 'u_spice_curry') return false;
+                return b.category === 'spice' || b.category === 'sweets';
+            });
+            return !hasOtherSpiceOrSweet;
+        }
     },
     {
         id: 'combo_minimum_life',
         name: '最低限度の生活',
         score: 30000,
         icon: '📦',
-        conditionText: '定番具材1枚 ＋ 闇具材1枚以上',
+        conditionText: '「定番具材」1枚以上 ＋「闇具材」1枚以上',
         desc: 'わずかな野菜と怪しいゴミで飢えをしのぐ、限界サバイバル鍋。',
         check: (bowl) => bowl.some(b => b.category === 'classic') && bowl.some(b => b.category === 'yami')
     },
     {
-        id: 'combo_abandoned_motsu',
-        name: '世捨てもつ',
-        score: 60000,
-        icon: '🧘',
-        conditionText: '辛味具材3枚 ＋ もつ1枚',
-        desc: '辛味の嵐の中にポツンと浮かぶ一粒の肉。俗世を離れた境地。',
-        check: (bowl) => bowl.filter(b => b.category === 'spice').length >= 3 && bowl.filter(b => b.category === 'motsu').length === 1
+        id: 'combo_trick_or_treat',
+        name: 'TRICK OR TREAT',
+        score: 70000,
+        icon: '🎃',
+        conditionText: '「甘味」2枚以上 ＋「闇」2枚以上',
+        desc: 'お菓子くれなきゃイタズラしちゃうぞ！混沌と甘さが交錯するハロウィン鍋。',
+        check: (bowl) => bowl.filter(b => b.category === 'sweets').length >= 2 && bowl.filter(b => b.category === 'yami').length >= 2
     },
     {
-        id: 'combo_shojin',
-        name: '精進料理',
+        id: 'combo_dark_lord',
+        name: '♰暗黒素材大明神♰',
+        score: 450000,
+        icon: '💀',
+        conditionText: 'お椀が3枚以上かつ全て闇具材',
+        desc: '危険物とゴミだけで満たされた伝説の禁忌鍋。闇のマイナスを全て打ち消し、一撃必殺の大逆転勝利を掴み取る！',
+        check: (bowl) => bowl.length >= 3 && bowl.every(b => b.category === 'yami')
+    },
+
+    // ----------------------------------------------------
+    // ■ 特定ペア・トリオ系
+    // ----------------------------------------------------
+    {
+        id: 'combo_mentai_motsu',
+        name: '明太もつ鍋',
+        score: 60000,
+        icon: '🔴',
+        conditionText: '「明太子」＋「麺」＋「もつ」系',
+        desc: '明太子のプチプチと濃厚なもつ、絡みつく麺が織りなす博多名物！',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('spice_mentai') && ids.includes('classic_men') && bowl.some(b => b.category === 'motsu');
+        }
+    },
+    {
+        id: 'combo_hell',
+        name: '地獄',
+        score: 100000,
+        icon: '🔥',
+        conditionText: '「ヘルソース」＋「ラグドゥネームソース」',
+        desc: '激辛と激甘の極限ソースが激突！味覚を破壊する地獄の鍋。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_spice_hellsauce') && ids.includes('u_sweets_condensed');
+        }
+    },
+    {
+        id: 'combo_stubborn_stain',
+        name: '頑固な汚れ',
+        score: 70000,
+        icon: '🫧',
+        conditionText: '「カレールー」＋「洗剤」',
+        desc: 'カレーの落ちにくい油汚れを洗剤で強力洗浄！？',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_spice_curry') && ids.includes('u_yami_detergent');
+        }
+    },
+    {
+        id: 'combo_choco_fondue',
+        name: 'チョコフォンデュ',
+        score: 80000,
+        icon: '🍫',
+        conditionText: '「チョコ」＋「もつ」系 ＋「チュロス」',
+        desc: 'もつとチュロスをとろけるチョコにディップした禁断のスイーツ鍋。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('sweets_choco') && ids.includes('u_sweets_churros') && bowl.some(b => b.category === 'motsu');
+        }
+    },
+    {
+        id: 'combo_bright_reply',
+        name: '明るい返事',
+        score: 40000,
+        icon: '🍭',
+        conditionText: '「チョコ」＋「キャンディ」',
+        desc: '「ハイ！チュウ・チョコ」元気いっぱいの返事とお菓子のハーモニー。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('sweets_choco') && ids.includes('sweets_lollipop');
+        }
+    },
+    {
+        id: 'combo_white_box',
+        name: '白箱',
+        score: 80000,
+        icon: '🧊',
+        conditionText: '「角砂糖」＋「消しゴム」＋「とうふ」',
+        desc: 'どれも真っ白な直方体！見分けがつかないサイコロ三銃士。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_sweets_sugar') && ids.includes('u_yami_eraser') && ids.includes('u_classic_tofu');
+        }
+    },
+    {
+        id: 'combo_metaphysical',
+        name: '形而上学的もつ鍋',
+        score: 80000,
+        icon: '🍩',
+        conditionText: '「ドーナツ」＋「タイヤ」',
+        desc: '同じドーナツ型でありながら、甘美と硬質という対立概念を内包した哲学的一杯。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_sweets_donut') && ids.includes('u_yami_tire');
+        }
+    },
+    {
+        id: 'combo_puss_in_boots',
+        name: '長靴をはいた犬',
+        score: 80000,
+        icon: '👢',
+        conditionText: '「長靴」＋「犬型のマラサダ」',
+        desc: '長靴の影に寄り添う犬型のマラサダ。童話の世界が闇鍋に顕現する。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_yami_boots') && ids.includes('u_sweets_dogcookie');
+        }
+    },
+    {
+        id: 'combo_civilization',
+        name: '文明開化',
+        score: 60000,
+        icon: '⚙️',
+        conditionText: '「えんぴつ」＋「歯車」',
+        desc: '近代科学と筆記用具の融合。産業革命の風が鍋に吹き荒れる。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('yami_pencil') && ids.includes('yami_gear');
+        }
+    },
+    {
+        id: 'combo_nanban_trade',
+        name: '南蛮貿易',
+        score: 80000,
+        icon: '⛵',
+        conditionText: '「胡椒」＋「カステラ」＋「羅針盤」',
+        desc: '大航海時代を駆け抜けた南蛮船の積荷が今、鍋の中に集う！',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('spice_pepper') && ids.includes('sweets_castella') && ids.includes('yami_compass');
+        }
+    },
+    {
+        id: 'combo_tool_box',
+        name: 'お道具箱',
         score: 50000,
-        icon: '🎋',
-        conditionText: 'お椀が3枚以上かつ「定番」と「辛味」のみで構成',
-        desc: '殺生を断ち、清らかな野菜と出汁・薬味だけで仕立てた仏の御膳。',
-        check: (bowl) => bowl.length >= 3 &&
-                         bowl.every(b => b.category === 'classic' || b.category === 'spice') &&
-                         bowl.some(b => b.category === 'classic') &&
-                         bowl.some(b => b.category === 'spice')
+        icon: '✏️',
+        conditionText: '「えんぴつ」＋「消しゴム」',
+        desc: '書いては消す、懐かしの文房具セット。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('yami_pencil') && ids.includes('u_yami_eraser');
+        }
+    },
+    {
+        id: 'combo_supreme_realm',
+        name: '至高の領域',
+        score: 250000,
+        icon: '👑',
+        conditionText: '「至高のモツ」＋「至高のダシ」＋「松茸」＋「とうふ」',
+        desc: '最高級の素材と伝説の出汁が織りなす、もつ鍋の究極完全形態！',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_motsu_supreme') && ids.includes('u_classic_dashi') && ids.includes('u_classic_matsutake') && ids.includes('u_classic_tofu');
+        }
+    },
+    {
+        id: 'combo_dr_pepper',
+        name: '胡椒先生',
+        score: 50000,
+        icon: '🥤',
+        conditionText: '「胡椒」＋「カプセル錠剤」',
+        desc: 'ピリリと刺激的なスパイスと怪しい薬品。ドクター・ペッパー！？',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('spice_pepper') && ids.includes('yami_capsule');
+        }
+    },
+    {
+        id: 'combo_carbs',
+        name: '炭水化物',
+        score: 50000,
+        icon: '🍜',
+        conditionText: '「麺」＋「トッポギ」',
+        desc: '糖質×糖質の悪魔的コンビ！ガッツリ満腹カーボローディング。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('classic_men') && ids.includes('u_spice_tteokbokki');
+        }
+    },
+    {
+        id: 'combo_amusement_park',
+        name: '遊園地の思い出',
+        score: 60000,
+        icon: '🎡',
+        conditionText: '「犬型のマラサダ」＋「チュロス」',
+        desc: 'テーマパークの風物詩！香ばしい焼き菓子が広げる甘い思い出。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_sweets_dogcookie') && ids.includes('u_sweets_churros');
+        }
+    },
+    {
+        id: 'combo_natural_enemy',
+        name: '天敵',
+        score: 50000,
+        icon: '🧲',
+        conditionText: '「磁石」＋「羅針盤」',
+        desc: '強力な磁界によって羅針盤の針が狂喜乱舞する天敵の組み合わせ。',
+        check: (bowl) => {
+            const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
+            return ids.includes('u_yami_magnet') && ids.includes('yami_compass');
+        }
     }
 ];
 
@@ -708,31 +945,35 @@ export function getRecommendedCombos(bowl = []) {
     if (!bowl || bowl.length === 0) {
         return [
             {
-                ...COMBOS_DATABASE.find(c => c.id === 'combo_classic'),
+                ...COMBOS_DATABASE.find(c => c.id === 'combo_motsu_pot'),
                 statusText: '💡 おすすめ狙い目',
                 statusType: 'default',
                 priority: 10
             },
             {
-                ...COMBOS_DATABASE.find(c => c.id === 'combo_balanced_diet'),
-                statusText: '💡 三種盛り狙い目',
+                ...COMBOS_DATABASE.find(c => c.id === 'combo_classic_motsu'),
+                statusText: '💡 定番狙い目',
                 statusType: 'default',
                 priority: 9
             },
             {
-                ...COMBOS_DATABASE.find(c => c.id === 'combo_sweet_spicy'),
-                statusText: '💡 甘辛狙い目',
+                ...COMBOS_DATABASE.find(c => c.id === 'combo_two_card'),
+                statusText: '💡 ペア狙い目',
                 statusType: 'default',
                 priority: 8
             },
             {
-                ...COMBOS_DATABASE.find(c => c.id === 'combo_mega_motsu'),
-                statusText: '💡 もつ特化狙い目',
+                ...COMBOS_DATABASE.find(c => c.id === 'combo_balanced_diet'),
+                statusText: '💡 5色盛り狙い目',
                 statusType: 'default',
                 priority: 7
             }
         ];
     }
+
+    const itemIds = bowl.map(b => b.baseId || b.id.split('_')[0]);
+    const hasMotsu = bowl.some(b => b.category === 'motsu');
+    const hasClassic = bowl.some(b => b.category === 'classic');
 
     const evaluated = COMBOS_DATABASE.map(combo => {
         let isAchieved = combo.check(bowl);
@@ -745,14 +986,8 @@ export function getRecommendedCombos(bowl = []) {
             statusType = combo.score < 0 ? 'warning' : 'achieved';
             priority = combo.score < 0 ? 99 : 80;
         } else {
-            // 代表的なコンボのリーチ判定
-            const hasMotsu = bowl.some(b => b.category === 'motsu');
-            const hasClassic = bowl.some(b => b.category === 'classic');
-            const hasSpice = bowl.some(b => b.category === 'spice');
-            const hasSweets = bowl.some(b => b.category === 'sweets');
-            const motsuCount = bowl.filter(b => b.category === 'motsu').length;
-
-            if (combo.id === 'combo_classic') {
+            // 個別リーチ判定
+            if (combo.id === 'combo_classic_motsu') {
                 if (hasMotsu && !hasClassic) {
                     statusText = '🎯 あと「定番具材」で完成！';
                     statusType = 'close';
@@ -762,39 +997,85 @@ export function getRecommendedCombos(bowl = []) {
                     statusType = 'close';
                     priority = 90;
                 }
-            } else if (combo.id === 'combo_mega_motsu') {
-                if (motsuCount === 2) {
-                    statusText = '🎯 あと「もつ」1個で完成！';
-                    statusType = 'close';
-                    priority = 92;
-                }
-            } else if (combo.id === 'combo_sweet_spicy') {
-                if (hasSpice && !hasSweets) {
-                    statusText = '🎯 あと「甘味具材」で完成！';
-                    statusType = 'close';
-                    priority = 85;
-                } else if (!hasSpice && hasSweets) {
-                    statusText = '🎯 あと「辛味具材」で完成！';
-                    statusType = 'close';
-                    priority = 85;
-                }
             } else if (combo.id === 'combo_metaphysical') {
-                if (bowl.some(b => b.baseId === 'u_sweets_donut') && !bowl.some(b => b.baseId === 'u_yami_tire')) {
-                    statusText = '🎯 あと「ゴムタイヤ」で完成！';
+                if (itemIds.includes('u_sweets_donut') && !itemIds.includes('u_yami_tire')) {
+                    statusText = '🎯 あと「タイヤ」で完成！';
+                    statusType = 'close';
+                    priority = 88;
+                } else if (!itemIds.includes('u_sweets_donut') && itemIds.includes('u_yami_tire')) {
+                    statusText = '🎯 あと「ドーナツ」で完成！';
                     statusType = 'close';
                     priority = 88;
                 }
             } else if (combo.id === 'combo_puss_in_boots') {
-                if (bowl.some(b => b.baseId === 'u_sweets_dogcookie') && !bowl.some(b => b.baseId === 'u_yami_boots')) {
-                    statusText = '🎯 あと「作業用長靴」で完成！';
+                if (itemIds.includes('u_sweets_dogcookie') && !itemIds.includes('u_yami_boots')) {
+                    statusText = '🎯 あと「長靴」で完成！';
+                    statusType = 'close';
+                    priority = 88;
+                } else if (!itemIds.includes('u_sweets_dogcookie') && itemIds.includes('u_yami_boots')) {
+                    statusText = '🎯 あと「犬型のマラサダ」で完成！';
                     statusType = 'close';
                     priority = 88;
                 }
             } else if (combo.id === 'combo_civilization') {
-                if (bowl.some(b => b.baseId === 'yami_pencil') && !bowl.some(b => b.baseId === 'yami_gear')) {
-                    statusText = '🎯 あと「古歯車」で完成！';
+                if (itemIds.includes('yami_pencil') && !itemIds.includes('yami_gear')) {
+                    statusText = '🎯 あと「歯車」で完成！';
                     statusType = 'close';
                     priority = 86;
+                } else if (!itemIds.includes('yami_pencil') && itemIds.includes('yami_gear')) {
+                    statusText = '🎯 あと「えんぴつ」で完成！';
+                    statusType = 'close';
+                    priority = 86;
+                }
+            } else if (combo.id === 'combo_gentle_life') {
+                if (itemIds.includes('classic_nira') && !itemIds.includes('classic_hakusai')) {
+                    statusText = '🎯 あと「白菜」で完成！';
+                    statusType = 'close';
+                    priority = 87;
+                } else if (!itemIds.includes('classic_nira') && itemIds.includes('classic_hakusai')) {
+                    statusText = '🎯 あと「にら」で完成！';
+                    statusType = 'close';
+                    priority = 87;
+                }
+            } else if (combo.id === 'combo_natural_enemy') {
+                if (itemIds.includes('u_yami_magnet') && !itemIds.includes('yami_compass')) {
+                    statusText = '🎯 あと「羅針盤」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                } else if (!itemIds.includes('u_yami_magnet') && itemIds.includes('yami_compass')) {
+                    statusText = '🎯 あと「磁石」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                }
+            } else if (combo.id === 'combo_hell') {
+                if (itemIds.includes('u_spice_hellsauce') && !itemIds.includes('u_sweets_condensed')) {
+                    statusText = '🎯 あと「ラグドゥネーム」で完成！';
+                    statusType = 'close';
+                    priority = 89;
+                } else if (!itemIds.includes('u_spice_hellsauce') && itemIds.includes('u_sweets_condensed')) {
+                    statusText = '🎯 あと「ヘルソース」で完成！';
+                    statusType = 'close';
+                    priority = 89;
+                }
+            } else if (combo.id === 'combo_stubborn_stain') {
+                if (itemIds.includes('u_spice_curry') && !itemIds.includes('u_yami_detergent')) {
+                    statusText = '🎯 あと「洗剤」で完成！';
+                    statusType = 'close';
+                    priority = 86;
+                } else if (!itemIds.includes('u_spice_curry') && itemIds.includes('u_yami_detergent')) {
+                    statusText = '🎯 あと「カレールー」で完成！';
+                    statusType = 'close';
+                    priority = 86;
+                }
+            } else if (combo.id === 'combo_carbs') {
+                if (itemIds.includes('classic_men') && !itemIds.includes('u_spice_tteokbokki')) {
+                    statusText = '🎯 あと「トッポギ」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                } else if (!itemIds.includes('classic_men') && itemIds.includes('u_spice_tteokbokki')) {
+                    statusText = '🎯 あと「麺」で完成！';
+                    statusType = 'close';
+                    priority = 85;
                 }
             }
         }
@@ -822,7 +1103,7 @@ export const POT_TEMPLATES = [
         icon: '🍲',
         hint: '出汁の良い香りが漂っている...王道もつ鍋の予感！',
         reveal: '【王道定番もつ鍋】が出現！',
-        desc: 'もつと新鮮野菜、〆の麺と極み出汁が揃った平和で高得点な王道鍋。',
+        desc: 'もつと新鮮野菜、〆の麺と至高のダシが揃った平和で高得点な王道鍋。',
         itemIds: ['motsu_normal', 'motsu_normal', 'classic_nira', 'classic_nira', 'classic_hakusai', 'classic_men', 'u_classic_tofu', 'u_classic_dashi']
     },
     {
@@ -840,7 +1121,7 @@ export const POT_TEMPLATES = [
         icon: '🌶️',
         hint: '立ち上る湯気からツンと刺激的なスパイスの香りがする...！',
         reveal: '【灼熱激辛鍋】が出現！',
-        desc: '地獄ソース・カレールー・唐辛子等の強烈な辛味と危険物が混在する灼熱の東極スパイス鍋。',
+        desc: 'ヘルソース・カレールー・とうがらし等の強烈な辛味と危険物が混在する灼熱の東極スパイス鍋。',
         itemIds: ['motsu_normal', 'u_spice_hellsauce', 'u_spice_curry', 'spice_mentai', 'spice_chili', 'u_yami_detergent', 'u_yami_tire', 'u_yami_boots']
     },
     {
@@ -849,7 +1130,7 @@ export const POT_TEMPLATES = [
         icon: '🍬',
         hint: 'なんだか甘〜いお菓子の匂いが充満している...？',
         reveal: '【特濃激甘スイーツ鍋】が出現！',
-        desc: '練乳・ドーナツ・カステラ等の強烈な甘味と危険物が混在する特濃の西極スイーツ鍋。',
+        desc: 'ラグドゥネームソース・ドーナツ・カステラ等の強烈な甘味と危険物が混在する特濃の西極スイーツ鍋。',
         itemIds: ['motsu_normal', 'u_sweets_condensed', 'u_sweets_donut', 'sweets_castella', 'sweets_choco', 'u_yami_magnet', 'u_yami_tire', 'u_yami_boots']
     },
     {
@@ -858,7 +1139,7 @@ export const POT_TEMPLATES = [
         icon: '✨',
         hint: '普通ではありえない巨大で異様な具材の影が見え隠れしている...！',
         reveal: '【幻の至高ギャンブル鍋】が出現！',
-        desc: '超大物マルチョウから極悪洗剤・磁石まで！ハイリスク・ハイリターンの究極ギャンブル鍋。',
+        desc: '至高のモツから洗剤・磁石まで！ハイリスク・ハイリターンの究極ギャンブル鍋。',
         itemIds: ['u_motsu_supreme', 'u_classic_dashi', 'u_motsu_hatsumoto', 'u_classic_matsutake', 'u_spice_tteokbokki', 'u_sweets_churros', 'u_yami_magnet', 'u_yami_detergent']
     },
     {
