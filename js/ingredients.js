@@ -5,45 +5,45 @@ export const INGREDIENTS_DATABASE = [
     // もつ
     {
         id: 'motsu_normal',
-        name: '国産ぷりぷり牛もつ',
+        name: 'もつ',
         category: 'motsu',
         score: 40000,
         taste: 0,
         icon: '🥩',
         iconUrl: 'assets/icon/Motsu.png',
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'もつ鍋の主役！脂が乗った定番の牛もつ。',
+        desc: 'もつ鍋の主役！',
         unique: false
     },
 
     // 定番（野菜・薬味・麺などを統合）
     {
         id: 'classic_nira',
-        name: '鮮緑スタミナニラ',
+        name: 'にら',
         category: 'classic',
         score: 30000,
         taste: 0,
         icon: '🌱',
         iconUrl: 'assets/icon/GarlicChives.png',
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'もつ鍋に欠かせない、香りと栄養満点の定番野菜。',
+        desc: '香りと栄養満点の定番野菜',
         unique: false
     },
     {
         id: 'classic_hakusai',
-        name: 'みずみずしい甘白菜',
+        name: '白菜',
         category: 'classic',
         score: 30000,
         taste: 0,
         icon: '🥬',
         iconUrl: 'assets/icon/NapaCabbage.png',
         allowedSizes: ['small', 'mid', 'large'],
-        desc: '出汁をたっぷり吸い込んで甘みが増す定番具材。',
+        desc: '出汁の甘みが増す定番具材',
         unique: false
     },
     {
         id: 'classic_men',
-        name: '〆の特製ちゃんぽん麺',
+        name: '麺',
         category: 'classic',
         score: 40000,
         taste: 0,
@@ -57,107 +57,107 @@ export const INGREDIENTS_DATABASE = [
     // 辛味
     {
         id: 'spice_chili',
-        name: '深紅の一本唐辛子',
+        name: 'とうがらし',
         category: 'spice',
         score: 20000,
         taste: 200,
         icon: '🌶️',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'ピリッとスープを引き締める定番の辛味。(小:+100/中:+200/大:+300)',
+        desc: 'ピリッとスープを引き締める定番の辛味',
         unique: false
     },
     {
         id: 'spice_pepper',
-        name: '粗挽き黒胡椒ミル',
+        name: '胡椒',
         category: 'spice',
         score: 20000,
         taste: 200,
         icon: '🧂',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'スパイシーな香りで食欲をそそる本格薬味。(小:+100/中:+200/大:+300)',
+        desc: 'スパイシーな香りで食欲をそそる本格薬味',
         unique: false
     },
     {
         id: 'spice_mentai',
-        name: '博多熟成明太子',
+        name: '明太子',
         category: 'spice',
         score: 30000,
         taste: 200,
         icon: '🔴',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'ピリ辛の粒々がスープに溶け込む贅沢具材。(小:+100/中:+200/大:+300)',
+        desc: 'ピリ辛の粒々がスープに溶け込む贅沢具材',
         unique: false
     },
 
     // 甘味
     {
         id: 'sweets_castella',
-        name: '黄金の長崎カステラ',
+        name: 'カステラ',
         category: 'sweets',
         score: 20000,
         taste: -200,
         icon: '🥮',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'しっとり甘いカステラ。辛さを和らげる！(小:-100/中:-200/大:-300)',
+        desc: 'しっとり甘いカステラ',
         unique: false
     },
     {
         id: 'sweets_choco',
-        name: 'とろけるビターチョコ',
+        name: 'チョコ',
         category: 'sweets',
         score: 20000,
         taste: -200,
         icon: '🍫',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: '濃厚な甘みとコクが広がるお菓子具材。(小:-100/中:-200/大:-300)',
+        desc: '濃厚な甘みとコクが広がるお菓子具材',
         unique: false
     },
     {
         id: 'sweets_lollipop',
-        name: '虹色ぐるぐるキャンディ',
+        name: 'キャンディ',
         category: 'sweets',
         score: 20000,
         taste: -200,
         icon: '🍭',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'ポップで甘いキャンディ。辛味を中和する！(小:-100/中:-200/大:-300)',
+        desc: 'ポップで甘いキャンディ',
         unique: false
     },
 
     // 闇
     {
         id: 'yami_compass',
-        name: '狂った真鍮の羅針盤',
+        name: '羅針盤',
         category: 'yami',
         score: -30000,
         taste: 0,
         icon: '🧭',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: 'ぐるぐる針が回る謎の羅針盤。食べられない！',
+        desc: 'ぐるぐる針が回る謎の羅針盤',
         unique: false
     },
     {
         id: 'yami_pencil',
-        name: '芯の尖った黒鉛筆',
+        name: 'えんぴつ',
         category: 'yami',
         score: -20000,
         taste: 0,
         icon: '✏️',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: '鍋の底に沈む筆記用具。出汁が黒ずんでしまう。',
+        desc: '鍋の底に沈む筆記用具',
         unique: false
     },
     {
         id: 'yami_gear',
-        name: '錆びついた古歯車',
+        name: '歯車',
         category: 'yami',
         score: -30000,
         taste: 0,
@@ -169,14 +169,14 @@ export const INGREDIENTS_DATABASE = [
     },
     {
         id: 'yami_capsule',
-        name: '怪光を放つカプセル錠剤',
+        name: 'カプセル錠剤',
         category: 'yami',
         score: -30000,
         taste: 0,
         icon: '💊',
         iconUrl: null,
         allowedSizes: ['small', 'mid', 'large'],
-        desc: '何が入っているか分からない怪しい薬品。',
+        desc: '何が入っているか分からない怪しい薬品',
         unique: false
     },
 
@@ -186,7 +186,7 @@ export const INGREDIENTS_DATABASE = [
     // 【至高のモツ型】(最高峰・極大スコア)
     {
         id: 'u_motsu_supreme',
-        name: '至高の一本マルチョウ',
+        name: '至高のモツ',
         category: 'motsu',
         silhouetteType: 'motsu_supreme',
         score: 100000,
@@ -194,12 +194,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🥩',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '切らずに一本丸ごとの超極上マルチョウ！圧倒的高得点！',
+        desc: '一本丸ごとの極上もつ',
         unique: true
     },
     {
         id: 'u_sweets_churros',
-        name: '黄金の渦巻きチュロス',
+        name: 'チュロス',
         category: 'sweets',
         silhouetteType: 'motsu_supreme',
         score: 80000,
@@ -207,12 +207,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🥨',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: 'マルチョウそっくりに巻かれた巨大チュロス！強烈な甘さ！',
+        desc: '巨大チュロス！強烈な甘さ！',
         unique: true
     },
     {
         id: 'u_spice_tteokbokki',
-        name: '旨辛もっちりトッポギ',
+        name: 'トッポギ',
         category: 'spice',
         silhouetteType: 'motsu_supreme',
         score: 80000,
@@ -220,12 +220,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🥢',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '極太マルチョウに見紛う激辛ロングトッポギ！',
+        desc: '激辛ロングトッポギ！',
         unique: true
     },
     {
         id: 'u_yami_magnet',
-        name: '超強力U字マグネット',
+        name: '磁石',
         category: 'yami',
         silhouetteType: 'motsu_supreme',
         score: -90000,
@@ -233,14 +233,14 @@ export const INGREDIENTS_DATABASE = [
         icon: '🧲',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: 'マルチョウ型に湾曲した巨大磁石！鍋のすべてを狂わせる。',
+        desc: '湾曲した巨大磁石！',
         unique: true
     },
 
     // 【ソース型】(特大スコア & 味激変)
     {
         id: 'u_classic_dashi',
-        name: '秘伝・黄金の極み出汁',
+        name: '至高のダシ',
         category: 'classic',
         silhouetteType: 'sauce',
         score: 90000,
@@ -248,12 +248,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🍶',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '創業以来継ぎ足された伝説の出汁ボトル。鍋全体が至福の味に。',
+        desc: '創業以来継ぎ足された伝説の出汁',
         unique: true
     },
     {
         id: 'u_sweets_condensed',
-        name: '特濃とろける練乳クリーム',
+        name: 'ラグドゥネームソース',
         category: 'sweets',
         silhouetteType: 'sauce',
         score: 70000,
@@ -261,12 +261,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🥛',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: 'チューブから溢れ出る超濃厚練乳！一気に激甘バースト寸前！',
+        desc: '溢れ出る濃厚練乳!',
         unique: true
     },
     {
         id: 'u_spice_hellsauce',
-        name: '地獄の激辛ソース',
+        name: 'ヘルソース',
         category: 'spice',
         silhouetteType: 'sauce',
         score: 70000,
@@ -274,12 +274,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🍾',
         iconUrl: 'assets/icon/HellSauce.png',
         allowedSizes: ['mid'],
-        desc: '一滴で鍋が灼熱地獄と化す極悪辛味ソース！',
+        desc: '鍋を地獄へと変える辛味ソース！',
         unique: true
     },
     {
         id: 'u_yami_detergent',
-        name: '危険な泡立つ青色洗剤',
+        name: '洗剤',
         category: 'yami',
         silhouetteType: 'sauce',
         score: -80000,
@@ -287,14 +287,14 @@ export const INGREDIENTS_DATABASE = [
         icon: '🧴',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '出汁ボトルと間違えて投入された洗剤！絶対口にしてはならない。',
+        desc: '洗剤！絶対口にしてはならない',
         unique: true
     },
 
     // 【ドーナツ型】(中〜大スコア)
     {
         id: 'u_sweets_donut',
-        name: '贅沢ショコラドーナツ',
+        name: 'ドーナツ',
         category: 'sweets',
         silhouetteType: 'donut',
         score: 60000,
@@ -302,12 +302,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🍩',
         iconUrl: 'assets/icon/Donut.png',
         allowedSizes: ['mid'],
-        desc: '甘みたっぷりの揚げドーナツ。味覚を一気に甘く染める。',
+        desc: '甘みたっぷりのドーナツ',
         unique: true
     },
     {
         id: 'u_yami_tire',
-        name: '極厚重機ゴムタイヤ',
+        name: 'タイヤ',
         category: 'yami',
         silhouetteType: 'donut',
         score: -60000,
@@ -315,12 +315,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🛞',
         iconUrl: 'assets/icon/Tire.png',
         allowedSizes: ['mid'],
-        desc: 'ドーナツそっくりの黒いタイヤ！噛み切れるはずもない。',
+        desc: '噛み切れるはずもない',
         unique: true
     },
     {
         id: 'u_motsu_hatsumoto',
-        name: '幻のコリコリハツモト',
+        name: 'はつもと',
         category: 'motsu',
         silhouetteType: 'donut',
         score: 60000,
@@ -328,14 +328,14 @@ export const INGREDIENTS_DATABASE = [
         icon: '🥩',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: 'ドーナツ状の希少部位ハツモト。抜群の歯ごたえと旨味！',
+        desc: '希少部位!抜群の歯ごたえと旨味！',
         unique: true
     },
 
     // 【長靴型】(中〜大スコア)
     {
         id: 'u_sweets_dogcookie',
-        name: '愛らしき仔犬のクッキー',
+        name: '犬型のマラサダ',
         category: 'sweets',
         silhouetteType: 'boots',
         score: 60000,
@@ -343,12 +343,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🍪',
         iconUrl: 'assets/icon/DogCookie.png',
         allowedSizes: ['mid'],
-        desc: '愛らしい犬の形をした香ばしいクッキー。甘みしっかり。',
+        desc: '犬の形の香ばしいマラサダ',
         unique: true
     },
     {
         id: 'u_yami_boots',
-        name: '泥まみれの作業用長靴',
+        name: '長靴',
         category: 'yami',
         silhouetteType: 'boots',
         score: -60000,
@@ -356,12 +356,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '👢',
         iconUrl: 'assets/icon/Shoes.png',
         allowedSizes: ['mid'],
-        desc: '鍋に放り込まれたゴム長靴。泥とゴムの臭いが充満する。',
+        desc: '泥とゴムの臭いがする',
         unique: true
     },
     {
         id: 'u_classic_matsutake',
-        name: '薫り高き極上松茸',
+        name: '松茸',
         category: 'classic',
         silhouetteType: 'boots',
         score: 60000,
@@ -369,14 +369,14 @@ export const INGREDIENTS_DATABASE = [
         icon: '🍄',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '長靴のような曲がった形をした高級松茸。芳醇な香り！',
+        desc: '高級な松茸。芳醇な香り！',
         unique: true
     },
 
     // 【立方体型】(中スコア)
     {
         id: 'u_classic_tofu',
-        name: '極上なめらか絹ごし豆腐',
+        name: 'とうふ',
         category: 'classic',
         silhouetteType: 'cube',
         score: 40000,
@@ -384,12 +384,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🧊',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '四角くカットされた純白の豆腐。出汁の旨味を吸収する。',
+        desc: '四角くカットされた純白の豆腐',
         unique: true
     },
     {
         id: 'u_spice_curry',
-        name: '熟成スパイシーカレールー',
+        name: 'カレールー',
         category: 'spice',
         silhouetteType: 'cube',
         score: 40000,
@@ -397,12 +397,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🍛',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '四角いカレールー。鍋が一瞬で本格スパイスカレー鍋に！',
+        desc: '鍋が一瞬でスパイスカレーに！',
         unique: true
     },
     {
         id: 'u_sweets_sugar',
-        name: '高純度クリスタル角砂糖',
+        name: '角砂糖',
         category: 'sweets',
         silhouetteType: 'cube',
         score: 40000,
@@ -410,12 +410,12 @@ export const INGREDIENTS_DATABASE = [
         icon: '🧊',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '豆腐と見紛う四角い角砂糖。一気に甘みが跳ね上がる！',
+        desc: '豆腐と見紛う四角い角砂糖',
         unique: true
     },
     {
         id: 'u_yami_eraser',
-        name: '四角い新品プラスチック消しゴム',
+        name: '消しゴム',
         category: 'yami',
         silhouetteType: 'cube',
         score: -40000,
@@ -423,7 +423,7 @@ export const INGREDIENTS_DATABASE = [
         icon: '🧼',
         iconUrl: null,
         allowedSizes: ['mid'],
-        desc: '豆腐そっくりの消しゴム。文字は消せても点数は削られる。',
+        desc: '文字も点数も削られる',
         unique: true
     }
 ];
