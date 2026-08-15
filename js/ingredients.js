@@ -986,7 +986,11 @@ export function getRecommendedCombos(bowl = []) {
             statusType = combo.score < 0 ? 'warning' : 'achieved';
             priority = combo.score < 0 ? 99 : 80;
         } else {
-            // 個別リーチ判定
+            // ------------------------------------------------
+            // ■ 1手リーチ (priority: 85〜96) / 2手リーチ (priority: 62〜73)
+            // ------------------------------------------------
+
+            // 1. 定番のもつ鍋 (もつ + 定番)
             if (combo.id === 'combo_classic_motsu') {
                 if (hasMotsu && !hasClassic) {
                     statusText = '🎯 あと「定番具材」で完成！';
@@ -997,7 +1001,228 @@ export function getRecommendedCombos(bowl = []) {
                     statusType = 'close';
                     priority = 90;
                 }
-            } else if (combo.id === 'combo_metaphysical') {
+            }
+
+            // 2. バランスの取れた食事 (全5ジャンル)
+            else if (combo.id === 'combo_balanced_diet') {
+                const cats = ['motsu', 'classic', 'spice', 'sweets', 'yami'];
+                const presentCats = cats.filter(c => bowl.some(b => b.category === c));
+                if (presentCats.length === 4) {
+                    const missing = cats.find(c => !presentCats.includes(c));
+                    const catNames = { motsu: 'もつ', classic: '定番', spice: '辛味', sweets: '甘味', yami: '闇' };
+                    statusText = `🎯 あと「${catNames[missing] || missing}」で5色完成！`;
+                    statusType = 'close';
+                    priority = 95;
+                } else if (presentCats.length === 3) {
+                    statusText = '✨ あと2系統で5色完成！';
+                    statusType = 'progress';
+                    priority = 72;
+                }
+            }
+
+            // 3. 至高の領域 (至高のモツ + 至高のダシ + 松茸 + とうふ)
+            else if (combo.id === 'combo_supreme_realm') {
+                const targetIds = ['u_motsu_supreme', 'u_classic_dashi', 'u_classic_matsutake', 'u_classic_tofu'];
+                const names = { u_motsu_supreme: '至高のモツ', u_classic_dashi: '至高のダシ', u_classic_matsutake: '松茸', u_classic_tofu: 'とうふ' };
+                const owned = targetIds.filter(id => itemIds.includes(id));
+                if (owned.length === 3) {
+                    const missing = targetIds.find(id => !owned.includes(id));
+                    statusText = `🎯 あと「${names[missing]}」で至高の領域！`;
+                    statusType = 'close';
+                    priority = 96;
+                } else if (owned.length === 2) {
+                    statusText = '✨ あと2種で至高の領域！';
+                    statusType = 'progress';
+                    priority = 73;
+                }
+            }
+
+            // 4. お子様もつ鍋 (もつ4枚)
+            else if (combo.id === 'combo_kids_pot') {
+                const motsuCount = bowl.filter(b => b.category === 'motsu').length;
+                if (motsuCount === 3) {
+                    statusText = '🎯 あと「もつ」1個で完成！';
+                    statusType = 'close';
+                    priority = 93;
+                } else if (motsuCount === 2) {
+                    statusText = '✨ あと「もつ」2個で完成！';
+                    statusType = 'progress';
+                    priority = 68;
+                }
+            }
+
+            // 5. ポーカー役 (４カード / ３カード / ２カード)
+            else if (combo.id === 'combo_four_card') {
+                const counts = {};
+                bowl.forEach(b => {
+                    const id = b.baseId || b.id.split('_')[0];
+                    counts[id] = (counts[id] || 0) + 1;
+                });
+                const maxCount = Math.max(0, ...Object.values(counts));
+                if (maxCount === 3) {
+                    statusText = '🎯 あと1枚で４カード！';
+                    statusType = 'close';
+                    priority = 94;
+                } else if (maxCount === 2) {
+                    statusText = '✨ あと2枚で４カード！';
+                    statusType = 'progress';
+                    priority = 69;
+                }
+            } else if (combo.id === 'combo_three_card') {
+                const counts = {};
+                bowl.forEach(b => {
+                    const id = b.baseId || b.id.split('_')[0];
+                    counts[id] = (counts[id] || 0) + 1;
+                });
+                const maxCount = Math.max(0, ...Object.values(counts));
+                if (maxCount === 2) {
+                    statusText = '🎯 あと1枚で３カード！';
+                    statusType = 'close';
+                    priority = 91;
+                }
+            } else if (combo.id === 'combo_two_card') {
+                if (bowl.length >= 1) {
+                    statusText = '🎯 同じ具材でもう1枚！';
+                    statusType = 'close';
+                    priority = 86;
+                }
+            }
+
+            // 6. トリオ役 (明太もつ鍋, 白箱, 南蛮貿易, チョコフォンデュ, 全部同じ)
+            else if (combo.id === 'combo_mentai_motsu') {
+                const hasMentai = itemIds.includes('spice_mentai');
+                const hasMen = itemIds.includes('classic_men');
+                const count = (hasMentai ? 1 : 0) + (hasMen ? 1 : 0) + (hasMotsu ? 1 : 0);
+                if (count === 2) {
+                    const missing = !hasMentai ? '明太子' : (!hasMen ? '麺' : 'もつ');
+                    statusText = `🎯 あと「${missing}」で完成！`;
+                    statusType = 'close';
+                    priority = 91;
+                } else if (count === 1) {
+                    statusText = '✨ あと2枚で明太もつ鍋！';
+                    statusType = 'progress';
+                    priority = 65;
+                }
+            } else if (combo.id === 'combo_white_box') {
+                const targets = ['u_sweets_sugar', 'u_yami_eraser', 'u_classic_tofu'];
+                const names = { u_sweets_sugar: '角砂糖', u_yami_eraser: '消しゴム', u_classic_tofu: 'とうふ' };
+                const owned = targets.filter(id => itemIds.includes(id));
+                if (owned.length === 2) {
+                    const missing = targets.find(id => !owned.includes(id));
+                    statusText = `🎯 あと「${names[missing]}」で完成！`;
+                    statusType = 'close';
+                    priority = 90;
+                } else if (owned.length === 1) {
+                    statusText = '✨ あと2枚で白箱！';
+                    statusType = 'progress';
+                    priority = 65;
+                }
+            } else if (combo.id === 'combo_nanban_trade') {
+                const targets = ['spice_pepper', 'sweets_castella', 'yami_compass'];
+                const names = { spice_pepper: '胡椒', sweets_castella: 'カステラ', yami_compass: '羅針盤' };
+                const owned = targets.filter(id => itemIds.includes(id));
+                if (owned.length === 2) {
+                    const missing = targets.find(id => !owned.includes(id));
+                    statusText = `🎯 あと「${names[missing]}」で完成！`;
+                    statusType = 'close';
+                    priority = 90;
+                } else if (owned.length === 1) {
+                    statusText = '✨ あと2枚で南蛮貿易！';
+                    statusType = 'progress';
+                    priority = 65;
+                }
+            } else if (combo.id === 'combo_choco_fondue') {
+                const hasChoco = itemIds.includes('sweets_choco');
+                const hasChurros = itemIds.includes('u_sweets_churros');
+                const count = (hasChoco ? 1 : 0) + (hasChurros ? 1 : 0) + (hasMotsu ? 1 : 0);
+                if (count === 2) {
+                    const missing = !hasChoco ? 'チョコ' : (!hasChurros ? 'チュロス' : 'もつ');
+                    statusText = `🎯 あと「${missing}」で完成！`;
+                    statusType = 'close';
+                    priority = 90;
+                } else if (count === 1) {
+                    statusText = '✨ あと2枚でチョコフォンデュ！';
+                    statusType = 'progress';
+                    priority = 65;
+                }
+            } else if (combo.id === 'combo_all_the_same') {
+                const targets = ['motsu_normal', 'u_motsu_supreme', 'u_motsu_hatsumoto'];
+                const names = { motsu_normal: 'もつ', u_motsu_supreme: '至高のモツ', u_motsu_hatsumoto: 'はつもと' };
+                const owned = targets.filter(id => itemIds.includes(id));
+                if (owned.length === 2) {
+                    const missing = targets.find(id => !owned.includes(id));
+                    statusText = `🎯 あと「${names[missing]}」で完成！`;
+                    statusType = 'close';
+                    priority = 92;
+                } else if (owned.length === 1) {
+                    statusText = '✨ あと2枚で全部同じ！';
+                    statusType = 'progress';
+                    priority = 66;
+                }
+            }
+
+            // 7. サイズ役 (質素倹約 / 一か八か)
+            else if (combo.id === 'combo_frugal') {
+                const smallCount = bowl.filter(b => b.size === 'small').length;
+                const isAllSmall = bowl.every(b => b.size === 'small');
+                if (isAllSmall && smallCount === 2) {
+                    statusText = '🎯 あと小サイズ1枚で完成！';
+                    statusType = 'close';
+                    priority = 89;
+                } else if (isAllSmall && smallCount === 1) {
+                    statusText = '✨ あと小サイズ2枚で完成！';
+                    statusType = 'progress';
+                    priority = 64;
+                }
+            } else if (combo.id === 'combo_all_or_nothing') {
+                const largeCount = bowl.filter(b => b.size === 'large').length;
+                const isAllLarge = bowl.every(b => b.size === 'large');
+                if (isAllLarge && largeCount === 2) {
+                    statusText = '🎯 あと大盛1枚で完成！';
+                    statusType = 'close';
+                    priority = 89;
+                } else if (isAllLarge && largeCount === 1) {
+                    statusText = '✨ あと大盛2枚で完成！';
+                    statusType = 'progress';
+                    priority = 64;
+                }
+            }
+
+            // 8. TRICK OR TREAT (甘味2 + 闇2)
+            else if (combo.id === 'combo_trick_or_treat') {
+                const sweetCount = bowl.filter(b => b.category === 'sweets').length;
+                const yamiCount = bowl.filter(b => b.category === 'yami').length;
+                const total = Math.min(2, sweetCount) + Math.min(2, yamiCount);
+                if (total === 3) {
+                    const missingCat = sweetCount < 2 ? '甘味' : '闇具材';
+                    statusText = `🎯 あと「${missingCat}」1枚で完成！`;
+                    statusType = 'close';
+                    priority = 90;
+                } else if (total === 2) {
+                    statusText = '✨ あと2枚でハロウィン！';
+                    statusType = 'progress';
+                    priority = 67;
+                }
+            }
+
+            // 9. 闇大明神 (3枚以上かつ全て闇)
+            else if (combo.id === 'combo_dark_lord') {
+                const isAllYami = bowl.length > 0 && bowl.every(b => b.category === 'yami');
+                if (isAllYami) {
+                    if (bowl.length === 2) {
+                        statusText = '🎯 あと闇1枚で大明神！';
+                        statusType = 'close';
+                        priority = 93;
+                    } else if (bowl.length === 1) {
+                        statusText = '✨ あと闇2枚で大明神！';
+                        statusType = 'progress';
+                        priority = 71;
+                    }
+                }
+            }
+
+            // 10. ペア役 (2枚ペアの1手リーチ)
+            else if (combo.id === 'combo_metaphysical') {
                 if (itemIds.includes('u_sweets_donut') && !itemIds.includes('u_yami_tire')) {
                     statusText = '🎯 あと「タイヤ」で完成！';
                     statusType = 'close';
@@ -1074,6 +1299,46 @@ export function getRecommendedCombos(bowl = []) {
                     priority = 85;
                 } else if (!itemIds.includes('classic_men') && itemIds.includes('u_spice_tteokbokki')) {
                     statusText = '🎯 あと「麺」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                }
+            } else if (combo.id === 'combo_bright_reply') {
+                if (itemIds.includes('sweets_choco') && !itemIds.includes('sweets_lollipop')) {
+                    statusText = '🎯 あと「キャンディ」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                } else if (!itemIds.includes('sweets_choco') && itemIds.includes('sweets_lollipop')) {
+                    statusText = '🎯 あと「チョコ」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                }
+            } else if (combo.id === 'combo_tool_box') {
+                if (itemIds.includes('yami_pencil') && !itemIds.includes('u_yami_eraser')) {
+                    statusText = '🎯 あと「消しゴム」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                } else if (!itemIds.includes('yami_pencil') && itemIds.includes('u_yami_eraser')) {
+                    statusText = '🎯 あと「えんぴつ」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                }
+            } else if (combo.id === 'combo_dr_pepper') {
+                if (itemIds.includes('spice_pepper') && !itemIds.includes('yami_capsule')) {
+                    statusText = '🎯 あと「カプセル錠剤」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                } else if (!itemIds.includes('spice_pepper') && itemIds.includes('yami_capsule')) {
+                    statusText = '🎯 あと「胡椒」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                }
+            } else if (combo.id === 'combo_amusement_park') {
+                if (itemIds.includes('u_sweets_dogcookie') && !itemIds.includes('u_sweets_churros')) {
+                    statusText = '🎯 あと「チュロス」で完成！';
+                    statusType = 'close';
+                    priority = 85;
+                } else if (!itemIds.includes('u_sweets_dogcookie') && itemIds.includes('u_sweets_churros')) {
+                    statusText = '🎯 あと「犬型のマラサダ」で完成！';
                     statusType = 'close';
                     priority = 85;
                 }
