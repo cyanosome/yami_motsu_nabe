@@ -5,6 +5,16 @@
 
 export const TRAITS_DATABASE = [
     {
+        id: 'none',
+        name: '無垢なる食通',
+        subName: '特性なし（ノーマル）',
+        icon: '🥢',
+        badgeColor: '#b2bec3',
+        desc: '特性を持たず、基本ルールのみで挑むノーマルスタイル',
+        detail: '特殊効果は一切発動しません。純粋な鍋の駆け引きを楽しみたい場合やハンデ戦に最適です。',
+        params: {}
+    },
+    {
         id: 'burst_immune',
         name: '鋼の胃袋',
         subName: 'バースト無効',

@@ -684,7 +684,7 @@ export function calculateFinalScores() {
         p.finalScore = finalScore;
 
         let breakdownParts = [`基本:${baseScore}pt`];
-        if (p.trait) {
+        if (p.trait && p.trait.id !== 'none') {
             breakdownParts.push(`[${p.trait.icon}${p.trait.subName}]`);
         }
         if (details.length) {

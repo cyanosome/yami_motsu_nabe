@@ -2238,6 +2238,12 @@
             border: 1px solid rgba(253, 203, 110, 0.4);
         }
 
+        .rec-combo-status.progress {
+            background: rgba(162, 155, 254, 0.2);
+            color: #a29bfe;
+            border: 1px solid rgba(162, 155, 254, 0.4);
+        }
+
         .rec-combo-status.warning {
             background: rgba(255, 118, 117, 0.2);
             color: #ff7675;

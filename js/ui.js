@@ -1491,7 +1491,7 @@ window.selectTrait = function(traitId) {
  * @returns {string}
  */
 export function getTraitChipHtml(trait, showTag = false) {
-    if (!trait) return '';
+    if (!trait || trait.id === 'none') return '';
     const color = trait.badgeColor || '#fdcb6e';
     const tagHtml = showTag ? ` <span class="combo-score-tag trait-tag">${trait.subName}</span>` : '';
     return `
