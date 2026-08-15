@@ -16,7 +16,10 @@ import {
     getPotSoupColorDetails,
     resetPhase3State,
     renderPotHintBanner,
-    triggerPotRevealModal
+    triggerPotRevealModal,
+    openTraitSelectModal,
+    closeTraitSelectModal,
+    getTraitChipHtml
 } from './ui.js';
 import { executeOnlineReroll, executeOnlineScoopSelect, executeOnlinePass } from './firebase.js';
 
@@ -44,31 +47,59 @@ export function startGame(mode) {
     gameState.potStack = [];
     gameState.currentDraftPlayerIndex = 0;
     gameState.currentTurnPlayerIndex = 0;
-    gameState.potTemplate = getRandomPotTemplate();
+    gameState.potTemplate = null; // 特性選択後に決定
 
     if (mode === 'vs-cpu') {
         gameState.players = [
-            { id: 0, name: 'あなた (P1)', isCpu: false, bowl: [], isPassed: false, isBusted: false },
-            { id: 1, name: 'モツ太郎 (CPU)', isCpu: true, bowl: [], isPassed: false, isBusted: false },
-            { id: 2, name: 'キャベ子 (CPU)', isCpu: true, bowl: [], isPassed: false, isBusted: false },
-            { id: 3, name: '闇シェフ (CPU)', isCpu: true, bowl: [], isPassed: false, isBusted: false }
+            { id: 0, name: 'あなた (P1)', isCpu: false, bowl: [], isPassed: false, isBusted: false, trait: null },
+            { id: 1, name: 'モツ太郎 (CPU)', isCpu: true, bowl: [], isPassed: false, isBusted: false, trait: null },
+            { id: 2, name: 'キャベ子 (CPU)', isCpu: true, bowl: [], isPassed: false, isBusted: false, trait: null },
+            { id: 3, name: '闇シェフ (CPU)', isCpu: true, bowl: [], isPassed: false, isBusted: false, trait: null }
         ];
     } else {
         gameState.players = [
-            { id: 0, name: 'プレイヤー1', isCpu: false, bowl: [], isPassed: false, isBusted: false },
-            { id: 1, name: 'プレイヤー2', isCpu: false, bowl: [], isPassed: false, isBusted: false }
+            { id: 0, name: 'プレイヤー1', isCpu: false, bowl: [], isPassed: false, isBusted: false, trait: null },
+            { id: 1, name: 'プレイヤー2', isCpu: false, bowl: [], isPassed: false, isBusted: false, trait: null }
         ];
     }
 
     document.getElementById('start-screen').style.display = 'none';
-    // ゲーム開始時にステップバーを表示
-    document.getElementById('phase-stepper-bar').classList.add('active');
-    renderPotHintBanner(gameState.potTemplate);
 
-    // BGM再生開始（和風ロックBGM）
-    playBGM('MAIN', { fadeIn: true });
+    // 鍋テンプレートや食材の決定前にUser（人間プレイヤー）が特性を選択
+    startTraitSelectionSequence(gameState.players, () => {
+        // 全人間プレイヤーの特性選択が完了した後に鍋テンプレートを決定
+        gameState.potTemplate = getRandomPotTemplate();
 
-    switchPhase(1);
+        // ゲーム開始時にステップバーを表示
+        document.getElementById('phase-stepper-bar').classList.add('active');
+        renderPotHintBanner(gameState.potTemplate);
+
+        // BGM再生開始（和風ロックBGM）
+        playBGM('MAIN', { fadeIn: true });
+
+        switchPhase(1);
+    });
+}
+
+export function startTraitSelectionSequence(players, onComplete) {
+    const humanPlayers = players.filter(p => !p.isCpu);
+    let currentIndex = 0;
+
+    function promptNextPlayer() {
+        if (currentIndex >= humanPlayers.length) {
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
+
+        const player = humanPlayers[currentIndex];
+        openTraitSelectModal(player, (selectedTrait) => {
+            player.trait = selectedTrait;
+            currentIndex++;
+            promptNextPlayer();
+        });
+    }
+
+    promptNextPlayer();
 }
 
 export function resetToStart() {
@@ -78,10 +109,7 @@ export function resetToStart() {
     }
     // BGM停止（フェードアウト）
     stopBGM({ fadeOut: true });
-    // We modify app.js's local isOnlineSetupDone by setting it inside app.js if needed,
-    // but resetToStart can just assign it if imported. Wait! isOnlineSetupDone is in app.js.
-    // If resetToStart needs to modify isOnlineSetupDone, we can export a function resetOnlineSetup() in app.js
-    // or just trigger it. Let's export resetOnlineSetup from app.js.
+    closeTraitSelectModal();
     resetOnlineSetup();
     resetPhase3State();
     firebaseState.currentRoomId = null;
@@ -128,7 +156,11 @@ export function switchPhase(phaseNum) {
 
 export function initPhase1Draft() {
     const player = gameState.players[gameState.currentDraftPlayerIndex];
-    document.getElementById('p1-player-title').innerText = `${player.name} の手番：具材選択`;
+    const traitChipHtml = player.trait ? getTraitChipHtml(player.trait) : '';
+    document.getElementById('p1-player-title').innerHTML = `
+        <span style="vertical-align:middle;">${player.name} の手番：具材選択</span>
+        ${traitChipHtml ? `<span style="display:inline-block; margin-left:8px; vertical-align:middle;">${traitChipHtml}</span>` : ''}
+    `;
     renderPotHintBanner(gameState.potTemplate);
 
     if (player.isCpu) {
@@ -414,15 +446,29 @@ export function selectScoopedItem(scoopIndex) {
     logPhase2Debug(`具材選択完了 (${chosenItem.name} を獲得, ${remainingCount}枚返却)`);
 
     const currentTaste = curPlayer.bowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
+    const isBurstImmune = curPlayer.trait?.id === 'burst_immune';
+
     if (currentTaste >= 300) {
-        curPlayer.isBusted = true;
-        playSound('bust');
-        addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
+        if (!isBurstImmune) {
+            curPlayer.isBusted = true;
+            playSound('bust');
+            addGameLog(`💥💥 ${curPlayer.name} のお椀が辛み度 (🔥+${currentTaste}) に達し【激辛バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
+        } else {
+            playSound('add');
+            addGameLog(`🛡️ ${curPlayer.name} は辛み度 (🔥+${currentTaste}) に達しましたが【鋼の胃袋】によりバーストを無効化しました！`, true);
+        }
     } else if (currentTaste <= -300) {
-        curPlayer.isBusted = true;
-        playSound('bust');
-        addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
-    } else if (curPlayer.bowl.length >= 4) {
+        if (!isBurstImmune) {
+            curPlayer.isBusted = true;
+            playSound('bust');
+            addGameLog(`💥💥 ${curPlayer.name} のお椀が甘み度 (🍬${currentTaste}) に達し【激甘バースト】しました！（最終スコアから ${BURST_PENALTY_SCORE} pt）`, false, true);
+        } else {
+            playSound('add');
+            addGameLog(`🛡️ ${curPlayer.name} は甘み度 (🍬${currentTaste}) に達しましたが【鋼の胃袋】によりバーストを無効化しました！`, true);
+        }
+    }
+
+    if (curPlayer.bowl.length >= 4 && !curPlayer.isBusted) {
         curPlayer.isPassed = true;
         addGameLog(`🥣 ${curPlayer.name} は上限の4枚の具材を確保し、お椀が完成しました！`);
     }
@@ -574,24 +620,55 @@ export function handleCpuTurnOld(cpu) {
     }
 }
 
+/**
+ * プレイヤーの特性を加味した具材1枚のスコアを計算
+ * @param {object} player 
+ * @param {object} item 
+ * @returns {number}
+ */
+export function calculatePlayerItemScore(player, item) {
+    if (!item) return 0;
+    let score = item.score || 0;
+
+    // 闇の美食家: 闇素材のマイナススコアを正のスコアに反転
+    if (player?.trait?.id === 'yami_positive' && item.category === 'yami' && score < 0) {
+        score = Math.abs(score);
+    }
+
+    // 王道の探求者: 定番具材の基礎スコアを 1.5倍 にアップ
+    if (player?.trait?.id === 'classic_boost' && item.category === 'classic') {
+        const mult = player.trait.params?.multiplier || 1.5;
+        score = Math.round(score * mult);
+    }
+
+    return score;
+}
+
 export function calculateFinalScores() {
     gameState.players.forEach(p => {
         const bowl = p.bowl || [];
         p.achievedCombos = [];
 
-        let baseScore = bowl.reduce((acc, cur) => acc + cur.score, 0);
+        let baseScore = bowl.reduce((acc, cur) => acc + calculatePlayerItemScore(p, cur), 0);
         let bonus = 0;
         let details = [];
 
         COMBOS_DATABASE.forEach(combo => {
             if (combo.check && combo.check(bowl)) {
-                bonus += combo.score;
-                const sign = combo.score >= 0 ? '+' : '';
-                details.push(`${combo.name}(${sign}${combo.score})`);
+                let comboScore = combo.score;
+                // 出汁の匠: 成立した役（コンボ）の追加ボーナスを 1.3倍 にアップ (正のボーナスのみ対象)
+                if (p.trait?.id === 'combo_boost' && comboScore > 0) {
+                    const mult = p.trait.params?.multiplier || 1.3;
+                    comboScore = Math.round(comboScore * mult);
+                }
+
+                bonus += comboScore;
+                const sign = comboScore >= 0 ? '+' : '';
+                details.push(`${combo.name}(${sign}${comboScore})`);
                 p.achievedCombos.push({
                     id: combo.id,
                     name: combo.name,
-                    score: combo.score,
+                    score: comboScore,
                     icon: combo.icon || '🍲'
                 });
             }
@@ -607,6 +684,9 @@ export function calculateFinalScores() {
         p.finalScore = finalScore;
 
         let breakdownParts = [`基本:${baseScore}pt`];
+        if (p.trait) {
+            breakdownParts.push(`[${p.trait.icon}${p.trait.subName}]`);
+        }
         if (details.length) {
             breakdownParts.push(`(${details.join(', ')})`);
         }

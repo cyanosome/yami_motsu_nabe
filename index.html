@@ -75,6 +75,7 @@
             <div class="encyclopedia-tabs">
                 <button class="encyclopedia-tab active" id="tab-btn-ingredients" onclick="switchEncyclopediaTab('ingredients')">🥩 食材一覧</button>
                 <button class="encyclopedia-tab" id="tab-btn-combos" onclick="switchEncyclopediaTab('combos')">✨ コンボ一覧</button>
+                <button class="encyclopedia-tab" id="tab-btn-traits" onclick="switchEncyclopediaTab('traits')">🔮 プレイヤー特性</button>
             </div>
 
             <!-- 食材カテゴリフィルター (食材タブ用) -->
@@ -113,6 +114,20 @@
             <h2 class="pot-reveal-title" id="pot-reveal-title">王道定番もつ鍋</h2>
             <p class="pot-reveal-desc" id="pot-reveal-desc">もつと新鮮野菜が揃った王道鍋！</p>
             <button class="btn-primary pot-reveal-btn" onclick="closePotRevealModal()">鍋漁りを始める！🥄</button>
+        </div>
+    </div>
+
+    <!-- 特性選択モーダル (Phase 1 開始前) -->
+    <div class="modal-overlay" id="trait-select-modal">
+        <div class="modal-card trait-select-card">
+            <div class="trait-modal-header">
+                <div class="trait-modal-badge" id="trait-modal-player-badge">PLAYER 1</div>
+                <div class="modal-title" style="margin-bottom:4px;">✨ プレイヤー特性を選択</div>
+                <p class="trait-modal-subtitle" id="trait-modal-subtitle">鍋に挑む秘めたる力を1つ選んでください（ゲーム終了まで有効）</p>
+            </div>
+            <div class="trait-cards-grid" id="trait-cards-grid">
+                <!-- js/ui.js で動的生成 -->
+            </div>
         </div>
     </div>
 

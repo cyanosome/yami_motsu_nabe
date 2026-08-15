@@ -5,7 +5,9 @@ import {
     renderOnlineDraftPhase, 
     renderOnlinePotPhase, 
     initPhase3Results,
-    triggerPotRevealModal 
+    triggerPotRevealModal,
+    openTraitSelectModal,
+    closeTraitSelectModal
 } from './ui.js';
 import { playSound, playBGM } from './sound.js';
 import { gameState, generatePhase1DraftPool } from './gameLogic.js';
@@ -136,7 +138,10 @@ export function joinOnlineRoom() {
 export let isOnlineSetupDone = false;
 export function resetOnlineSetup() {
     isOnlineSetupDone = false;
+    hasSelectedOnlineTrait = false;
 }
+
+let hasSelectedOnlineTrait = false;
 
 export function listenLobbyChanges() {
     if (!firebaseState.roomRef) return;
@@ -167,9 +172,69 @@ export function listenLobbyChanges() {
                 `;
                 listEl.appendChild(item);
             });
-        } else if (roomData.status === 'playing') {
-            // ホストがゲームを開始した！
+        } else if (roomData.status === 'trait_selection') {
+            // ホストがゲームを開始し、特性選択フェーズへ移行！
             document.getElementById('online-modal').classList.remove('active');
+
+            const myData = (roomData.players || {})[myPlayerId];
+            if (!hasSelectedOnlineTrait && myData && !myData.traitReady) {
+                hasSelectedOnlineTrait = true;
+                openTraitSelectModal({ name: myData.name || 'あなた' }, (selectedTrait) => {
+                    firebaseState.roomRef.child('players/' + myPlayerId).update({
+                        trait: selectedTrait,
+                        traitReady: true
+                    }).then(() => {
+                        showToast("✨ 特性を決定しました！全プレイヤーの選択を待っています...");
+                    });
+                });
+            }
+
+            // ホストのみ：全プレイヤーの特性選択完了をチェック
+            if (firebaseState.isHost) {
+                const playersObj = roomData.players || {};
+                const playersArr = Object.values(playersObj).sort((a, b) => a.joinedAt - b.joinedAt);
+                const allReady = playersArr.length >= 2 && playersArr.every(p => p.traitReady === true);
+
+                if (allReady) {
+                    // 全員の特性が確定したら、鍋テンプレートを決定してPhase 1（ドラフト）を開始
+                    const initialPlayers = playersArr.map((p, idx) => ({
+                        id: idx,
+                        uid: p.id,
+                        name: p.name,
+                        isCpu: false,
+                        bowl: [],
+                        isPassed: false,
+                        isBusted: false,
+                        trait: p.trait || null
+                    }));
+
+                    const draftOptionsPerPlayer = {};
+                    initialPlayers.forEach(p => {
+                        draftOptionsPerPlayer[p.uid] = generatePhase1DraftPool();
+                    });
+
+                    const selectedTemplate = getRandomPotTemplate();
+
+                    const gameInitData = {
+                        status: 'playing',
+                        mode: 'online',
+                        currentPhase: 1,
+                        potTemplate: selectedTemplate,
+                        players: initialPlayers,
+                        currentDraftPlayerIndex: 0,
+                        currentTurnPlayerIndex: 0,
+                        potStack: [],
+                        draftOptionsPerPlayer: draftOptionsPerPlayer,
+                        selectedDraftIds: []
+                    };
+
+                    firebaseState.roomRef.update(gameInitData);
+                }
+            }
+        } else if (roomData.status === 'playing') {
+            // ホストがゲームを開始した（Phase 1 へ突入）！
+            document.getElementById('online-modal').classList.remove('active');
+            closeTraitSelectModal();
             setupOnlineGameClient(roomData);
         }
     });
@@ -188,39 +253,10 @@ export function startOnlineGameHost() {
             return;
         }
 
-        // 初期対戦プレイヤー配列の構築
-        const initialPlayers = playersArr.map((p, idx) => ({
-            id: idx,
-            uid: p.id,
-            name: p.name,
-            isCpu: false,
-            bowl: [],
-            isPassed: false,
-            isBusted: false
-        }));
-
-        // Phase 1 ドラフト用オプションの事前生成 (全プレイヤー分、インスタンス化済みカード配列)
-        const draftOptionsPerPlayer = {};
-        initialPlayers.forEach(p => {
-            draftOptionsPerPlayer[p.uid] = generatePhase1DraftPool();
+        // 特性選択フェーズへ遷移
+        firebaseState.roomRef.update({
+            status: 'trait_selection'
         });
-
-        const selectedTemplate = getRandomPotTemplate();
-
-        const gameInitData = {
-            status: 'playing',
-            mode: 'online',
-            currentPhase: 1,
-            potTemplate: selectedTemplate,
-            players: initialPlayers,
-            currentDraftPlayerIndex: 0,
-            currentTurnPlayerIndex: 0,
-            potStack: [],
-            draftOptionsPerPlayer: draftOptionsPerPlayer,
-            selectedDraftIds: []
-        };
-
-        firebaseState.roomRef.update(gameInitData);
     });
 }
 
@@ -337,7 +373,8 @@ export function executeOnlineScoopSelect(scoopIndex) {
     player.bowl.push(chosenItem);
 
     const currentTaste = player.bowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
-    if (currentTaste >= 300 || currentTaste <= -300) {
+    const isBurstImmune = player.trait?.id === 'burst_immune';
+    if ((currentTaste >= 300 || currentTaste <= -300) && !isBurstImmune) {
         player.isBusted = true;
         playSound('bust');
     } else if (player.bowl.length >= 4) {

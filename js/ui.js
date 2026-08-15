@@ -1,7 +1,8 @@
-import { gameState, draftState, calculateFinalScores, reshuffleScoop, handlePassClick, selectScoopedItem, BURST_PENALTY_SCORE } from './gameLogic.js';
+import { gameState, draftState, calculateFinalScores, calculatePlayerItemScore, reshuffleScoop, handlePassClick, selectScoopedItem, BURST_PENALTY_SCORE } from './gameLogic.js';
 import { firebaseState, myPlayerId } from './firebase.js';
 import { playSound } from './sound.js';
 import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE, getRecommendedCombos } from './ingredients.js';
+import { TRAITS_DATABASE, getTraitById } from './traits.js';
 
 export function getIngredientIconHtml(item, extraClass = '') {
     if (!item) return '';
@@ -99,7 +100,11 @@ export function renderOnlineDraftPhase(data) {
     if (!curPlayer) return;
 
     const isMyTurn = (curPlayer.uid === myPlayerId);
-    document.getElementById('p1-player-title').innerText = `${curPlayer.name} の手番：具材選択 ${isMyTurn ? '(あなた)' : ''}`;
+    const traitChipHtml = curPlayer.trait ? getTraitChipHtml(curPlayer.trait) : '';
+    document.getElementById('p1-player-title').innerHTML = `
+        <span style="vertical-align:middle;">${curPlayer.name} の手番：具材選択 ${isMyTurn ? '(あなた)' : ''}</span>
+        ${traitChipHtml ? `<span style="display:inline-block; margin-left:8px; vertical-align:middle;">${traitChipHtml}</span>` : ''}
+    `;
 
     const btn = document.getElementById('btn-add-pot');
     const grid = document.getElementById('draft-grid');
@@ -414,7 +419,7 @@ export function renderPotUI() {
     gameState.players.forEach((p, idx) => {
         const isCurrentTurn = (idx === gameState.currentTurnPlayerIndex && !p.isPassed && !p.isBusted);
         const pBowl = p.bowl || [];
-        const totalScore = pBowl.reduce((acc, cur) => acc + (cur.score || 0), 0);
+        const totalScore = pBowl.reduce((acc, cur) => acc + calculatePlayerItemScore(p, cur), 0);
         const totalTaste = pBowl.reduce((acc, cur) => acc + (cur.taste !== undefined ? cur.taste : (cur.spice || 0)), 0);
 
         const card = document.createElement('div');
@@ -456,25 +461,31 @@ export function renderPotUI() {
         let isDangerSpicy = false;
         let isDangerSweet = false;
 
+        const isBurstImmune = p.trait?.id === 'burst_immune';
+
         if (totalTaste > 0) {
             tasteBadgeClass = 'spicy';
             if (totalTaste >= 200 && totalTaste < 300 && !p.isPassed && !p.isBusted) {
-                isDangerSpicy = true;
-                tasteBadgeClass = 'spicy danger';
-                tasteBadgeContent = `🔥+${totalTaste} <span class="taste-warning-pill spicy">⚠️危険</span>`;
+                isDangerSpicy = !isBurstImmune;
+                tasteBadgeClass = isBurstImmune ? 'spicy' : 'spicy danger';
+                tasteBadgeContent = isBurstImmune
+                    ? `🔥+${totalTaste} <span class="taste-warning-pill spicy" style="background:#e17055;">🛡️無効化中</span>`
+                    : `🔥+${totalTaste} <span class="taste-warning-pill spicy">⚠️危険</span>`;
             } else if (totalTaste >= 300) {
-                tasteBadgeContent = `🔥+${totalTaste} 💥`;
+                tasteBadgeContent = isBurstImmune ? `🔥+${totalTaste} 🛡️無効` : `🔥+${totalTaste} 💥`;
             } else {
                 tasteBadgeContent = `🔥+${totalTaste}`;
             }
         } else if (totalTaste < 0) {
             tasteBadgeClass = 'sweet';
             if (totalTaste <= -200 && totalTaste > -300 && !p.isPassed && !p.isBusted) {
-                isDangerSweet = true;
-                tasteBadgeClass = 'sweet danger';
-                tasteBadgeContent = `🍬${totalTaste} <span class="taste-warning-pill sweet">⚠️危険</span>`;
+                isDangerSweet = !isBurstImmune;
+                tasteBadgeClass = isBurstImmune ? 'sweet' : 'sweet danger';
+                tasteBadgeContent = isBurstImmune
+                    ? `🍬${totalTaste} <span class="taste-warning-pill sweet" style="background:#e17055;">🛡️無効化中</span>`
+                    : `🍬${totalTaste} <span class="taste-warning-pill sweet">⚠️危険</span>`;
             } else if (totalTaste <= -300) {
-                tasteBadgeContent = `🍬${totalTaste} 💥`;
+                tasteBadgeContent = isBurstImmune ? `🍬${totalTaste} 🛡️無効` : `🍬${totalTaste} 💥`;
             } else {
                 tasteBadgeContent = `🍬${totalTaste}`;
             }
@@ -482,10 +493,14 @@ export function renderPotUI() {
 
         const meterDangerClass = isDangerSpicy ? 'danger-spicy' : (isDangerSweet ? 'danger-sweet' : '');
         const pointerDangerClass = isDangerSpicy ? 'danger-spicy' : (isDangerSweet ? 'danger-sweet' : '');
+        const traitChipHtml = p.trait ? getTraitChipHtml(p.trait) : '';
 
         card.innerHTML = `
             <div class="bowl-header">
-                <span>${p.name} ${p.uid === myPlayerId ? '<span style="color:var(--accent-gold); font-size:0.8rem;">(あなた)</span>' : ''}</span>
+                <div class="bowl-player-info">
+                    <span>${p.name} ${p.uid === myPlayerId ? '<span style="color:var(--accent-gold); font-size:0.8rem;">(あなた)</span>' : ''}</span>
+                    ${traitChipHtml}
+                </div>
                 ${statusTag}
             </div>
             <div class="bowl-items-slots">
@@ -642,6 +657,7 @@ function renderPhase3FinalInstant() {
         item.className = `ranking-item rank-${rankIdx + 1} ${p.isBusted ? 'is-busted' : ''}`;
 
         const bowlIcons = (p.bowl || []).map(b => getIngredientIconHtml(b)).join(' ');
+        const traitChip = p.trait ? getTraitChipHtml(p.trait) : '';
         const comboChips = (p.achievedCombos || []).map(c => {
             const sign = c.score >= 0 ? '+' : '';
             return `
@@ -651,13 +667,16 @@ function renderPhase3FinalInstant() {
             `;
         }).join('');
 
-        let combosHtml = comboChips;
-        if (!combosHtml) {
-            combosHtml = '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>';
+        let combosList = [];
+        if (traitChip) combosList.push(traitChip);
+        if (comboChips) combosList.push(comboChips);
+        if (combosList.length === 0) {
+            combosList.push('<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>');
         }
         if (p.isBusted) {
-            combosHtml += ` <span class="rank-combo-chip" style="background:rgba(255,118,117,0.2); border-color:#ff7675; color:#ff7675;">💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE.toLocaleString()}</span></span>`;
+            combosList.push(`<span class="rank-combo-chip" style="background:rgba(255,118,117,0.2); border-color:#ff7675; color:#ff7675;">💥 バースト <span class="combo-score-tag" style="background:#d63031;">${BURST_PENALTY_SCORE.toLocaleString()}</span></span>`);
         }
+        const combosHtml = combosList.join(' ');
 
         item.innerHTML = `
             <div class="rank-badge badge-pop">${rankIdx + 1}</div>
@@ -707,6 +726,7 @@ export async function initPhase3Results() {
         item.id = `result-player-item-${idx}`;
 
         const bowlIcons = (p.bowl || []).map(b => getIngredientIconHtml(b)).join(' ');
+        const traitChip = p.trait ? getTraitChipHtml(p.trait) : '';
 
         item.innerHTML = `
             <div class="rank-badge badge-pending">?</div>
@@ -715,7 +735,7 @@ export async function initPhase3Results() {
                     <div class="rank-pname">${p.name} ${p.isBusted ? '<span style="color:#ff7675; font-size:0.85rem;">[バースト]</span>' : ''}</div>
                     <div class="rank-bowl-icons">${bowlIcons || '<span style="font-size:0.85rem; color:var(--text-sub);">具材なし</span>'}</div>
                 </div>
-                <div class="rank-combos-container" id="combos-box-${idx}"></div>
+                <div class="rank-combos-container" id="combos-box-${idx}">${traitChip}</div>
                 <div class="score-detail-popover" id="score-detail-${idx}"></div>
             </div>
             <div class="rank-score-wrap">
@@ -868,7 +888,7 @@ export async function initPhase3Results() {
         const elInfo = playerElements.get(p);
         if (!elInfo) return;
         if (!p.achievedCombos || p.achievedCombos.length === 0) {
-            if (!p.isBusted) {
+            if (!p.isBusted && !p.trait) {
                 elInfo.combosBox.innerHTML = '<span style="font-size:0.75rem; color:var(--text-sub);">役なし</span>';
             }
         }
@@ -933,23 +953,32 @@ export function closeEncyclopediaModal() {
 
 export function switchEncyclopediaTab(tabName) {
     playSound('select');
-    document.querySelectorAll('.enc-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.encyclopedia-tab').forEach(btn => btn.classList.remove('active'));
     
+    const filterEl = document.getElementById('encyclopedia-filters');
+
     if (tabName === 'ingredients') {
-        document.getElementById('enc-tab-ingredients').classList.add('active');
-        document.getElementById('enc-filter-bar').style.display = 'flex';
+        const btn = document.getElementById('tab-btn-ingredients');
+        if (btn) btn.classList.add('active');
+        if (filterEl) filterEl.style.display = 'flex';
         renderEncyclopediaIngredients();
-    } else {
-        document.getElementById('enc-tab-combos').classList.add('active');
-        document.getElementById('enc-filter-bar').style.display = 'none';
+    } else if (tabName === 'combos') {
+        const btn = document.getElementById('tab-btn-combos');
+        if (btn) btn.classList.add('active');
+        if (filterEl) filterEl.style.display = 'none';
         renderEncyclopediaCombos();
+    } else if (tabName === 'traits') {
+        const btn = document.getElementById('tab-btn-traits');
+        if (btn) btn.classList.add('active');
+        if (filterEl) filterEl.style.display = 'none';
+        renderEncyclopediaTraits();
     }
 }
 
 export function filterEncyclopediaCategory(category) {
     playSound('select');
-    document.querySelectorAll('.enc-filter-chip').forEach(chip => chip.classList.remove('active'));
-    const clickedChip = Array.from(document.querySelectorAll('.enc-filter-chip')).find(c => c.getAttribute('onclick').includes(category));
+    document.querySelectorAll('.enc-filter-btn').forEach(chip => chip.classList.remove('active'));
+    const clickedChip = Array.from(document.querySelectorAll('.enc-filter-btn')).find(c => c.getAttribute('onclick')?.includes(category));
     if (clickedChip) clickedChip.classList.add('active');
     renderEncyclopediaIngredients(category);
 }
@@ -1032,10 +1061,36 @@ export function renderEncyclopediaCombos() {
     container.innerHTML = html;
 }
 
+export function renderEncyclopediaTraits() {
+    const container = document.getElementById('encyclopedia-body');
+    if (!container) return;
+
+    let html = `<div class="enc-trait-list">`;
+    TRAITS_DATABASE.forEach(trait => {
+        const color = trait.badgeColor || '#fdcb6e';
+        html += `
+            <div class="enc-trait-card clickable" style="--trait-color: ${color};" onclick="openTraitDetailModal('${trait.id}')" title="クリックして詳細を表示">
+                <div class="enc-trait-icon">${trait.icon}</div>
+                <div class="enc-trait-info">
+                    <div class="enc-trait-title-row">
+                        <span class="enc-trait-name">${trait.name}</span>
+                        <span class="enc-trait-badge" style="--trait-color: ${color};">${trait.subName}</span>
+                    </div>
+                    <div class="enc-trait-desc">${trait.desc}</div>
+                    <div class="enc-trait-detail">${trait.detail}</div>
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
 window.openEncyclopediaModal = openEncyclopediaModal;
 window.closeEncyclopediaModal = closeEncyclopediaModal;
 window.switchEncyclopediaTab = switchEncyclopediaTab;
 window.filterEncyclopediaCategory = filterEncyclopediaCategory;
+window.renderEncyclopediaTraits = renderEncyclopediaTraits;
 
 export function renderRecommendedCombos() {
     const container = document.getElementById('recommended-combos-list');
@@ -1334,6 +1389,129 @@ window.closeComboDetailModal = closeComboDetailModal;
 window.openRelatedCombosModal = openRelatedCombosModal;
 window.toggleDraftComboRadar = toggleDraftComboRadar;
 window.renderDraftComboRadar = renderDraftComboRadar;
+
+/* --- 特性（Trait）選択モーダル --- */
+let traitSelectCallback = null;
+
+export function openTraitSelectModal(player, onSelectCallback) {
+    traitSelectCallback = onSelectCallback;
+    const modal = document.getElementById('trait-select-modal');
+    if (!modal) return;
+
+    const badgeEl = document.getElementById('trait-modal-player-badge');
+    const subtitleEl = document.getElementById('trait-modal-subtitle');
+    if (badgeEl && player) {
+        badgeEl.innerText = player.name;
+    }
+    if (subtitleEl && player) {
+        subtitleEl.innerText = `${player.name} の秘めたる力を1つ選んでください（ゲーム終了まで有効）`;
+    }
+
+    renderTraitCards(player);
+    modal.classList.add('active');
+    playSound('phase');
+}
+
+export function closeTraitSelectModal() {
+    const modal = document.getElementById('trait-select-modal');
+    if (modal) modal.classList.remove('active');
+}
+
+export function renderTraitCards(player) {
+    const grid = document.getElementById('trait-cards-grid');
+    if (!grid) return;
+
+    grid.innerHTML = TRAITS_DATABASE.map(trait => {
+        const color = trait.badgeColor || '#fdcb6e';
+        return `
+            <div class="trait-card-item" style="--trait-color: ${color};" onclick="window.selectTrait('${trait.id}')">
+                <div class="trait-card-top">
+                    <div class="trait-card-icon">${trait.icon}</div>
+                    <div class="trait-card-meta">
+                        <span class="trait-card-subname" style="--trait-color: ${color};">${trait.subName}</span>
+                        <h3 class="trait-card-name">${trait.name}</h3>
+                    </div>
+                </div>
+                <p class="trait-card-desc">${trait.desc}</p>
+                <div class="trait-card-detail">${trait.detail}</div>
+                <button class="trait-card-btn" style="--trait-color: ${color};" onclick="event.stopPropagation(); window.selectTrait('${trait.id}')">
+                    <span>この特性を選ぶ</span> ➔
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.selectTrait = function(traitId) {
+    const selectedTrait = getTraitById(traitId);
+    playSound('select');
+    closeTraitSelectModal();
+    if (typeof traitSelectCallback === 'function') {
+        const cb = traitSelectCallback;
+        traitSelectCallback = null;
+        cb(selectedTrait);
+    }
+};
+
+/**
+ * 特性を役（コンボ）チップと同様のスタイルでHTML生成
+ * @param {object} trait 
+ * @param {boolean} [showTag=false] 特性サブ名タグ（バースト無効等）を表示するかどうか（デフォルト非表示）
+ * @returns {string}
+ */
+export function getTraitChipHtml(trait, showTag = false) {
+    if (!trait) return '';
+    const color = trait.badgeColor || '#fdcb6e';
+    const tagHtml = showTag ? ` <span class="combo-score-tag trait-tag">${trait.subName}</span>` : '';
+    return `
+        <span class="rank-combo-chip trait-chip clickable" style="--trait-color:${color};" title="クリックして特性詳細を表示: ${trait.name} (${trait.subName})" onclick="openTraitDetailModal('${trait.id}')">
+            ${trait.icon} ${trait.name}${tagHtml}
+        </span>
+    `;
+}
+
+/**
+ * 特性の詳細をポップアップ表示
+ * @param {string} traitId 
+ */
+export function openTraitDetailModal(traitId) {
+    playSound('select');
+    const trait = getTraitById(traitId);
+    if (!trait) return;
+
+    const modal = document.getElementById('combo-detail-modal');
+    const container = document.getElementById('combo-detail-content');
+    if (!modal || !container) return;
+
+    const color = trait.badgeColor || '#fdcb6e';
+
+    container.innerHTML = `
+        <div class="combo-detail-header">
+            <div class="combo-detail-icon">${trait.icon}</div>
+            <div class="combo-detail-title">${trait.name}</div>
+        </div>
+        <div class="combo-detail-badge" style="background:${color}22; border-color:${color}; color:${color};">
+            ✨ プレイヤー特性 [${trait.subName}]
+        </div>
+        <div class="combo-detail-section">
+            <div class="combo-detail-label">💡 特性効果</div>
+            <div class="combo-detail-val">${trait.desc}</div>
+        </div>
+        <div class="combo-detail-section">
+            <div class="combo-detail-label">📋 詳細説明</div>
+            <div class="combo-detail-val">${trait.detail}</div>
+        </div>
+    `;
+
+    modal.classList.add('active');
+}
+
+window.openTraitSelectModal = openTraitSelectModal;
+window.closeTraitSelectModal = closeTraitSelectModal;
+window.getTraitChipHtml = getTraitChipHtml;
+window.openTraitDetailModal = openTraitDetailModal;
+
+
 
 
 
