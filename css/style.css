@@ -733,6 +733,16 @@
             width: 100%;
         }
 
+        /* 食材画像アイコン共通スタイル */
+        .ingredient-img {
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+
         /* Sサイズ (小盛り) */
         .card-icon.size-small { font-size: clamp(1.6rem, 4.5vw, 2.2rem); }
         .card-icon.size-small .ingredient-img { width: clamp(32px, 8vw, 44px); height: clamp(32px, 8vw, 44px); }
@@ -748,6 +758,11 @@
         .item-slot .ingredient-img {
             width: 32px;
             height: 32px;
+        }
+
+        .combo-detail-icon .ingredient-img {
+            width: clamp(36px, 8vw, 48px);
+            height: clamp(36px, 8vw, 48px);
         }
 
         .silhouette-icon .ingredient-img {

@@ -48,7 +48,7 @@ export const INGREDIENTS_DATABASE = [
         score: 40000,
         taste: 0,
         icon: '🍜',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Men.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: '鍋の旨味を一滴残らず吸い上げる至高の〆。',
         unique: false
@@ -62,7 +62,7 @@ export const INGREDIENTS_DATABASE = [
         score: 20000,
         taste: 200,
         icon: '🌶️',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Tougarashi.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: 'ピリッとスープを引き締める定番の辛味',
         unique: false
@@ -74,7 +74,7 @@ export const INGREDIENTS_DATABASE = [
         score: 20000,
         taste: 200,
         icon: '🧂',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Pepper.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: 'スパイシーな香りで食欲をそそる本格薬味',
         unique: false
@@ -86,7 +86,7 @@ export const INGREDIENTS_DATABASE = [
         score: 30000,
         taste: 200,
         icon: '🔴',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Mentaiko.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: 'ピリ辛の粒々がスープに溶け込む贅沢具材',
         unique: false
@@ -100,7 +100,7 @@ export const INGREDIENTS_DATABASE = [
         score: 20000,
         taste: -200,
         icon: '🥮',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Kasutera.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: 'しっとり甘いカステラ',
         unique: false
@@ -112,7 +112,7 @@ export const INGREDIENTS_DATABASE = [
         score: 20000,
         taste: -200,
         icon: '🍫',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Chocolate.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: '濃厚な甘みとコクが広がるお菓子具材',
         unique: false
@@ -124,7 +124,7 @@ export const INGREDIENTS_DATABASE = [
         score: 20000,
         taste: -200,
         icon: '🍭',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Candy.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: 'ポップで甘いキャンディ',
         unique: false
@@ -138,7 +138,7 @@ export const INGREDIENTS_DATABASE = [
         score: -30000,
         taste: 0,
         icon: '🧭',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Compass.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: 'ぐるぐる針が回る謎の羅針盤',
         unique: false
@@ -150,7 +150,7 @@ export const INGREDIENTS_DATABASE = [
         score: -20000,
         taste: 0,
         icon: '✏️',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Pen.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: '鍋の底に沈む筆記用具',
         unique: false
@@ -162,7 +162,7 @@ export const INGREDIENTS_DATABASE = [
         score: -30000,
         taste: 0,
         icon: '⚙️',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Gear.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: '噛んだら歯が折れる重厚な鉄の歯車。',
         unique: false
@@ -174,7 +174,7 @@ export const INGREDIENTS_DATABASE = [
         score: -30000,
         taste: 0,
         icon: '💊',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Capsule.png',
         allowedSizes: ['small', 'mid', 'large'],
         desc: '何が入っているか分からない怪しい薬品',
         unique: false
@@ -192,7 +192,7 @@ export const INGREDIENTS_DATABASE = [
         score: 100000,
         taste: 0,
         icon: '🥩',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Longmotu.png',
         allowedSizes: ['mid'],
         desc: '一本丸ごとの極上もつ',
         unique: true
@@ -205,7 +205,7 @@ export const INGREDIENTS_DATABASE = [
         score: 80000,
         taste: -400,
         icon: '🥨',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Churros.png',
         allowedSizes: ['mid'],
         desc: '巨大チュロス！強烈な甘さ！',
         unique: true
@@ -218,7 +218,7 @@ export const INGREDIENTS_DATABASE = [
         score: 80000,
         taste: 400,
         icon: '🥢',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Tteokbokki.png',
         allowedSizes: ['mid'],
         desc: '激辛ロングトッポギ！',
         unique: true
@@ -231,7 +231,7 @@ export const INGREDIENTS_DATABASE = [
         score: -90000,
         taste: 0,
         icon: '🧲',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Magnet.png',
         allowedSizes: ['mid'],
         desc: '湾曲した巨大磁石！',
         unique: true
@@ -246,7 +246,7 @@ export const INGREDIENTS_DATABASE = [
         score: 90000,
         taste: 0,
         icon: '🍶',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Dasi.png',
         allowedSizes: ['mid'],
         desc: '創業以来継ぎ足された伝説の出汁',
         unique: true
@@ -259,7 +259,7 @@ export const INGREDIENTS_DATABASE = [
         score: 70000,
         taste: -500,
         icon: '🥛',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Gekiamasauce.png',
         allowedSizes: ['mid'],
         desc: '溢れ出る濃厚練乳!',
         unique: true
@@ -285,7 +285,7 @@ export const INGREDIENTS_DATABASE = [
         score: -80000,
         taste: 0,
         icon: '🧴',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Wash.png',
         allowedSizes: ['mid'],
         desc: '洗剤！絶対口にしてはならない',
         unique: true
@@ -326,7 +326,7 @@ export const INGREDIENTS_DATABASE = [
         score: 60000,
         taste: 0,
         icon: '🥩',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Hatumoto.png',
         allowedSizes: ['mid'],
         desc: '希少部位!抜群の歯ごたえと旨味！',
         unique: true
@@ -367,7 +367,7 @@ export const INGREDIENTS_DATABASE = [
         score: 60000,
         taste: 0,
         icon: '🍄',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Matsutake.png',
         allowedSizes: ['mid'],
         desc: '高級な松茸。芳醇な香り！',
         unique: true
@@ -382,7 +382,7 @@ export const INGREDIENTS_DATABASE = [
         score: 40000,
         taste: 0,
         icon: '🧊',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Toufu.png',
         allowedSizes: ['mid'],
         desc: '四角くカットされた純白の豆腐',
         unique: true
@@ -395,7 +395,7 @@ export const INGREDIENTS_DATABASE = [
         score: 40000,
         taste: 300,
         icon: '🍛',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Curry.png',
         allowedSizes: ['mid'],
         desc: '鍋が一瞬でスパイスカレーに！',
         unique: true
@@ -408,7 +408,7 @@ export const INGREDIENTS_DATABASE = [
         score: 40000,
         taste: -300,
         icon: '🧊',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Sugar.png',
         allowedSizes: ['mid'],
         desc: '豆腐と見紛う四角い角砂糖',
         unique: true
@@ -421,7 +421,7 @@ export const INGREDIENTS_DATABASE = [
         score: -40000,
         taste: 0,
         icon: '🧼',
-        iconUrl: null,
+        iconUrl: 'assets/icon/Eraser.png',
         allowedSizes: ['mid'],
         desc: '文字も点数も削られる',
         unique: true
