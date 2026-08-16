@@ -1,4 +1,23 @@
-import { toggleSound, toggleBGM, playBGM, stopBGM, pauseBGM, resumeBGM } from './sound.js';
+import { 
+    toggleSound, 
+    toggleBGM, 
+    playBGM, 
+    stopBGM, 
+    pauseBGM, 
+    resumeBGM,
+    setBGMVolume,
+    setSoundVolume,
+    setBGMEnabled,
+    setSoundEnabled,
+    toggleMuteAll,
+    playSound,
+    openSoundModal,
+    closeSoundModal,
+    toggleSoundModal,
+    updateSoundButtonUI,
+    updateSoundModalUI,
+    soundSettings
+} from './sound.js';
 import { closeOnlineModal, createOnlineRoom, joinOnlineRoom, startOnlineGameHost, firebaseState } from './firebase.js';
 import { gameState, startGame, resetToStart, submitDraftChoice, reshuffleScoop, handlePassClick } from './gameLogic.js';
 import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory, openComboDetailModal, closeComboDetailModal, closePotRevealModal, toggleDraftComboRadar, openRelatedCombosModal, renderDraftComboRadar } from './ui.js';
@@ -12,6 +31,39 @@ window.playBGM = playBGM;
 window.stopBGM = stopBGM;
 window.pauseBGM = pauseBGM;
 window.resumeBGM = resumeBGM;
+
+// サウンド調整モーダル用グローバルハンドラ
+window.openSoundModal = openSoundModal;
+window.closeSoundModal = closeSoundModal;
+window.toggleSoundModal = toggleSoundModal;
+window.setBGMVolume = setBGMVolume;
+window.setSoundVolume = setSoundVolume;
+window.setBGMEnabled = setBGMEnabled;
+window.setSoundEnabled = setSoundEnabled;
+window.toggleMuteAll = toggleMuteAll;
+window.playSound = playSound;
+
+window.onBgmVolumeChange = (val) => {
+    setBGMVolume(parseFloat(val) / 100);
+};
+
+window.onSoundVolumeChange = (val) => {
+    const vol = parseFloat(val) / 100;
+    setSoundVolume(vol);
+};
+
+window.toggleBGMFromUI = (checked) => {
+    setBGMEnabled(checked);
+};
+
+window.toggleSoundFromUI = (checked) => {
+    setSoundEnabled(checked);
+};
+
+window.testSoundEffect = (type) => {
+    playSound(type);
+};
+
 window.closeOnlineModal = closeOnlineModal;
 window.createOnlineRoom = createOnlineRoom;
 window.joinOnlineRoom = joinOnlineRoom;
@@ -47,6 +99,21 @@ window.minimizeDevPanel = minimizeDevPanel;
 // デバッグ・監視用オブジェクトの登録
 window.gameState = gameState;
 window.firebaseState = firebaseState;
+window.soundSettings = soundSettings;
+
+// モーダル背景クリックでのクローズ設定
+document.addEventListener('DOMContentLoaded', () => {
+    const soundModal = document.getElementById('sound-modal');
+    if (soundModal) {
+        soundModal.addEventListener('click', (e) => {
+            if (e.target === soundModal) {
+                closeSoundModal();
+            }
+        });
+    }
+    updateSoundButtonUI();
+    updateSoundModalUI();
+});
 
 // 開発者モードの初期化（URLが /dev, ?dev, #dev の場合に起動）
 initDevColorMatrix();

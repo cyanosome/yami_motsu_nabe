@@ -5,11 +5,52 @@ export const BGM_TRACKS = {
     MAIN: 'assets/sound/和風ロックBGM.wav'
 };
 
+/* --- サウンド設定と永続化 (LocalStorage) --- */
+const SOUND_SETTINGS_KEY = 'yami_motsu_sound_settings';
+
+export const soundSettings = {
+    bgmEnabled: true,
+    bgmVolume: 0.35,      // 0.0 〜 1.0
+    soundEnabled: true,
+    soundVolume: 0.80     // 0.0 〜 1.0
+};
+
+// 起動時にローカルストレージから設定を復元
+export function loadSoundSettings() {
+    try {
+        const saved = localStorage.getItem(SOUND_SETTINGS_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (typeof parsed.bgmEnabled === 'boolean') soundSettings.bgmEnabled = parsed.bgmEnabled;
+            if (typeof parsed.bgmVolume === 'number') soundSettings.bgmVolume = Math.max(0, Math.min(1, parsed.bgmVolume));
+            if (typeof parsed.soundEnabled === 'boolean') soundSettings.soundEnabled = parsed.soundEnabled;
+            if (typeof parsed.soundVolume === 'number') soundSettings.soundVolume = Math.max(0, Math.min(1, parsed.soundVolume));
+        }
+    } catch (e) {
+        console.warn('[Sound] Failed to load sound settings from localStorage:', e);
+    }
+    
+    // gameStateにも同期
+    gameState.bgmEnabled = soundSettings.bgmEnabled;
+    gameState.soundEnabled = soundSettings.soundEnabled;
+}
+
+export function saveSoundSettings() {
+    try {
+        localStorage.setItem(SOUND_SETTINGS_KEY, JSON.stringify(soundSettings));
+    } catch (e) {
+        console.warn('[Sound] Failed to save sound settings:', e);
+    }
+}
+
+// 初期ロード実行
+loadSoundSettings();
+
 /* --- Web Audio API 共通基盤 --- */
 const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 
-function getAudioContext() {
+export function getAudioContext() {
     if (!audioCtx) {
         audioCtx = new AudioCtxClass();
     }
@@ -24,7 +65,6 @@ const bgmBufferCache = new Map(); // URL -> AudioBuffer
 let bgmGainNode = null;
 let bgmSourceNode = null;
 let currentTrackKey = null;
-let targetBgmVolume = 0.35;
 let bgmStartTime = 0;
 let bgmPauseOffset = 0;
 let isBgmPlaying = false;
@@ -37,7 +77,8 @@ function getBgmGainNode() {
     const ctx = getAudioContext();
     if (!bgmGainNode) {
         bgmGainNode = ctx.createGain();
-        bgmGainNode.gain.setValueAtTime(targetBgmVolume, ctx.currentTime);
+        const initialVol = soundSettings.bgmEnabled ? soundSettings.bgmVolume : 0;
+        bgmGainNode.gain.setValueAtTime(initialVol, ctx.currentTime);
         bgmGainNode.connect(ctx.destination);
     }
     return bgmGainNode;
@@ -45,8 +86,6 @@ function getBgmGainNode() {
 
 /**
  * 音声ファイルを非同期ロードして AudioBuffer を取得（キャッシュ付き）
- * @param {string} trackKey 
- * @returns {Promise<AudioBuffer>}
  */
 export async function loadBGMBuffer(trackKey) {
     const trackSrc = BGM_TRACKS[trackKey];
@@ -71,22 +110,20 @@ export async function loadBGMBuffer(trackKey) {
 
 /**
  * BGMを完全シームレスループで再生する（Web Audio API / AudioBufferSourceNode）
- * @param {string} trackKey BGM_TRACKSのキー（デフォルト: 'MAIN'）
- * @param {Object} options 再生オプション
  */
 export async function playBGM(trackKey = 'MAIN', options = {}) {
     const {
         loop = true,
-        volume = targetBgmVolume,
+        volume = soundSettings.bgmVolume,
         fadeIn = true,
         fadeInDuration = 0.8,
         offset = null
     } = options;
 
     currentTrackKey = trackKey;
-    targetBgmVolume = volume;
+    soundSettings.bgmVolume = volume;
 
-    if (!gameState.bgmEnabled) {
+    if (!soundSettings.bgmEnabled || !gameState.bgmEnabled) {
         return;
     }
 
@@ -95,27 +132,21 @@ export async function playBGM(trackKey = 'MAIN', options = {}) {
         const gainNode = getBgmGainNode();
         const buffer = await loadBGMBuffer(trackKey);
 
-        // ロード完了前にBGMが無効化された場合は中断
-        if (!gameState.bgmEnabled) return;
+        if (!soundSettings.bgmEnabled || !gameState.bgmEnabled) return;
 
-        // 既存の停止タイマーをクリア
         if (bgmStopTimeout) {
             clearTimeout(bgmStopTimeout);
             bgmStopTimeout = null;
         }
 
-        // 既に再生中の古いソースノードがあれば停止
         if (bgmSourceNode) {
             try {
                 bgmSourceNode.stop();
                 bgmSourceNode.disconnect();
-            } catch (e) {
-                // 既に停止している場合は無視
-            }
+            } catch (e) {}
             bgmSourceNode = null;
         }
 
-        // 新しい AudioBufferSourceNode を作成（使い捨て仕様のため毎回生成）
         const source = ctx.createBufferSource();
         source.buffer = buffer;
         source.loop = loop;
@@ -127,10 +158,10 @@ export async function playBGM(trackKey = 'MAIN', options = {}) {
         if (fadeIn) {
             gainNode.gain.cancelScheduledValues(now);
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(targetBgmVolume, now + fadeInDuration);
+            gainNode.gain.linearRampToValueAtTime(soundSettings.bgmVolume, now + fadeInDuration);
         } else {
             gainNode.gain.cancelScheduledValues(now);
-            gainNode.gain.setValueAtTime(targetBgmVolume, now);
+            gainNode.gain.setValueAtTime(soundSettings.bgmVolume, now);
         }
 
         source.start(now, startOffset);
@@ -153,7 +184,6 @@ export async function playBGM(trackKey = 'MAIN', options = {}) {
 
 /**
  * BGMを停止する（フェードアウト対応）
- * @param {Object} options 停止オプション
  */
 export function stopBGM(options = {}) {
     const {
@@ -177,7 +207,6 @@ export function stopBGM(options = {}) {
             bgmStopTimeout = null;
         }
 
-        // 現在の再生位置をリセット
         bgmPauseOffset = 0;
         isBgmPlaying = false;
 
@@ -227,47 +256,103 @@ export function pauseBGM() {
  * BGMを一時停止位置から再開する
  */
 export function resumeBGM() {
-    if (isBgmPlaying || !gameState.bgmEnabled || !currentTrackKey) return;
+    if (isBgmPlaying || !soundSettings.bgmEnabled || !gameState.bgmEnabled || !currentTrackKey) return;
     playBGM(currentTrackKey, { fadeIn: true, offset: bgmPauseOffset });
 }
 
 /**
- * BGMのON/OFF切り替え
+ * BGMの音量を設定する (0.0 〜 1.0)
  */
-export function toggleBGM() {
-    gameState.bgmEnabled = !gameState.bgmEnabled;
-    const bgmBtn = document.getElementById('bgm-btn');
-    if (bgmBtn) {
-        bgmBtn.innerHTML = gameState.bgmEnabled ? '🎵 BGM: ON' : '🔇 BGM: OFF';
-        bgmBtn.classList.toggle('muted', !gameState.bgmEnabled);
-    }
+export function setBGMVolume(volume) {
+    const vol = Math.max(0, Math.min(1, parseFloat(volume)));
+    soundSettings.bgmVolume = vol;
+    saveSoundSettings();
 
-    if (gameState.bgmEnabled) {
-        // ゲーム中であればBGMを再生
-        if (gameState.currentPhase >= 1) {
+    if (bgmGainNode && audioCtx && soundSettings.bgmEnabled) {
+        const now = audioCtx.currentTime;
+        bgmGainNode.gain.cancelScheduledValues(now);
+        bgmGainNode.gain.setValueAtTime(vol, now);
+    }
+    updateSoundModalUI();
+}
+
+/**
+ * 効果音のマスター音量を設定する (0.0 〜 1.0)
+ */
+export function setSoundVolume(volume) {
+    const vol = Math.max(0, Math.min(1, parseFloat(volume)));
+    soundSettings.soundVolume = vol;
+    saveSoundSettings();
+    updateSoundModalUI();
+}
+
+/**
+ * BGM有効/無効の切り替え
+ */
+export function setBGMEnabled(enabled) {
+    soundSettings.bgmEnabled = Boolean(enabled);
+    gameState.bgmEnabled = soundSettings.bgmEnabled;
+    saveSoundSettings();
+
+    if (soundSettings.bgmEnabled) {
+        if (bgmGainNode && audioCtx) {
+            const now = audioCtx.currentTime;
+            bgmGainNode.gain.cancelScheduledValues(now);
+            bgmGainNode.gain.setValueAtTime(soundSettings.bgmVolume, now);
+        }
+        if (gameState.currentPhase >= 1 || isBgmPlaying) {
             playBGM(currentTrackKey || 'MAIN', { fadeIn: true });
         }
     } else {
         stopBGM({ fadeOut: true });
     }
+
+    updateSoundButtonUI();
+    updateSoundModalUI();
+}
+
+export function toggleBGM() {
+    setBGMEnabled(!soundSettings.bgmEnabled);
 }
 
 /**
- * BGMの音量を設定する
- * @param {number} volume 0.0 〜 1.0
+ * 効果音有効/無効の切り替え
  */
-export function setBGMVolume(volume) {
-    targetBgmVolume = Math.max(0, Math.min(1, volume));
-    if (bgmGainNode && audioCtx) {
-        const now = audioCtx.currentTime;
-        bgmGainNode.gain.cancelScheduledValues(now);
-        bgmGainNode.gain.setValueAtTime(targetBgmVolume, now);
+export function setSoundEnabled(enabled) {
+    soundSettings.soundEnabled = Boolean(enabled);
+    gameState.soundEnabled = soundSettings.soundEnabled;
+    saveSoundSettings();
+
+    updateSoundButtonUI();
+    updateSoundModalUI();
+}
+
+export function toggleSound() {
+    setSoundEnabled(!soundSettings.soundEnabled);
+}
+
+/**
+ * 一括ミュート / ミュート解除の切り替え
+ */
+export function toggleMuteAll() {
+    const isAnyActive = soundSettings.bgmEnabled || soundSettings.soundEnabled;
+    if (isAnyActive) {
+        // 全てOFFに
+        setBGMEnabled(false);
+        setSoundEnabled(false);
+    } else {
+        // 全てONに復帰
+        setBGMEnabled(true);
+        setSoundEnabled(true);
     }
 }
 
 /* --- 効果音 (Web Audio API) --- */
 export function playSound(type) {
-    if (!gameState.soundEnabled) return;
+    if (!soundSettings.soundEnabled || !gameState.soundEnabled) return;
+    const masterVol = soundSettings.soundVolume;
+    if (masterVol <= 0.001) return;
+
     try {
         const ctx = getAudioContext();
 
@@ -282,48 +367,48 @@ export function playSound(type) {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(440, now);
             osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+            gain.gain.setValueAtTime(0.15 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.01 * masterVol, now + 0.1);
             osc.start(now);
             osc.stop(now + 0.1);
         } else if (type === 'add') {
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(300, now);
             osc.frequency.exponentialRampToValueAtTime(150, now + 0.2);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+            gain.gain.setValueAtTime(0.3 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.01 * masterVol, now + 0.2);
             osc.start(now);
             osc.stop(now + 0.2);
         } else if (type === 'draw') {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(523.25, now);
             osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.15);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+            gain.gain.setValueAtTime(0.2 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.01 * masterVol, now + 0.15);
             osc.start(now);
             osc.stop(now + 0.15);
         } else if (type === 'bust') {
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(180, now);
             osc.frequency.linearRampToValueAtTime(60, now + 0.4);
-            gain.gain.setValueAtTime(0.4, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+            gain.gain.setValueAtTime(0.4 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.01 * masterVol, now + 0.4);
             osc.start(now);
             osc.stop(now + 0.4);
         } else if (type === 'count') {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(600, now);
             osc.frequency.exponentialRampToValueAtTime(900, now + 0.05);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+            gain.gain.setValueAtTime(0.08 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.001 * masterVol, now + 0.05);
             osc.start(now);
             osc.stop(now + 0.05);
         } else if (type === 'combo') {
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(587.33, now); // D5
             osc.frequency.setValueAtTime(880.00, now + 0.08); // A5
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+            gain.gain.setValueAtTime(0.2 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.01 * masterVol, now + 0.25);
             osc.start(now);
             osc.stop(now + 0.25);
         } else if (type === 'win') {
@@ -332,22 +417,98 @@ export function playSound(type) {
             osc.frequency.setValueAtTime(659.25, now + 0.12);
             osc.frequency.setValueAtTime(783.99, now + 0.24);
             osc.frequency.setValueAtTime(1046.50, now + 0.36);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+            gain.gain.setValueAtTime(0.2 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.01 * masterVol, now + 0.5);
             osc.start(now);
             osc.stop(now + 0.5);
+        } else if (type === 'phase') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.08);
+            gain.gain.setValueAtTime(0.18 * masterVol, now);
+            gain.gain.linearRampToValueAtTime(0.01 * masterVol, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
         }
     } catch (e) {
         console.log("Audio error", e);
     }
 }
 
-export function toggleSound() {
-    gameState.soundEnabled = !gameState.soundEnabled;
-    const soundBtn = document.getElementById('sound-btn');
-    if (soundBtn) {
-        soundBtn.innerHTML = gameState.soundEnabled ? '🔊 効果音: ON' : '🔇 効果音: OFF';
-        soundBtn.classList.toggle('muted', !gameState.soundEnabled);
+/* --- UI 同期・更新 --- */
+export function updateSoundButtonUI() {
+    const mainBtn = document.getElementById('sound-main-btn');
+    if (!mainBtn) return;
+
+    const bgm = soundSettings.bgmEnabled;
+    const se = soundSettings.soundEnabled;
+
+    if (bgm && se) {
+        mainBtn.innerHTML = '🔊 サウンド';
+        mainBtn.classList.remove('muted');
+        mainBtn.title = `サウンド: ON (BGM: ${Math.round(soundSettings.bgmVolume * 100)}% / SE: ${Math.round(soundSettings.soundVolume * 100)}%)`;
+    } else if (bgm && !se) {
+        mainBtn.innerHTML = '🎵 音楽のみ';
+        mainBtn.classList.remove('muted');
+        mainBtn.title = 'BGM: ON / 効果音: OFF';
+    } else if (!bgm && se) {
+        mainBtn.innerHTML = '🔔 効果音のみ';
+        mainBtn.classList.remove('muted');
+        mainBtn.title = 'BGM: OFF / 効果音: ON';
+    } else {
+        mainBtn.innerHTML = '🔇 ミュート';
+        mainBtn.classList.add('muted');
+        mainBtn.title = '全サウンド: OFF';
+    }
+}
+
+export function updateSoundModalUI() {
+    const bgmToggle = document.getElementById('bgm-toggle-chk');
+    const bgmSlider = document.getElementById('bgm-volume-slider');
+    const bgmLabel = document.getElementById('bgm-volume-label');
+
+    const seToggle = document.getElementById('se-toggle-chk');
+    const seSlider = document.getElementById('se-volume-slider');
+    const seLabel = document.getElementById('se-volume-label');
+
+    const muteBtn = document.getElementById('sound-mute-all-btn');
+
+    if (bgmToggle) bgmToggle.checked = soundSettings.bgmEnabled;
+    if (bgmSlider) bgmSlider.value = Math.round(soundSettings.bgmVolume * 100);
+    if (bgmLabel) bgmLabel.textContent = `${Math.round(soundSettings.bgmVolume * 100)}%`;
+
+    if (seToggle) seToggle.checked = soundSettings.soundEnabled;
+    if (seSlider) seSlider.value = Math.round(soundSettings.soundVolume * 100);
+    if (seLabel) seLabel.textContent = `${Math.round(soundSettings.soundVolume * 100)}%`;
+
+    if (muteBtn) {
+        const isAnyActive = soundSettings.bgmEnabled || soundSettings.soundEnabled;
+        muteBtn.innerHTML = isAnyActive ? '🔇 一括ミュート' : '🔊 ミュート解除';
+        muteBtn.classList.toggle('muted-active', !isAnyActive);
+    }
+}
+
+/* --- モーダル制御 --- */
+export function openSoundModal() {
+    const modal = document.getElementById('sound-modal');
+    if (!modal) return;
+    updateSoundModalUI();
+    modal.classList.add('active');
+}
+
+export function closeSoundModal() {
+    const modal = document.getElementById('sound-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+}
+
+export function toggleSoundModal() {
+    const modal = document.getElementById('sound-modal');
+    if (!modal) return;
+    if (modal.classList.contains('active')) {
+        closeSoundModal();
+    } else {
+        openSoundModal();
     }
 }
 
@@ -359,7 +520,7 @@ document.addEventListener('visibilitychange', () => {
             audioCtx.suspend().catch(() => {});
         }
     } else {
-        if (audioCtx.state === 'suspended' && (gameState.bgmEnabled || gameState.soundEnabled)) {
+        if (audioCtx.state === 'suspended' && (soundSettings.bgmEnabled || soundSettings.soundEnabled)) {
             audioCtx.resume().catch(() => {});
         }
     }
@@ -371,8 +532,7 @@ function unlockAudioOnFirstGesture() {
     if (ctx && ctx.state === 'suspended') {
         ctx.resume();
     }
-    // 既にBGM再生要求が出ている場合の再開
-    if (gameState.bgmEnabled && !isBgmPlaying && currentTrackKey && gameState.currentPhase >= 1) {
+    if (soundSettings.bgmEnabled && !isBgmPlaying && currentTrackKey && gameState.currentPhase >= 1) {
         playBGM(currentTrackKey, { fadeIn: true });
     }
     window.removeEventListener('click', unlockAudioOnFirstGesture);
@@ -380,3 +540,9 @@ function unlockAudioOnFirstGesture() {
 }
 window.addEventListener('click', unlockAudioOnFirstGesture, { passive: true });
 window.addEventListener('touchstart', unlockAudioOnFirstGesture, { passive: true });
+
+// 初期UI更新
+document.addEventListener('DOMContentLoaded', () => {
+    updateSoundButtonUI();
+    updateSoundModalUI();
+});

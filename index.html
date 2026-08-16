@@ -21,12 +21,69 @@
             🍲 闇もつ鍋 <span>ONLINE</span>
         </div>
         <div class="sound-controls">
-            <button class="sound-toggle" id="bgm-btn" onclick="toggleBGM()" title="BGMのON/OFF">🎵 BGM: ON</button>
-            <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="効果音のON/OFF">🔊 効果音: ON</button>
+            <button class="sound-toggle" id="sound-main-btn" onclick="openSoundModal()" title="サウンド・音量設定">🔊 サウンド</button>
         </div>
     </header>
 
     <div id="toast" class="toast-notification">メッセージ</div>
+
+    <!-- サウンド設定モーダル -->
+    <div class="modal-overlay" id="sound-modal">
+        <div class="modal-card sound-modal-card">
+            <button class="modal-close-btn" onclick="closeSoundModal()">✕</button>
+            <div class="modal-title">🔊 サウンド設定</div>
+
+            <div class="sound-quick-bar">
+                <span class="sound-quick-label">マスター設定</span>
+                <button id="sound-mute-all-btn" class="sound-mute-all-btn" onclick="toggleMuteAll()">
+                    🔇 一括ミュート
+                </button>
+            </div>
+
+            <!-- BGM (音楽) 設定 -->
+            <div class="sound-setting-card">
+                <div class="sound-card-header">
+                    <div class="sound-card-title">
+                        <span class="sound-icon">🎵</span> BGM (音楽)
+                    </div>
+                    <label class="sound-switch-label">
+                        <input type="checkbox" id="bgm-toggle-chk" class="sound-switch-input" onchange="toggleBGMFromUI(this.checked)">
+                        <span class="sound-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="sound-slider-container">
+                    <span class="sound-volume-icon">🔉</span>
+                    <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" class="sound-range-input" oninput="onBgmVolumeChange(this.value)">
+                    <span id="bgm-volume-label" class="sound-percent-badge">35%</span>
+                </div>
+            </div>
+
+            <!-- 効果音 (SE) 設定 -->
+            <div class="sound-setting-card">
+                <div class="sound-card-header">
+                    <div class="sound-card-title">
+                        <span class="sound-icon">🔔</span> 効果音 (SE)
+                    </div>
+                    <label class="sound-switch-label">
+                        <input type="checkbox" id="se-toggle-chk" class="sound-switch-input" onchange="toggleSoundFromUI(this.checked)">
+                        <span class="sound-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="sound-slider-container">
+                    <span class="sound-volume-icon">🔉</span>
+                    <input type="range" id="se-volume-slider" min="0" max="100" value="80" class="sound-range-input" oninput="onSoundVolumeChange(this.value)">
+                    <span id="se-volume-label" class="sound-percent-badge">80%</span>
+                </div>
+                <div class="sound-preview-actions">
+                    <button class="sound-preview-btn" onclick="testSoundEffect('select')">▶ クリック音 試聴</button>
+                    <button class="sound-preview-btn" onclick="testSoundEffect('add')">▶ 鍋投入音 試聴</button>
+                    <button class="sound-preview-btn" onclick="testSoundEffect('combo')">▶ コンボ音 試聴</button>
+                </div>
+            </div>
+
+            <button class="btn-primary" style="width:100%; margin-top:16px;" onclick="closeSoundModal()">完了</button>
+        </div>
+    </div>
 
     <!-- オンラインモーダル -->
     <div class="modal-overlay" id="online-modal">
