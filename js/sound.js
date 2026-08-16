@@ -10,7 +10,7 @@ const SOUND_SETTINGS_KEY = 'yami_motsu_sound_settings';
 
 export const soundSettings = {
     bgmEnabled: true,
-    bgmVolume: 0.35,      // 0.0 〜 1.0
+    bgmVolume: 0.25,      // 0.0 〜 1.0
     soundEnabled: true,
     soundVolume: 0.80     // 0.0 〜 1.0
 };
