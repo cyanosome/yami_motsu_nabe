@@ -1343,8 +1343,8 @@ export function renderDraftComboRadar(options) {
             const count = (hasMotsu ? 1 : 0) + (hasClassic ? 1 : 0) + (hasSpice ? 1 : 0) + (hasSweets ? 1 : 0) + (hasYami ? 1 : 0);
             if (count >= 3) {
                 isRelevant = true;
-                isPoolComplete = count === 5;
-                matchHint = isPoolComplete ? '🎯 全5ジャンルが揃っています！' : `💡 ${count}系統が出現中！`;
+                isPoolComplete = count >= 4;
+                matchHint = isPoolComplete ? '🎯 4ジャンル以上が揃っています！' : `💡 ${count}系統が出現中！`;
             }
         } else if (combo.id === 'combo_kids_pot') {
             if (motsuCount >= 3) {

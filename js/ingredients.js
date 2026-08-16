@@ -530,7 +530,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_kids_pot',
         name: 'お子様もつ鍋',
-        score: 80000,
+        score: 120000,
         icon: '👶',
         conditionText: '「もつ」系具材が4枚以上',
         desc: '野菜は嫌い！肉だけをもりもり食べたいわんぱくな鍋。',
@@ -593,7 +593,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_three_card',
         name: '３カード',
-        score: 30000,
+        score: 100000,
         icon: '☘️',
         conditionText: '同じ具材が3枚（サイズ不問）',
         desc: '同じ具材が3枚集結！トリプルコンボ！',
@@ -610,7 +610,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_four_card',
         name: '４カード',
-        score: 60000,
+        score: 200000,
         icon: '🃏',
         conditionText: '同じ具材が4枚以上（サイズ不問）',
         desc: '同じ具材が4枚！奇跡のカルテット！',
@@ -627,7 +627,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_frugal',
         name: '質素倹約',
-        score: 50000,
+        score: 80000,
         icon: '🥣',
         conditionText: 'お椀が3枚以上かつ全て小サイズ(small)',
         desc: '小ぶりな具材でちまちま味わう、慎ましくも温かい一杯。',
@@ -651,9 +651,13 @@ export const COMBOS_DATABASE = [
         name: 'バランスの取れた食事',
         score: 100000,
         icon: '🍱',
-        conditionText: '全5ジャンル（もつ・定番・辛味・甘味・闇）が各1枚以上',
-        desc: '全ジャンルが揃った、カオスでありながら完璧な黄金バランス。',
-        check: (bowl) => ['motsu', 'classic', 'spice', 'sweets', 'yami'].every(cat => bowl.some(b => b.category === cat))
+        conditionText: '5ジャンル中4ジャンル（4枚すべて別ジャンル）で構成',
+        desc: '異なる4つのジャンルが揃った、カオスでありながら完璧な黄金バランス。',
+        check: (bowl) => {
+            if (bowl.length < 4) return false;
+            const uniqueCategories = new Set(bowl.map(b => b.category));
+            return uniqueCategories.size >= 4;
+        }
     },
     {
         id: 'combo_gentle_life',
@@ -882,7 +886,7 @@ export const COMBOS_DATABASE = [
     {
         id: 'combo_supreme_realm',
         name: '至高の領域',
-        score: 250000,
+        score: 500000,
         icon: '👑',
         conditionText: '「至高のモツ」＋「至高のダシ」＋「松茸」＋「とうふ」',
         desc: '最高級の素材と伝説の出汁が織りなす、もつ鍋の究極完全形態！',
@@ -897,7 +901,7 @@ export const COMBOS_DATABASE = [
         score: 50000,
         icon: '🥤',
         conditionText: '「胡椒」＋「カプセル錠剤」',
-        desc: 'ピリリと刺激的なスパイスと怪しい薬品。ドクター・ペッパー！？',
+        desc: 'ピリリと刺激的なスパイスと怪しい薬品! ',
         check: (bowl) => {
             const ids = bowl.map(b => b.baseId || b.id.split('_')[0]);
             return ids.includes('spice_pepper') && ids.includes('yami_capsule');
@@ -964,7 +968,7 @@ export function getRecommendedCombos(bowl = []) {
             },
             {
                 ...COMBOS_DATABASE.find(c => c.id === 'combo_balanced_diet'),
-                statusText: '💡 5色盛り狙い目',
+                statusText: '💡 4ジャンル制覇狙い目',
                 statusType: 'default',
                 priority: 7
             }
@@ -1003,20 +1007,26 @@ export function getRecommendedCombos(bowl = []) {
                 }
             }
 
-            // 2. バランスの取れた食事 (全5ジャンル)
+            // 2. バランスの取れた食事 (5ジャンル中4ジャンル制覇)
             else if (combo.id === 'combo_balanced_diet') {
                 const cats = ['motsu', 'classic', 'spice', 'sweets', 'yami'];
                 const presentCats = cats.filter(c => bowl.some(b => b.category === c));
-                if (presentCats.length === 4) {
-                    const missing = cats.find(c => !presentCats.includes(c));
-                    const catNames = { motsu: 'もつ', classic: '定番', spice: '辛味', sweets: '甘味', yami: '闇' };
-                    statusText = `🎯 あと「${catNames[missing] || missing}」で5色完成！`;
-                    statusType = 'close';
-                    priority = 95;
-                } else if (presentCats.length === 3) {
-                    statusText = '✨ あと2系統で5色完成！';
-                    statusType = 'progress';
-                    priority = 72;
+                const uniqueCatCount = presentCats.length;
+                const isAllDistinct = bowl.length === uniqueCatCount;
+
+                if (isAllDistinct && bowl.length < 4) {
+                    if (uniqueCatCount === 3 && bowl.length === 3) {
+                        const unusedCats = cats.filter(c => !presentCats.includes(c));
+                        const catNames = { motsu: 'もつ', classic: '定番', spice: '辛味', sweets: '甘味', yami: '闇' };
+                        const remainingNames = unusedCats.map(c => catNames[c]).join('・');
+                        statusText = `🎯 あと「${remainingNames}」のいずれかで完成！`;
+                        statusType = 'close';
+                        priority = 95;
+                    } else if (uniqueCatCount === 2 && bowl.length === 2) {
+                        statusText = '✨ あと2系統で4ジャンル完成！';
+                        statusType = 'progress';
+                        priority = 72;
+                    }
                 }
             }
 
