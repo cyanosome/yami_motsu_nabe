@@ -176,14 +176,46 @@
 
     <!-- 特性選択モーダル (Phase 1 開始前) -->
     <div class="modal-overlay" id="trait-select-modal">
-        <div class="modal-card trait-select-card">
-            <div class="trait-modal-header">
-                <div class="trait-modal-badge" id="trait-modal-player-badge">PLAYER 1</div>
-                <div class="modal-title" style="margin-bottom:4px;">✨ プレイヤー特性を選択</div>
-                <p class="trait-modal-subtitle" id="trait-modal-subtitle">鍋に挑む秘めたる力を1つ選んでください（ゲーム終了まで有効）</p>
+        <div class="modal-card trait-select-card" id="trait-select-card">
+            <!-- 選択ビュー -->
+            <div id="trait-selection-view">
+                <div class="trait-modal-header">
+                    <div class="trait-modal-badge" id="trait-modal-player-badge">PLAYER 1</div>
+                    <div class="modal-title" style="margin-bottom:4px;">✨ プレイヤー特性を選択</div>
+                    <p class="trait-modal-subtitle" id="trait-modal-subtitle">鍋に挑む秘めたる力を1つ選んでください（ゲーム終了まで有効）</p>
+                </div>
+                <div class="trait-cards-grid" id="trait-cards-grid">
+                    <!-- js/ui.js で動的生成 -->
+                </div>
             </div>
-            <div class="trait-cards-grid" id="trait-cards-grid">
-                <!-- js/ui.js で動的生成 -->
+
+            <!-- オンライン待機ビュー (特性選択後に表示) -->
+            <div id="trait-waiting-view" style="display:none;">
+                <div class="trait-modal-header">
+                    <div class="trait-modal-badge" style="background:rgba(46, 204, 113, 0.15); border-color:var(--accent-green); color:var(--accent-green);">✔ 特性を決定しました</div>
+                    <div class="modal-title" style="margin-bottom:4px;">⏳ 対戦相手の選択を待っています...</div>
+                    <p class="trait-modal-subtitle">全員が特性を選び終わると自動でゲームが始まります</p>
+                </div>
+
+                <div class="trait-waiting-content">
+                    <!-- 自分が選んだ特性カードプレビュー -->
+                    <div class="trait-selected-preview" id="trait-selected-preview">
+                        <!-- js/ui.js で動的生成 -->
+                    </div>
+
+                    <!-- プレイヤー進捗リスト -->
+                    <div class="trait-waiting-players-box">
+                        <div class="trait-waiting-box-title">👥 参加者の準備状況</div>
+                        <div class="trait-waiting-players-list" id="trait-waiting-players-list">
+                            <!-- js/ui.js で動的生成 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trait-waiting-spinner-row">
+                    <div class="waiting-spinner"></div>
+                    <span>まもなく Phase 1 (具材ドラフト) が始まります...</span>
+                </div>
             </div>
         </div>
     </div>

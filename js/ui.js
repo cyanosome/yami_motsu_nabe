@@ -1437,11 +1437,20 @@ window.renderDraftComboRadar = renderDraftComboRadar;
 
 /* --- 特性（Trait）選択モーダル --- */
 let traitSelectCallback = null;
+let currentTraitModalOptions = { keepOpenOnSelect: false, myPlayerId: '', players: [] };
 
-export function openTraitSelectModal(player, onSelectCallback) {
+export function openTraitSelectModal(player, onSelectCallback, options = {}) {
     traitSelectCallback = onSelectCallback;
+    currentTraitModalOptions = Object.assign({ keepOpenOnSelect: false, myPlayerId: '', players: [] }, options);
+    
     const modal = document.getElementById('trait-select-modal');
     if (!modal) return;
+
+    // 画面状態を選択ビューにリセット
+    const selectionView = document.getElementById('trait-selection-view');
+    const waitingView = document.getElementById('trait-waiting-view');
+    if (selectionView) selectionView.style.display = 'block';
+    if (waitingView) waitingView.style.display = 'none';
 
     const badgeEl = document.getElementById('trait-modal-player-badge');
     const subtitleEl = document.getElementById('trait-modal-subtitle');
@@ -1460,6 +1469,69 @@ export function openTraitSelectModal(player, onSelectCallback) {
 export function closeTraitSelectModal() {
     const modal = document.getElementById('trait-select-modal');
     if (modal) modal.classList.remove('active');
+}
+
+export function renderTraitWaitingState(selectedTrait, players = [], myPlayerId = '') {
+    const selectionView = document.getElementById('trait-selection-view');
+    const waitingView = document.getElementById('trait-waiting-view');
+    if (selectionView) selectionView.style.display = 'none';
+    if (waitingView) waitingView.style.display = 'block';
+
+    const previewEl = document.getElementById('trait-selected-preview');
+    if (previewEl && selectedTrait) {
+        const color = selectedTrait.badgeColor || '#fdcb6e';
+        previewEl.style.setProperty('--trait-color', color);
+        previewEl.innerHTML = `
+            <div>
+                <div class="trait-selected-preview-tag">
+                    ✨ あなたの決定した特性
+                </div>
+                <div class="trait-card-top" style="margin-bottom:6px;">
+                    <div class="trait-card-icon" style="font-size:2rem; padding:6px;">${selectedTrait.icon}</div>
+                    <div class="trait-card-meta">
+                        <span class="trait-card-subname" style="--trait-color:${color};">${selectedTrait.subName}</span>
+                        <h3 class="trait-card-name" style="font-size:1.15rem;">${selectedTrait.name}</h3>
+                    </div>
+                </div>
+                <p class="trait-card-desc" style="font-size:0.85rem; margin-bottom:8px;">${selectedTrait.desc}</p>
+            </div>
+            <div class="trait-card-detail" style="font-size:0.75rem; margin-bottom:0;">
+                ${selectedTrait.detail}
+            </div>
+        `;
+    }
+
+    updateTraitWaitingPlayers(players, myPlayerId);
+}
+
+export function updateTraitWaitingPlayers(players = [], myPlayerId = '') {
+    const listEl = document.getElementById('trait-waiting-players-list');
+    if (!listEl) return;
+
+    if (!players || players.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--text-sub); font-size:0.8rem;">プレイヤー情報を受信中...</div>';
+        return;
+    }
+
+    listEl.innerHTML = players.map(p => {
+        const isMe = p.id === myPlayerId;
+        const isReady = p.traitReady === true;
+        const itemClass = isReady ? 'trait-waiting-player-item ready' : 'trait-waiting-player-item';
+        const statusHtml = isReady 
+            ? '<span class="trait-waiting-player-status ready">✔ 準備完了</span>'
+            : '<span class="trait-waiting-player-status waiting">⏳ 選択中...</span>';
+
+        return `
+            <div class="${itemClass}">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-weight:600;">${p.name}</span>
+                    ${p.isHost ? '<span class="host-badge" style="font-size:0.65rem; padding:1px 5px;">ホスト</span>' : ''}
+                    ${isMe ? '<span style="color:var(--accent-gold); font-size:0.75rem;">(あなた)</span>' : ''}
+                </div>
+                <div>${statusHtml}</div>
+            </div>
+        `;
+    }).join('');
 }
 
 export function renderTraitCards(player) {
@@ -1490,7 +1562,15 @@ export function renderTraitCards(player) {
 window.selectTrait = function(traitId) {
     const selectedTrait = getTraitById(traitId);
     playSound('select');
-    closeTraitSelectModal();
+    
+    if (currentTraitModalOptions && currentTraitModalOptions.keepOpenOnSelect) {
+        // オンライン時：モーダルを閉じずに待機ビューを表示
+        renderTraitWaitingState(selectedTrait, currentTraitModalOptions.players || [], currentTraitModalOptions.myPlayerId || '');
+    } else {
+        // オフライン時：即座に閉じる
+        closeTraitSelectModal();
+    }
+
     if (typeof traitSelectCallback === 'function') {
         const cb = traitSelectCallback;
         traitSelectCallback = null;
@@ -1553,6 +1633,8 @@ export function openTraitDetailModal(traitId) {
 
 window.openTraitSelectModal = openTraitSelectModal;
 window.closeTraitSelectModal = closeTraitSelectModal;
+window.renderTraitWaitingState = renderTraitWaitingState;
+window.updateTraitWaitingPlayers = updateTraitWaitingPlayers;
 window.getTraitChipHtml = getTraitChipHtml;
 window.openTraitDetailModal = openTraitDetailModal;
 

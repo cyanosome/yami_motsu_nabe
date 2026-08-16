@@ -7,7 +7,8 @@ import {
     initPhase3Results,
     triggerPotRevealModal,
     openTraitSelectModal,
-    closeTraitSelectModal
+    closeTraitSelectModal,
+    updateTraitWaitingPlayers
 } from './ui.js';
 import { playSound, playBGM } from './sound.js';
 import { gameState, generatePhase1DraftPool } from './gameLogic.js';
@@ -45,6 +46,8 @@ export function closeOnlineModal() {
         firebaseState.roomRef.off();
         firebaseState.roomRef = null;
     }
+    closeTraitSelectModal();
+    resetOnlineSetup();
     document.getElementById('online-modal').classList.remove('active');
 }
 
@@ -176,17 +179,31 @@ export function listenLobbyChanges() {
             // ホストがゲームを開始し、特性選択フェーズへ移行！
             document.getElementById('online-modal').classList.remove('active');
 
-            const myData = (roomData.players || {})[myPlayerId];
+            const playersObj = roomData.players || {};
+            const playersArr = Object.values(playersObj).sort((a, b) => a.joinedAt - b.joinedAt);
+            const myData = playersObj[myPlayerId];
+
             if (!hasSelectedOnlineTrait && myData && !myData.traitReady) {
                 hasSelectedOnlineTrait = true;
-                openTraitSelectModal({ name: myData.name || 'あなた' }, (selectedTrait) => {
-                    firebaseState.roomRef.child('players/' + myPlayerId).update({
-                        trait: selectedTrait,
-                        traitReady: true
-                    }).then(() => {
-                        showToast("✨ 特性を決定しました！全プレイヤーの選択を待っています...");
-                    });
-                });
+                openTraitSelectModal(
+                    { name: myData.name || 'あなた' }, 
+                    (selectedTrait) => {
+                        firebaseState.roomRef.child('players/' + myPlayerId).update({
+                            trait: selectedTrait,
+                            traitReady: true
+                        }).then(() => {
+                            showToast("✨ 特性を決定しました！全プレイヤーの選択を待っています...");
+                        });
+                    },
+                    {
+                        keepOpenOnSelect: true,
+                        myPlayerId: myPlayerId,
+                        players: playersArr
+                    }
+                );
+            } else if (myData && myData.traitReady) {
+                // 既に選択済みの場合、他のプレイヤーの準備状況をリアルタイム更新
+                updateTraitWaitingPlayers(playersArr, myPlayerId);
             }
 
             // ホストのみ：全プレイヤーの特性選択完了をチェック
