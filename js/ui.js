@@ -1,5 +1,5 @@
 import { gameState, draftState, calculateFinalScores, calculatePlayerItemScore, reshuffleScoop, handlePassClick, selectScoopedItem, BURST_PENALTY_SCORE } from './gameLogic.js';
-import { firebaseState, myPlayerId } from './firebase.js';
+import { firebaseState, myPlayerId, leaveOnlineRoomGuest } from './firebase.js';
 import { playSound } from './sound.js';
 import { INGREDIENTS_DATABASE, createIngredientInstance, COMBOS_DATABASE, getRecommendedCombos } from './ingredients.js';
 import { TRAITS_DATABASE, getTraitById } from './traits.js';
@@ -652,6 +652,38 @@ export function addGameLog(msg, isHighlight = false, isBust = false) {
     logBox.scrollTop = logBox.scrollHeight;
 }
 
+export function updatePhase3ActionButtons() {
+    const actionBar = document.getElementById('phase-3-action-bar') || document.querySelector('#phase-3-view .action-bar');
+    if (!actionBar) return;
+
+    const skipBtnStyle = isPhase3Animating 
+        ? 'display: inline-block; padding: 12px 24px; border-radius: 30px; font-weight: bold; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);' 
+        : 'display: none; padding: 12px 24px; border-radius: 30px; font-weight: bold; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);';
+
+    if (gameState.mode === 'online') {
+        if (firebaseState.isHost) {
+            actionBar.innerHTML = `
+                <button class="btn-secondary" id="skip-result-btn" onclick="skipPhase3Animation()" style="${skipBtnStyle}">⏩ スキップ</button>
+                <button class="btn-primary" id="return-lobby-btn" onclick="returnToOnlineLobbyHost()">🔄 ロビーに戻る (もう一度遊ぶ)</button>
+                <button class="btn-secondary" id="leave-room-btn" onclick="resetToStart()" style="background: rgba(255,118,117,0.15); border: 1px solid rgba(255,118,117,0.4); color: #ff7675;">🚪 部屋を解散してタイトルへ</button>
+            `;
+        } else {
+            actionBar.innerHTML = `
+                <button class="btn-secondary" id="skip-result-btn" onclick="skipPhase3Animation()" style="${skipBtnStyle}">⏩ スキップ</button>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="color: var(--accent-gold); font-size: 0.95rem; font-weight: bold; padding: 8px 16px; background: rgba(241,196,15,0.1); border-radius: 20px; border: 1px solid rgba(241,196,15,0.3);">⏳ ホストがロビーに戻すのを待っています...</span>
+                    <button class="btn-secondary" id="leave-room-btn" onclick="leaveOnlineRoomGuest()" style="background: rgba(255,118,117,0.15); border: 1px solid rgba(255,118,117,0.4); color: #ff7675;">🚪 退室してタイトルへ</button>
+                </div>
+            `;
+        }
+    } else {
+        actionBar.innerHTML = `
+            <button class="btn-secondary" id="skip-result-btn" onclick="skipPhase3Animation()" style="${skipBtnStyle}">⏩ スキップ</button>
+            <button class="btn-primary" id="restart-game-btn" onclick="resetToStart()">🔄 もう一度遊ぶ</button>
+        `;
+    }
+}
+
 let isPhase3Animating = false;
 let cancelPhase3Animation = false;
 
@@ -668,8 +700,7 @@ export function skipPhase3Animation() {
 
 function renderPhase3FinalInstant() {
     isPhase3Animating = false;
-    const skipBtn = document.getElementById('skip-result-btn');
-    if (skipBtn) skipBtn.style.display = 'none';
+    updatePhase3ActionButtons();
 
     const sorted = [...gameState.players].sort((a, b) => b.finalScore - a.finalScore);
     const winner = sorted[0];
@@ -736,8 +767,7 @@ export async function initPhase3Results() {
     isPhase3Animating = true;
     cancelPhase3Animation = false;
 
-    const skipBtn = document.getElementById('skip-result-btn');
-    if (skipBtn) skipBtn.style.display = 'inline-block';
+    updatePhase3ActionButtons();
 
     const winnerNameEl = document.getElementById('winner-name-text');
     const winnerSubtitleEl = document.getElementById('winner-subtitle-text');
@@ -962,7 +992,7 @@ export async function initPhase3Results() {
     }
 
     isPhase3Animating = false;
-    if (skipBtn) skipBtn.style.display = 'none';
+    updatePhase3ActionButtons();
     playSound('win');
 }
 
@@ -1637,6 +1667,7 @@ window.renderTraitWaitingState = renderTraitWaitingState;
 window.updateTraitWaitingPlayers = updateTraitWaitingPlayers;
 window.getTraitChipHtml = getTraitChipHtml;
 window.openTraitDetailModal = openTraitDetailModal;
+window.updatePhase3ActionButtons = updatePhase3ActionButtons;
 
 
 

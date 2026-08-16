@@ -8,9 +8,10 @@ import {
     triggerPotRevealModal,
     openTraitSelectModal,
     closeTraitSelectModal,
-    updateTraitWaitingPlayers
+    updateTraitWaitingPlayers,
+    resetPhase3State
 } from './ui.js';
-import { playSound, playBGM } from './sound.js';
+import { playSound, playBGM, stopBGM } from './sound.js';
 import { gameState, generatePhase1DraftPool } from './gameLogic.js';
 import { getRandomPotTemplate } from './ingredients.js';
 
@@ -41,14 +42,51 @@ export const firebaseState = {
 
 export function closeOnlineModal() {
     if (firebaseState.roomRef) {
-        // ロビー中に閉じたら退室処理
-        firebaseState.roomRef.child('players/' + myPlayerId).remove();
+        // ロビー中またはモーダルを閉じた際の退室処理
+        if (!firebaseState.isHost) {
+            firebaseState.roomRef.child('players/' + myPlayerId).remove().catch(() => {});
+        } else {
+            firebaseState.roomRef.remove().catch(() => {});
+        }
         firebaseState.roomRef.off();
         firebaseState.roomRef = null;
     }
     closeTraitSelectModal();
     resetOnlineSetup();
+    resetPhase3State();
+    if (typeof window.disposePot3D === 'function') {
+        window.disposePot3D();
+    }
+    stopBGM({ fadeOut: true });
+    firebaseState.isHost = false;
+    firebaseState.currentRoomId = null;
+    const startScreen = document.getElementById('start-screen');
+    if (startScreen) startScreen.style.display = 'block';
+    const stepperBar = document.getElementById('phase-stepper-bar');
+    if (stepperBar) stepperBar.classList.remove('active');
+    document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
     document.getElementById('online-modal').classList.remove('active');
+}
+
+/**
+ * ゲストが結果画面やロビーから単独退出する
+ */
+export function leaveOnlineRoomGuest() {
+    if (firebaseState.roomRef) {
+        if (!firebaseState.isHost) {
+            firebaseState.roomRef.child('players/' + myPlayerId).remove().catch(() => {});
+        } else {
+            firebaseState.roomRef.remove().catch(() => {});
+        }
+        firebaseState.roomRef.off();
+        firebaseState.roomRef = null;
+    }
+    firebaseState.isHost = false;
+    firebaseState.currentRoomId = null;
+
+    if (typeof window.resetToStart === 'function') {
+        window.resetToStart();
+    }
 }
 
 function getEnteredPlayerName() {
@@ -142,6 +180,7 @@ export let isOnlineSetupDone = false;
 export function resetOnlineSetup() {
     isOnlineSetupDone = false;
     hasSelectedOnlineTrait = false;
+    lastSyncedPhase = 0;
 }
 
 let hasSelectedOnlineTrait = false;
@@ -158,23 +197,46 @@ export function listenLobbyChanges() {
         }
 
         if (roomData.status === 'waiting') {
+            // ゲーム画面からロビーへの復帰クリーンアップ & 初期化
+            resetOnlineSetup();
+            resetPhase3State();
+            if (typeof window.disposePot3D === 'function') {
+                window.disposePot3D();
+            }
+            stopBGM({ fadeOut: true });
+
+            // ゲーム進行UIを非表示にしてロビーモーダルを表示
+            const stepperBar = document.getElementById('phase-stepper-bar');
+            if (stepperBar) stepperBar.classList.remove('active');
+            document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
+
+            const startScreen = document.getElementById('start-screen');
+            if (startScreen) startScreen.style.display = 'none';
+
+            const onlineModal = document.getElementById('online-modal');
+            if (onlineModal) onlineModal.classList.add('active');
+
+            showLobbyUI(roomData.roomId);
+
             // 参加者リストの更新
             const playersObj = roomData.players || {};
             const playersArr = Object.values(playersObj).sort((a, b) => a.joinedAt - b.joinedAt);
 
-            document.getElementById('lobby-player-count').innerText = playersArr.length;
+            const countEl = document.getElementById('lobby-player-count');
+            if (countEl) countEl.innerText = playersArr.length;
             const listEl = document.getElementById('lobby-players-list');
-            listEl.innerHTML = '';
-
-            playersArr.forEach(p => {
-                const item = document.createElement('div');
-                item.className = 'lobby-player-item';
-                item.innerHTML = `
-                    <span>${p.name} ${p.isHost ? '<span class="host-badge">ホスト</span>' : ''} ${p.id === myPlayerId ? '<span style="color:var(--accent-gold); font-size:0.8rem;">(あなた)</span>' : ''}</span>
-                    <span style="color:var(--accent-green); font-size:0.85rem;">✔ 参加中</span>
-                `;
-                listEl.appendChild(item);
-            });
+            if (listEl) {
+                listEl.innerHTML = '';
+                playersArr.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'lobby-player-item';
+                    item.innerHTML = `
+                        <span>${p.name} ${p.isHost ? '<span class="host-badge">ホスト</span>' : ''} ${p.id === myPlayerId ? '<span style="color:var(--accent-gold); font-size:0.8rem;">(あなた)</span>' : ''}</span>
+                        <span style="color:var(--accent-green); font-size:0.85rem;">✔ 参加中</span>
+                    `;
+                    listEl.appendChild(item);
+                });
+            }
         } else if (roomData.status === 'trait_selection') {
             // ホストがゲームを開始し、特性選択フェーズへ移行！
             document.getElementById('online-modal').classList.remove('active');
@@ -253,6 +315,7 @@ export function listenLobbyChanges() {
             document.getElementById('online-modal').classList.remove('active');
             closeTraitSelectModal();
             setupOnlineGameClient(roomData);
+            syncOnlineStateToLocal(roomData);
         }
     });
 }
@@ -277,24 +340,67 @@ export function startOnlineGameHost() {
     });
 }
 
+/**
+ * ホストがゲーム終了後に同じルームを待機状態（ロビー）に戻す
+ */
+export function returnToOnlineLobbyHost() {
+    if (!firebaseState.roomRef || !firebaseState.isHost) return;
+
+    firebaseState.roomRef.once('value').then(snapshot => {
+        const roomData = snapshot.val();
+        if (!roomData) return;
+
+        const hostPlayerId = roomData.hostPlayerId || myPlayerId;
+
+        // 現在のプレイヤー配列またはオブジェクトから待機用マップを再構築
+        const currentPlayers = Array.isArray(roomData.players)
+            ? roomData.players
+            : Object.values(roomData.players || {});
+
+        const resetPlayersMap = {};
+        currentPlayers.forEach(p => {
+            const pid = p.uid || p.id;
+            if (pid) {
+                resetPlayersMap[pid] = {
+                    id: pid,
+                    name: p.name || 'プレイヤー',
+                    isHost: pid === hostPlayerId,
+                    joinedAt: p.joinedAt || Date.now()
+                };
+            }
+        });
+
+        // ルームデータを待機状態に完全リセット（過去のゲーム固有ステートを削除）
+        const newRoomData = {
+            roomId: roomData.roomId || firebaseState.currentRoomId,
+            status: 'waiting',
+            hostPlayerId: hostPlayerId,
+            createdAt: roomData.createdAt || Date.now(),
+            players: resetPlayersMap
+        };
+
+        firebaseState.roomRef.set(newRoomData).then(() => {
+            // 切断時自動削除フックを再登録
+            firebaseState.roomRef.child('players/' + myPlayerId).onDisconnect().remove();
+        }).catch(err => {
+            showToast("ロビーへの復帰に失敗しました: " + err.message);
+        });
+    });
+}
+
 let lastSyncedPhase = 0;
 
 /* --- オンラインゲームリアルタイム同期 --- */
 export function setupOnlineGameClient(roomData) {
     gameState.mode = 'online';
     lastSyncedPhase = 0;
-    document.getElementById('start-screen').style.display = 'none';
-    document.getElementById('phase-stepper-bar').classList.add('active');
+    const startScreen = document.getElementById('start-screen');
+    if (startScreen) startScreen.style.display = 'none';
+    const stepperBar = document.getElementById('phase-stepper-bar');
+    if (stepperBar) stepperBar.classList.add('active');
 
     if (isOnlineSetupDone) return;
     isOnlineSetupDone = true;
-
-    // ゲーム進行状態のリアルタイムリスナー
-    firebaseState.roomRef.on('value', snapshot => {
-        const data = snapshot.val();
-        if (!data || data.status !== 'playing') return;
-        syncOnlineStateToLocal(data);
-    });
 }
 
 export function syncOnlineStateToLocal(data) {

@@ -104,18 +104,32 @@ export function startTraitSelectionSequence(players, onComplete) {
 
 export function resetToStart() {
     if (firebaseState.roomRef) {
+        if (firebaseState.isHost) {
+            // ホストがタイトルに戻る場合は部屋全体を削除（解散）
+            firebaseState.roomRef.remove().catch(() => {});
+        } else {
+            // ゲストがタイトルに戻る場合は自身のノードのみ削除
+            firebaseState.roomRef.child('players/' + myPlayerId).remove().catch(() => {});
+        }
         firebaseState.roomRef.off();
         firebaseState.roomRef = null;
     }
+    firebaseState.isHost = false;
+    firebaseState.currentRoomId = null;
+
     // BGM停止（フェードアウト）
     stopBGM({ fadeOut: true });
     closeTraitSelectModal();
     resetOnlineSetup();
     resetPhase3State();
-    firebaseState.currentRoomId = null;
-    document.getElementById('start-screen').style.display = 'block';
-    document.getElementById('phase-stepper-bar').classList.remove('active');
+
+    const startScreen = document.getElementById('start-screen');
+    if (startScreen) startScreen.style.display = 'block';
+    const stepperBar = document.getElementById('phase-stepper-bar');
+    if (stepperBar) stepperBar.classList.remove('active');
     document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
+    const onlineModal = document.getElementById('online-modal');
+    if (onlineModal) onlineModal.classList.remove('active');
     
     // 3D鍋のリソース解放
     if (typeof window.disposePot3D === 'function') {
