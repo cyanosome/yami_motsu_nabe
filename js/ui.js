@@ -966,12 +966,12 @@ export async function initPhase3Results() {
     playSound('win');
 }
 
-export function openEncyclopediaModal() {
+export function openEncyclopediaModal(tabName = 'ingredients') {
     playSound('select');
     const modal = document.getElementById('encyclopedia-modal');
     if (!modal) return;
     modal.classList.add('active');
-    renderEncyclopediaIngredients();
+    switchEncyclopediaTab(tabName, true);
 }
 
 export function closeEncyclopediaModal() {
@@ -982,17 +982,27 @@ export function closeEncyclopediaModal() {
     }
 }
 
-export function switchEncyclopediaTab(tabName) {
-    playSound('select');
+export function switchEncyclopediaTab(tabName, skipSound = false) {
+    if (!skipSound) {
+        playSound('select');
+    }
     document.querySelectorAll('.encyclopedia-tab').forEach(btn => btn.classList.remove('active'));
     
     const filterEl = document.getElementById('encyclopedia-filters');
+    const container = document.getElementById('encyclopedia-body');
+    if (container) {
+        container.scrollTop = 0;
+    }
 
     if (tabName === 'ingredients') {
         const btn = document.getElementById('tab-btn-ingredients');
         if (btn) btn.classList.add('active');
         if (filterEl) filterEl.style.display = 'flex';
-        renderEncyclopediaIngredients();
+        // 食材カテゴリフィルターを「すべて」にリセット
+        document.querySelectorAll('.enc-filter-btn').forEach(chip => chip.classList.remove('active'));
+        const allChip = Array.from(document.querySelectorAll('.enc-filter-btn')).find(c => c.getAttribute('onclick')?.includes("'all'"));
+        if (allChip) allChip.classList.add('active');
+        renderEncyclopediaIngredients('all');
     } else if (tabName === 'combos') {
         const btn = document.getElementById('tab-btn-combos');
         if (btn) btn.classList.add('active');
@@ -1011,6 +1021,10 @@ export function filterEncyclopediaCategory(category) {
     document.querySelectorAll('.enc-filter-btn').forEach(chip => chip.classList.remove('active'));
     const clickedChip = Array.from(document.querySelectorAll('.enc-filter-btn')).find(c => c.getAttribute('onclick')?.includes(category));
     if (clickedChip) clickedChip.classList.add('active');
+    const container = document.getElementById('encyclopedia-body');
+    if (container) {
+        container.scrollTop = 0;
+    }
     renderEncyclopediaIngredients(category);
 }
 
