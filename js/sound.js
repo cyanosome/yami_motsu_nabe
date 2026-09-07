@@ -117,11 +117,18 @@ export async function playBGM(trackKey = 'MAIN', options = {}) {
         volume = soundSettings.bgmVolume,
         fadeIn = true,
         fadeInDuration = 0.8,
-        offset = null
+        offset = null,
+        forceRestart = false
     } = options;
 
-    currentTrackKey = trackKey;
     soundSettings.bgmVolume = volume;
+
+    // 既に同一トラックが再生中かつ強制リスタートでない場合は、現在の再生を維持
+    if (isBgmPlaying && currentTrackKey === trackKey && bgmSourceNode && !forceRestart) {
+        return;
+    }
+
+    currentTrackKey = trackKey;
 
     if (!soundSettings.bgmEnabled || !gameState.bgmEnabled) {
         return;

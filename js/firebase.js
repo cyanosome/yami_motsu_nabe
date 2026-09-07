@@ -401,14 +401,19 @@ export function setupOnlineGameClient(roomData) {
 
     if (isOnlineSetupDone) return;
     isOnlineSetupDone = true;
+
+    // オンラインゲーム開始時にBGMを再生
+    playBGM('MAIN', { fadeIn: true });
 }
 
 export function syncOnlineStateToLocal(data) {
     const prevPhase = lastSyncedPhase;
     lastSyncedPhase = data.currentPhase;
 
-    // オンラインゲーム進行中はBGMを再生
-    playBGM('MAIN', { fadeIn: true });
+    // ゲーム開始時（Phase 1または2へ突入時）のフェイルセーフ再生
+    if (prevPhase === 0 && (data.currentPhase === 1 || data.currentPhase === 2)) {
+        playBGM('MAIN', { fadeIn: true });
+    }
 
     gameState.currentPhase = data.currentPhase;
     gameState.potTemplate = data.potTemplate || null;
