@@ -1669,6 +1669,118 @@ window.getTraitChipHtml = getTraitChipHtml;
 window.openTraitDetailModal = openTraitDetailModal;
 window.updatePhase3ActionButtons = updatePhase3ActionButtons;
 
+/* ---------------------------------------------------- */
+/* ■ チュートリアル（遊び方）モーダル制御ロジック */
+/* ---------------------------------------------------- */
+let currentTutorialStep = 1;
+
+/**
+ * チュートリアルモーダルを開く
+ * @param {number} step - 開始ステップ (デフォルト: 1)
+ */
+export function openTutorialModal(step = 1) {
+    playSound('select');
+    const modal = document.getElementById('tutorial-modal');
+    if (!modal) return;
+    switchTutorialStep(step);
+    modal.classList.add('active');
+}
+
+/**
+ * チュートリアルモーダルを閉じる
+ */
+export function closeTutorialModal() {
+    playSound('select');
+    const modal = document.getElementById('tutorial-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+/**
+ * 指定のチュートリアルステップに切り替える
+ * @param {number} stepIndex - 切り替え先ステップ (1〜4)
+ */
+export function switchTutorialStep(stepIndex) {
+    currentTutorialStep = Math.max(1, Math.min(4, stepIndex));
+
+    // タブのアクティブ更新
+    const tabs = document.querySelectorAll('.tutorial-tab');
+    tabs.forEach(tab => {
+        const step = parseInt(tab.getAttribute('data-step'), 10);
+        if (step === currentTutorialStep) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+
+    // スライドの表示更新
+    const slides = document.querySelectorAll('.tutorial-slide');
+    slides.forEach((slide, idx) => {
+        if (idx + 1 === currentTutorialStep) {
+            slide.classList.add('active');
+        } else {
+            slide.classList.remove('active');
+        }
+    });
+
+    // 本文のスクロールを一番上に戻す
+    const bodyEl = document.getElementById('tutorial-body');
+    if (bodyEl) {
+        bodyEl.scrollTop = 0;
+    }
+
+    // ステップインジケーター更新
+    const indicator = document.getElementById('tut-current-step');
+    if (indicator) {
+        indicator.textContent = currentTutorialStep;
+    }
+
+    // 前へボタンの有効/無効
+    const prevBtn = document.getElementById('tut-btn-prev');
+    if (prevBtn) {
+        prevBtn.disabled = (currentTutorialStep === 1);
+    }
+
+    // 次へボタンのラベル/動作切り替え
+    const nextBtn = document.getElementById('tut-btn-next');
+    if (nextBtn) {
+        if (currentTutorialStep === 4) {
+            nextBtn.textContent = '閉じる ✓';
+        } else {
+            nextBtn.textContent = '次へ ▶';
+        }
+    }
+}
+
+/**
+ * ステップを前後に進める
+ * @param {number} direction - -1 (前へ) または +1 (次へ)
+ */
+export function changeTutorialStep(direction) {
+    if (currentTutorialStep === 4 && direction > 0) {
+        closeTutorialModal();
+        return;
+    }
+    playSound('select');
+    switchTutorialStep(currentTutorialStep + direction);
+}
+
+/**
+ * チュートリアルから図鑑モーダルへスムーズに遷移
+ */
+export function openEncyclopediaFromTutorial() {
+    closeTutorialModal();
+    openEncyclopediaModal('ingredients');
+}
+
+window.openTutorialModal = openTutorialModal;
+window.closeTutorialModal = closeTutorialModal;
+window.switchTutorialStep = switchTutorialStep;
+window.changeTutorialStep = changeTutorialStep;
+window.openEncyclopediaFromTutorial = openEncyclopediaFromTutorial;
+
 
 
 

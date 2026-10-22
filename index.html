@@ -21,6 +21,7 @@
             🍲 闇もつ鍋 <span>ONLINE</span>
         </div>
         <div class="sound-controls">
+            <button class="sound-toggle" id="tutorial-header-btn" onclick="openTutorialModal()" title="ゲームの遊び方・チュートリアル">📖 遊び方</button>
             <button class="sound-toggle" id="sound-main-btn" onclick="openSoundModal()" title="サウンド・音量設定">🔊 サウンド</button>
         </div>
     </header>
@@ -118,6 +119,264 @@
                 <div id="lobby-guest-notice" style="display:none; text-align:center; color:var(--accent-gold); font-size:0.9rem; margin-top:10px;">
                     ⏳ ホストがゲームを開始するのを待っています...
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊び方（チュートリアル）モーダル -->
+    <div class="modal-overlay" id="tutorial-modal">
+        <div class="modal-card tutorial-modal-card">
+            <button class="modal-close-btn" onclick="closeTutorialModal()">✕</button>
+            <div class="modal-title" style="margin-bottom:12px;">📖 闇もつ鍋の遊び方</div>
+
+            <!-- ステップ切り替えタブ -->
+            <div class="tutorial-tabs">
+                <button class="tutorial-tab active" data-step="1" onclick="switchTutorialStep(1)">1. 基本とお椀</button>
+                <button class="tutorial-tab" data-step="2" onclick="switchTutorialStep(2)">2. 具材と投入</button>
+                <button class="tutorial-tab" data-step="3" onclick="switchTutorialStep(3)">3. 鍋漁りとバースト</button>
+                <button class="tutorial-tab" data-step="4" onclick="switchTutorialStep(4)">4. 役と勝利のコツ</button>
+            </div>
+
+            <!-- スライドコンテンツコンテナ -->
+            <div class="tutorial-body" id="tutorial-body">
+                <!-- STEP 1: 基本ルールとお椀 -->
+                <div class="tutorial-slide active" id="tut-slide-1">
+                    <div class="tut-slide-badge">STEP 1 / 4</div>
+                    <h3 class="tut-slide-title">🍲 目指せ！至高のもつ鍋お椀</h3>
+                    <p class="tut-lead-text">
+                        「闇もつ鍋」は、具材を鍋に投入し、グツグツ煮立つ鍋から具材を掬い上げて<br>
+                        <b>自分だけの「最高のお椀」を作るチキンレース＆役作りゲーム</b>です！
+                    </p>
+
+                    <div class="tut-card-grid">
+                        <div class="tut-card">
+                            <div class="tut-card-icon">🥣</div>
+                            <div class="tut-card-head">お椀は最大4枚まで！</div>
+                            <p class="tut-card-desc">
+                                鍋から掬い上げた具材を<b>最大4枚</b>まで確保できます。4枚集まった時点でそのプレイヤーのお椀は完成となります。
+                            </p>
+                        </div>
+                        <div class="tut-card">
+                            <div class="tut-card-icon">🛑</div>
+                            <div class="tut-card-head">いつでも「いただきます」</div>
+                            <p class="tut-card-desc">
+                                具材が1〜3枚の段階でも<b>「いただきます（パス）」</b>してお椀を安全に確定可能！無理して引かない勇気も勝利への道です。
+                            </p>
+                        </div>
+                        <div class="tut-card">
+                            <div class="tut-card-icon">🏆</div>
+                            <div class="tut-card-head">総合得点で勝負！</div>
+                            <p class="tut-card-desc">
+                                <b>具材の基礎点 ＋ 成立した役（コンボ）ボーナス</b>を合算！バーストの減点を避け、最も高得点のお椀を作った人が勝利！
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="tut-tip-box">
+                        💡 <b>ゲームの流れ:</b><br>
+                        【Phase 1】 具材を選んで鍋に投入 ➔ 【Phase 2】 影絵から具材を掬う ➔ 【Phase 3】 得点集計＆順位発表！
+                    </div>
+                </div>
+
+                <!-- STEP 2: 具材の種類と投入 -->
+                <div class="tutorial-slide" id="tut-slide-2">
+                    <div class="tut-slide-badge">STEP 2 / 4</div>
+                    <h3 class="tut-slide-title">🥬 具材を投入して鍋を仕込もう (Phase 1)</h3>
+                    <p class="tut-lead-text">
+                        ゲーム開始時、ランダムに提示された6枚の具材から<b>3枚を選んで鍋に投入</b>します。<br>
+                        自分が入れたい具材を入れるか、対戦相手を邪魔する危険具材を放り込むか…！？
+                    </p>
+
+                    <div class="tut-category-list">
+                        <div class="tut-cat-item motsu">
+                            <div class="tut-cat-header">
+                                <span class="tut-cat-tag">🥩 もつ具材</span>
+                                <span class="tut-cat-pts">高得点！</span>
+                            </div>
+                            <p class="tut-cat-body">
+                                鍋の主役！お椀に「もつ」が1枚も入っていないと<b>ペナルティ「もたざるもの」(-30,000pt)</b>を受けてしまいます。必ず1枚は狙おう！
+                            </p>
+                        </div>
+
+                        <div class="tut-cat-item classic">
+                            <div class="tut-cat-header">
+                                <span class="tut-cat-tag">🥬 定番具材</span>
+                                <span class="tut-cat-pts">安定のプラス点</span>
+                            </div>
+                            <p class="tut-cat-body">
+                                にら・白菜・麺・豆腐など。クセがなく高得点。「定番のもつ鍋」など様々なコンボの基本になります。
+                            </p>
+                        </div>
+
+                        <div class="tut-cat-item spice">
+                            <div class="tut-cat-header">
+                                <span class="tut-cat-tag">🌶️ 辛味具材</span>
+                                <span class="tut-cat-pts">辛み度上昇 (🔥)</span>
+                            </div>
+                            <p class="tut-cat-body">
+                                とうがらし・明太子・カレールーなど。辛み度が上昇し、高めすぎると【激辛バースト】の危険が！
+                            </p>
+                        </div>
+
+                        <div class="tut-cat-item sweets">
+                            <div class="tut-cat-header">
+                                <span class="tut-cat-tag">🍬 甘味具材</span>
+                                <span class="tut-cat-pts">辛みを相殺 (🍬)</span>
+                            </div>
+                            <p class="tut-cat-body">
+                                チョコ・カステラ・キャンディなど。辛み度をマイナスに引き戻します。ただし甘すぎると【激甘バースト】！
+                            </p>
+                        </div>
+
+                        <div class="tut-cat-item yami">
+                            <div class="tut-cat-header">
+                                <span class="tut-cat-tag">🌀 闇具材</span>
+                                <span class="tut-cat-pts danger">大幅マイナス点！</span>
+                            </div>
+                            <p class="tut-cat-body">
+                                洗剤・タイヤ・靴・磁石などのゴミ具材。通常はマイナスですが、4枚揃えると伝説の「闇大明神」で大逆転…！？
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="tut-tip-box">
+                        🍲 <b>鍋テンプレート:</b><br>
+                        全員の投入が終わると、「王道定番鍋」「灼熱激辛鍋」「混沌の闇鍋」など、選ばれたベース具材が混ざり合います。湯気のヒントに注目！
+                    </div>
+                </div>
+
+                <!-- STEP 3: 鍋漁りとバースト -->
+                <div class="tutorial-slide" id="tut-slide-3">
+                    <div class="tut-slide-badge">STEP 3 / 4</div>
+                    <h3 class="tut-slide-title">🥄 鍋漁りとダブルバーストの恐怖 (Phase 2)</h3>
+                    <p class="tut-lead-text">
+                        鍋がグツグツ煮立ったら鍋漁りスタート！<br>
+                        掬い上げられた<b>3枚の影絵（シルエット）</b>から欲しい具材を1枚選びます。
+                    </p>
+
+                    <div class="tut-card-grid">
+                        <div class="tut-card">
+                            <div class="tut-card-icon">👥</div>
+                            <div class="tut-card-head">影絵とサイズで推理</div>
+                            <p class="tut-card-desc">
+                                具材の形とサイズ（小・中・大）から正体を推理！美味しそうな具材を慎重に見分けましょう。
+                            </p>
+                        </div>
+                        <div class="tut-card">
+                            <div class="tut-card-icon">🥄</div>
+                            <div class="tut-card-head">もう一回掬う（リロール）</div>
+                            <p class="tut-card-desc">
+                                提示された3枚に欲しいものが無ければ、<b>自分のターンに1回だけ</b>鍋に戻して別の3枚を引き直せます！
+                            </p>
+                        </div>
+                        <div class="tut-card danger-card">
+                            <div class="tut-card-icon">💥</div>
+                            <div class="tut-card-head">ダブルバーストに注意！</div>
+                            <p class="tut-card-desc">
+                                味覚が限界を突破するとバースト！<br>
+                                最終スコアから<b>-50,000pt</b>の痛烈な減点を受けてしまいます。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- バーストの解説枠 -->
+                    <div class="tut-burst-detail">
+                        <div class="tut-burst-header">⚠️ ダブルバーストの判定ライン</div>
+                        <div class="tut-burst-row">
+                            <div class="tut-burst-item fire">
+                                <span class="burst-icon">🔥</span>
+                                <div>
+                                    <div class="burst-title">激辛バースト（辛さ +300 以上）</div>
+                                    <div class="burst-sub">辛い具材（+200等）を取りすぎると舌が麻痺して大減点！</div>
+                                </div>
+                            </div>
+                            <div class="tut-burst-item sweet">
+                                <span class="burst-icon">🍬</span>
+                                <div>
+                                    <div class="burst-title">激甘バースト（甘さ -300 以下）</div>
+                                    <div class="burst-sub">お菓子（-200等）を取りすぎると鍋の味が崩壊して大減点！</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tut-burst-strategy">
+                            💡 <b>生き残る相殺テクニック:</b><br>
+                            辛い具材（🔥+200）を取ってしまっても、お菓子（🍬-200）を取れば味覚値は **0** に戻ります！辛味と甘味を交互に取ってバーストを防ごう！
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: コンボ・特性・勝利 -->
+                <div class="tutorial-slide" id="tut-slide-4">
+                    <div class="tut-slide-badge">STEP 4 / 4</div>
+                    <h3 class="tut-slide-title">✨ コンボ役・特性と勝利への道 (Phase 3)</h3>
+                    <p class="tut-lead-text">
+                        具材を集めたら、ポーカーのような<b>「役（コンボ）」</b>が成立しているかチェック！<br>
+                        高得点コンボを狙ってお椀を完成させましょう。
+                    </p>
+
+                    <div class="tut-combo-examples">
+                        <div class="tut-combo-item">
+                            <div class="tut-combo-top">
+                                <span class="tut-combo-name">🍲 定番のもつ鍋</span>
+                                <span class="tut-combo-pts">+30,000pt</span>
+                            </div>
+                            <div class="tut-combo-cond">もつ系1枚以上 ＋ 定番具材（にら・白菜・麺など）1枚以上</div>
+                        </div>
+
+                        <div class="tut-combo-item">
+                            <div class="tut-combo-top">
+                                <span class="tut-combo-name">👶 お子様もつ鍋</span>
+                                <span class="tut-combo-pts">+120,000pt</span>
+                            </div>
+                            <div class="tut-combo-cond">「もつ」系具材を4枚すべて集める（野菜嫌いの肉鍋！）</div>
+                        </div>
+
+                        <div class="tut-combo-item">
+                            <div class="tut-combo-top">
+                                <span class="tut-combo-name">🌈 甘辛の奇跡</span>
+                                <span class="tut-combo-pts">+40,000pt</span>
+                            </div>
+                            <div class="tut-combo-cond">辛味具材 ＋ 甘味具材を両方お椀に入れる</div>
+                        </div>
+
+                        <div class="tut-combo-item penalty">
+                            <div class="tut-combo-top">
+                                <span class="tut-combo-name">🙅 もたざるもの</span>
+                                <span class="tut-combo-pts danger">-30,000pt</span>
+                            </div>
+                            <div class="tut-combo-cond">お椀に「もつ」が1枚も入っていない（もつ鍋なのに…！？）</div>
+                        </div>
+                    </div>
+
+                    <div class="tut-trait-box">
+                        <div class="tut-trait-title">🔮 プレイヤー特性（アビリティ）を活用しよう！</div>
+                        <p class="tut-trait-desc">
+                            ゲーム開始前に選ぶ特性により戦術が大きく変化！<br>
+                            ・<b>鋼の胃袋</b>: バースト判定（-50,000pt）を完全無効化！<br>
+                            ・<b>出汁の匠</b>: 成立した役ボーナスが 1.3倍！<br>
+                            ・<b>王道の探求者</b>: 定番具材の基礎点が 1.5倍！<br>
+                            ・<b>闇の美食家</b>: 闇具材のマイナス得点がすべてプラスに反転！
+                        </p>
+                    </div>
+
+                    <div class="tut-encyclopedia-banner">
+                        <div class="tut-enc-text">
+                            全具材のスコアや20種以上の役（コンボ）をいつでも詳しく確認できます！
+                        </div>
+                        <button class="btn-secondary tut-enc-btn" onclick="openEncyclopediaFromTutorial()">
+                            📖 食材・コンボ図鑑を開く
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- フッターナビゲーション -->
+            <div class="tutorial-footer">
+                <button class="btn-secondary tut-nav-btn" id="tut-btn-prev" onclick="changeTutorialStep(-1)" disabled>◀ 前へ</button>
+                <div class="tut-step-indicator">
+                    <span id="tut-current-step">1</span> / 4
+                </div>
+                <button class="btn-primary tut-nav-btn" id="tut-btn-next" onclick="changeTutorialStep(1)">次へ ▶</button>
             </div>
         </div>
     </div>
@@ -245,6 +504,13 @@
                 闇具材で巻き込むか？<br>
                 チキンレースで最高のお椀を作ろう！
             </p>
+            <div class="tutorial-trigger-banner" onclick="openTutorialModal()" title="ゲームの遊び方・ルールを画面で確認">
+                <div class="tut-banner-left">
+                    <span class="tut-banner-icon">📖</span>
+                    <span class="tut-banner-text">はじめての方へ：<b>遊び方・ルールを見る</b></span>
+                </div>
+                <span class="tut-banner-arrow">➔</span>
+            </div>
             <div class="mode-selector">
                 <button class="btn-mode" onclick="openOnlineModal()" style="border-color: var(--accent-gold); background: rgba(253, 203, 110, 0.08);">
                     <span>🌐 オンラインマルチ対戦 モード</span>
@@ -264,6 +530,9 @@
                 1. 具材を選んで鍋に投入！<br>
                 2. 鍋から具材を最大4枚引く!<br>
                 3. 甘さや辛さでバーストするとマイナス!
+                <div style="margin-top: 8px; text-align: right;">
+                    <button class="tut-link-btn" onclick="openTutorialModal()">📖 詳しい遊び方を見る ➔</button>
+                </div>
             </div>
         </div>
 

@@ -20,7 +20,7 @@ import {
 } from './sound.js';
 import { closeOnlineModal, createOnlineRoom, joinOnlineRoom, startOnlineGameHost, returnToOnlineLobbyHost, leaveOnlineRoomGuest, firebaseState } from './firebase.js';
 import { gameState, startGame, resetToStart, submitDraftChoice, reshuffleScoop, handlePassClick } from './gameLogic.js';
-import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory, openComboDetailModal, closeComboDetailModal, closePotRevealModal, toggleDraftComboRadar, openRelatedCombosModal, renderDraftComboRadar, updatePhase3ActionButtons } from './ui.js';
+import { openOnlineModal, openEncyclopediaModal, closeEncyclopediaModal, switchEncyclopediaTab, filterEncyclopediaCategory, openComboDetailModal, closeComboDetailModal, closePotRevealModal, toggleDraftComboRadar, openRelatedCombosModal, renderDraftComboRadar, updatePhase3ActionButtons, openTutorialModal, closeTutorialModal, switchTutorialStep, changeTutorialStep, openEncyclopediaFromTutorial } from './ui.js';
 import { initPot3D, disposePot3D, updateSoupColor, updateSoupColorFromGameState } from './pot3d.js';
 import { initDevColorMatrix, updateDevInspector, toggleDevPanel, minimizeDevPanel } from './devColorMatrix.js';
 
@@ -87,6 +87,11 @@ window.toggleDraftComboRadar = toggleDraftComboRadar;
 window.openRelatedCombosModal = openRelatedCombosModal;
 window.renderDraftComboRadar = renderDraftComboRadar;
 window.updatePhase3ActionButtons = updatePhase3ActionButtons;
+window.openTutorialModal = openTutorialModal;
+window.closeTutorialModal = closeTutorialModal;
+window.switchTutorialStep = switchTutorialStep;
+window.changeTutorialStep = changeTutorialStep;
+window.openEncyclopediaFromTutorial = openEncyclopediaFromTutorial;
 
 // 3D 鍋レンダリング関数のグローバル登録
 window.initPot3D = initPot3D;
@@ -114,6 +119,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const tutorialModal = document.getElementById('tutorial-modal');
+    if (tutorialModal) {
+        tutorialModal.addEventListener('click', (e) => {
+            if (e.target === tutorialModal) {
+                closeTutorialModal();
+            }
+        });
+    }
+
+    // Escape キーでモーダルを閉じる
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const tutModal = document.getElementById('tutorial-modal');
+            if (tutModal && tutModal.classList.contains('active')) {
+                closeTutorialModal();
+            }
+        }
+    });
     updateSoundButtonUI();
     updateSoundModalUI();
 });
